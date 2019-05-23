@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace WavVisualize
 {
@@ -10,7 +11,7 @@ namespace WavVisualize
         /// </summary>
         private static Complex w(int k, int N)
         {
-            if (k % N == 0) return (Complex) 1;
+            //if (k % N == 0) return (Complex) 1;
             double arg = -2 * Math.PI * k / N * (1 / 20000f);
             return new Complex(Math.Cos(arg), Math.Sin(arg));
         }
@@ -57,8 +58,8 @@ namespace WavVisualize
                     x_odd[i] = x[start + 2 * i + 1];
                 }
 
-                Complex[] X_even = fft(x_even, 0, x_even.Length);
-                Complex[] X_odd = fft(x_odd, 0, x_odd.Length);
+                Complex[] X_even = fft(x_even, 0, length / 2);
+                Complex[] X_odd = fft(x_odd, 0, length / 2);
                 X = new Complex[length];
                 for (int i = 0; i < length / 2; i++)
                 {

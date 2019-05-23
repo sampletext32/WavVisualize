@@ -38,8 +38,7 @@ namespace WavVisualize
             e.Graphics.FillRectangle(Brushes.Black, playerPositionNormalized * pictureBoxPlot.Width, 0, 1,
                 pictureBoxPlot.Height);
         }
-
-        private System.Media.SoundPlayer player;
+        
         private float playerPositionNormalized = 0f;
 
         private void timerUpdater_Tick(object sender, EventArgs e)
@@ -60,7 +59,7 @@ namespace WavVisualize
         float _currentVolumeL;
         float _currentVolumeR;
 
-        const int framesPerSecond = 60;
+        const int framesPerSecond = 30;
         const float secOffset = 0f;
         const float timePerFrame = 0.016f;
         const float volumeCutter = 0.01f;
@@ -72,7 +71,7 @@ namespace WavVisualize
 
         float spectrumBaselineY = 0;
 
-        int digitalBandsCount = 25;
+        int digitalBandsCount = 15;
         int totalSpectrumBands = 50;
         int totalSpectrumWidth = 10;
 
@@ -152,11 +151,16 @@ namespace WavVisualize
         private void DrawSpectrumOriginal(Graphics g, float[] spectrum)
         {
             int useLength = spectrum.Length / 2;
+            int zeros = 0;
             for (int i = 0; i < useLength; i++)
             {
                 float displayingHeight = Math.Abs(spectrumHeight * spectrum[i] * 2);
+                if (Math.Abs(spectrum[i]) < 0.000001f)
+                {
+                    zeros++;
+                }
                 g.FillRectangle(Brushes.Red,
-                    bandWidth + bandWidth + 50 + i*2,
+                    bandWidth + bandWidth + 50 + (i - zeros)*2,
                     spectrumBaselineY - displayingHeight,
                     2, displayingHeight);
             }
@@ -187,7 +191,7 @@ namespace WavVisualize
 
         private void FormMain_Load(object sender, EventArgs e)
         {
-            string filename = "clear.wav";
+            string filename = "divinorum.wav";
             currentWavFileData = WavFileData.ReadWav(filename);
 
             spectrumHeight = pictureBoxSpectrum.Height;
