@@ -29,10 +29,16 @@ namespace WavVisualize
 
         private void pictureBoxPlot_Paint(object sender, PaintEventArgs e)
         {
-            if (currentWavFileData?.WaveformBitmap != null)
+            if (currentWavFileData?.WaveformBitmaps != null)
             {
-                e.Graphics.DrawImage(currentWavFileData.WaveformBitmap, 0, 0, pictureBoxPlot.Width,
-                    pictureBoxPlot.Height);
+                int totalWidth = 0;
+                for (int i = 0; i < currentWavFileData.WaveformBitmaps.Length; i++)
+                {
+                    e.Graphics.DrawImage(currentWavFileData.WaveformBitmaps[i], totalWidth, 0,
+                        currentWavFileData.WaveformBitmaps[i].Width,
+                        currentWavFileData.WaveformBitmaps[i].Height);
+                    totalWidth += currentWavFileData.WaveformBitmaps[i].Width;
+                }
             }
 
             e.Graphics.FillRectangle(Brushes.Black, playerPositionNormalized * pictureBoxPlot.Width, 0, 1,
@@ -115,11 +121,13 @@ namespace WavVisualize
                 int digitalPartsL = (int) (_currentVolumeL * digitalBandsCount);
                 int digitalPartsR = (int) (_currentVolumeR * digitalBandsCount);
 
-                e.Graphics.DrawLine(Pens.LawnGreen, 0, spectrumBaselineY - _currentVolumeL * pictureBoxSpectrum.Height / 2, bandWidth,
+                e.Graphics.DrawLine(Pens.LawnGreen, 0,
+                    spectrumBaselineY - _currentVolumeL * pictureBoxSpectrum.Height / 2, bandWidth,
                     spectrumBaselineY - _currentVolumeL * pictureBoxSpectrum.Height / 2);
 
 
-                e.Graphics.DrawLine(Pens.Red, bandWidth, spectrumBaselineY - _currentVolumeR * pictureBoxSpectrum.Height / 2,
+                e.Graphics.DrawLine(Pens.Red, bandWidth,
+                    spectrumBaselineY - _currentVolumeR * pictureBoxSpectrum.Height / 2,
                     bandWidth + bandWidth,
                     spectrumBaselineY - _currentVolumeR * pictureBoxSpectrum.Height / 2);
 
@@ -147,11 +155,11 @@ namespace WavVisualize
         private void DrawSpectrumOriginal(Graphics g, float[] spectrum)
         {
             int useLength = spectrum.Length / 2;
-            float sbandWidth = (float)totalSpectrumWidth / useLength;
+            float sbandWidth = (float) totalSpectrumWidth / useLength;
             for (int i = 0; i < useLength; i++)
             {
                 float displayingHeight = Math.Abs(spectrumHeight * spectrum[i] * 2);
-                
+
                 g.FillRectangle(Brushes.Red,
                     bandWidth + bandWidth + 50 + i * sbandWidth,
                     spectrumBaselineY - displayingHeight,
@@ -185,7 +193,6 @@ namespace WavVisualize
 
         private void FormMain_Load(object sender, EventArgs e)
         {
-            
         }
 
         private void pictureBoxPlot_MouseDown(object sender, MouseEventArgs e)
@@ -213,10 +220,7 @@ namespace WavVisualize
 
                 spectrumBaselineY = pictureBoxSpectrum.Height;
 
-                Task.Run(() =>
-                {
-                    currentWavFileData.RecreateWaveformBitmap(pictureBoxPlot.Width, pictureBoxPlot.Height);
-                });
+                currentWavFileData.RecreateWaveformBitmap(pictureBoxPlot.Width, pictureBoxPlot.Height, 3);
 
                 wmp.currentMedia = wmp.newMedia(filename);
                 wmp.controls.play();

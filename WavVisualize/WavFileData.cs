@@ -3,6 +3,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace WavVisualize
 {
@@ -35,28 +36,36 @@ namespace WavVisualize
         public float[] LeftChannel;
         public float[] RightChannel;
 
-        public Bitmap WaveformBitmap;
+        public Bitmap[] WaveformBitmaps;
 
-        public void RecreateWaveformBitmap(int width, int height)
+        public void RecreateWaveformBitmap(int width, int height, int threads = 1)
         {
-            WaveformBitmap = new Bitmap(width, height);
             float yScale = 0.8f;
-            using (Graphics g = Graphics.FromImage(WaveformBitmap))
+            float yCenter = height / 2f;
+            WaveformBitmaps = new Bitmap[threads];
+            for (int b = 0; b < threads; b++)
             {
-                float yCenter = height / 2f;
-                if (LeftChannel != null && RightChannel != null)
+                WaveformBitmaps[b] = new Bitmap(width / threads, height);
+                int t = b;
+                Task.Run(() =>
                 {
-                    for (int i = 0; i < LeftChannel.Length; i++)
+                    using (Graphics g = Graphics.FromImage(WaveformBitmaps[t]))
                     {
-                        float xPosition = (float) i / LeftChannel.Length * width;
-                        float valueL = LeftChannel[i] * (height / 2f) * yScale;
-                        float valueR = RightChannel[i] * (height / 2f) * yScale;
+                        if (LeftChannel != null && RightChannel != null)
+                        {
+                            for (int i = 0; i < SamplesCount / threads; i++)
+                            {
+                                float xPosition = (float) i / LeftChannel.Length * width;
+                                float valueL = LeftChannel[t * SamplesCount / threads + i] * (height / 2f) * yScale;
+                                float valueR = RightChannel[t * SamplesCount / threads + i] * (height / 2f) * yScale;
 
-                        g.FillRectangle(Brushes.LawnGreen, xPosition, yCenter - valueL, 1, valueL);
+                                g.FillRectangle(Brushes.LawnGreen, xPosition, yCenter - valueL, 1, valueL);
 
-                        g.FillRectangle(Brushes.Red, xPosition, yCenter, 1, valueR);
+                                g.FillRectangle(Brushes.Red, xPosition, yCenter, 1, valueR);
+                            }
+                        }
                     }
-                }
+                });
             }
         }
 
@@ -72,9 +81,10 @@ namespace WavVisualize
 
         public float[] GetSpectrumForPosition(float position)
         {
-            float[] spectrum = MyFFT.FFT(LeftChannel, (int)(SamplesCount * position), 1024);
+            float[] spectrum = MyFFT.FFT(LeftChannel, (int) (SamplesCount * position), 1024);
             return spectrum;
         }
+
         public static WavFileData ReadWav(string filename)
         {
             WavFileData wavFileData = new WavFileData();
