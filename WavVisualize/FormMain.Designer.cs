@@ -72,6 +72,7 @@
             this.Name = "FormMain";
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.FormMain_Load);
+            this.Shown += new System.EventHandler(this.FormMain_Shown);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxPlot)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxSpectrum)).EndInit();
             this.ResumeLayout(false);

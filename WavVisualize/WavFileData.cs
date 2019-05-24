@@ -60,58 +60,21 @@ namespace WavVisualize
             }
         }
 
-
-        /// <summary>
-        /// Provides the Discrete Fourier Transform for a real-valued input signal
-        /// </summary>
-        /// <param name="inputReal">the signal to transform</param>
-        /// <param name="partials">the maximum number of partials to calculate. If no value is given it defaults to input.length / 2</param>
-        /// <returns>The real and imaginary part of each partial</returns>
-        public static float[] DFT(float[] inputReal, int start, int end)
+        public float GetVolumeL(float position)
         {
-            int len = end - start;
-            float fdtCoef = (float) (2 * Math.PI / len);
-            float[] cosDFT = new float[len];
-            //float[] sinDFT = outputImag;
-
-            int[] ints = new int[len];
-            for (var i = 0; i < ints.Length; i++)
-            {
-                ints[i] = i;
-            }
-
-            ints.AsParallel().WithDegreeOfParallelism(Environment.ProcessorCount * 8).ForAll(v =>
-            {
-                float cos = 0.0f;
-                //float sin = 0.0f;
-
-                for (int i = 0; i < len; i++)
-                {
-                    cos += (float) (inputReal[start + i] * Math.Cos(fdtCoef * v * i));
-                    //sin -= (float)(inputReal[i] * Math.Sin(2 * Math.PI * n / len * i));
-                }
-
-                cosDFT[v] = cos;
-            });
-
-            //for (int n = 0; n < len; n++)
-            //{
-            //    float cos = 0.0f;
-            //    //float sin = 0.0f;
-            //
-            //    for (int i = 0; i < len; i++)
-            //    {
-            //        cos += (float) (inputReal[start + i] * Math.Cos(fdtCoef * n * i));
-            //        //sin -= (float)(inputReal[i] * Math.Sin(2 * Math.PI * n / len * i));
-            //    }
-            //
-            //    cosDFT[n] = cos;
-            //    //sinDFT[n] = sin;
-            //}
-
-            return cosDFT;
+            return LeftChannel[(int) (SamplesCount * position)];
         }
 
+        public float GetVolumeR(float position)
+        {
+            return LeftChannel[(int) (SamplesCount * position)];
+        }
+
+        public float[] GetSpectrumForPosition(float position)
+        {
+            float[] spectrum = MyFFT.FFT(LeftChannel, (int)(SamplesCount * position), 1024);
+            return spectrum;
+        }
         public static WavFileData ReadWav(string filename)
         {
             WavFileData wavFileData = new WavFileData();

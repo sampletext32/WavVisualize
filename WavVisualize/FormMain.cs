@@ -29,7 +29,7 @@ namespace WavVisualize
 
         private void pictureBoxPlot_Paint(object sender, PaintEventArgs e)
         {
-            if (currentWavFileData.WaveformBitmap != null)
+            if (currentWavFileData?.WaveformBitmap != null)
             {
                 e.Graphics.DrawImage(currentWavFileData.WaveformBitmap, 0, 0, pictureBoxPlot.Width,
                     pictureBoxPlot.Height);
@@ -38,7 +38,7 @@ namespace WavVisualize
             e.Graphics.FillRectangle(Brushes.Black, playerPositionNormalized * pictureBoxPlot.Width, 0, 1,
                 pictureBoxPlot.Height);
         }
-        
+
         private float playerPositionNormalized = 0f;
 
         private void timerUpdater_Tick(object sender, EventArgs e)
@@ -60,9 +60,6 @@ namespace WavVisualize
         float _currentVolumeR;
 
         const int framesPerSecond = 30;
-        const float secOffset = 0f;
-        const float timePerFrame = 0.016f;
-        const float volumeCutter = 0.01f;
         const float easingCoef = 0.9f;
         const int bandWidth = 20;
         const int digitalBandHeight = 10;
@@ -72,7 +69,7 @@ namespace WavVisualize
         float spectrumBaselineY = 0;
 
         int digitalBandsCount = 15;
-        int totalSpectrumBands = 50;
+        int totalSpectrumBands = 100;
         int totalSpectrumWidth = 10;
 
         private void GetMaxVolume(float[] left, float[] right, ref float lMax, ref float rMax, int start, int length)
@@ -95,8 +92,7 @@ namespace WavVisualize
         {
             if (wmp.playState == WMPPlayState.wmppsPlaying)
             {
-                int position = (int) (playerPositionNormalized * currentWavFileData.SamplesCount +
-                                      timePerFrame * secOffset * currentWavFileData.SamplesCount);
+                int position = (int) (playerPositionNormalized * currentWavFileData.SamplesCount);
 
                 int pieceLength = currentWavFileData.SampleRate / framesPerSecond;
                 if (position < pieceLength / 2) return;
@@ -119,13 +115,13 @@ namespace WavVisualize
                 int digitalPartsL = (int) (_currentVolumeL * digitalBandsCount);
                 int digitalPartsR = (int) (_currentVolumeR * digitalBandsCount);
 
-                //e.Graphics.DrawLine(Pens.LawnGreen, 0, yCenter - currentVolumeL * pictureBoxSpectrum.Height / 2, bandWidth,
-                //    spectrumBaselineY - currentVolumeL * pictureBoxSpectrum.Height / 2);
-                //
-                //
-                //e.Graphics.DrawLine(Pens.Red, bandWidth, yCenter - currentVolumeR * pictureBoxSpectrum.Height / 2,
-                //    bandWidth + bandWidth,
-                //    spectrumBaselineY - currentVolumeR * pictureBoxSpectrum.Height / 2);
+                e.Graphics.DrawLine(Pens.LawnGreen, 0, spectrumBaselineY - _currentVolumeL * pictureBoxSpectrum.Height / 2, bandWidth,
+                    spectrumBaselineY - _currentVolumeL * pictureBoxSpectrum.Height / 2);
+
+
+                e.Graphics.DrawLine(Pens.Red, bandWidth, spectrumBaselineY - _currentVolumeR * pictureBoxSpectrum.Height / 2,
+                    bandWidth + bandWidth,
+                    spectrumBaselineY - _currentVolumeR * pictureBoxSpectrum.Height / 2);
 
                 for (int i = 1; i < digitalPartsL + 1; i++)
                 {
@@ -141,28 +137,25 @@ namespace WavVisualize
                         digitalBandHeight);
                 }
 
-                float[] spectrum = MyFFT.FFT(currentWavFileData.LeftChannel, start, length);
+                float[] spectrum = currentWavFileData.GetSpectrumForPosition(playerPositionNormalized);
 
-                //DrawSpectrumBeauty(e.Graphics, spectrum);
-                DrawSpectrumOriginal(e.Graphics, spectrum);
+                DrawSpectrumBeauty(e.Graphics, spectrum);
+                //DrawSpectrumOriginal(e.Graphics, spectrum);
             }
         }
 
         private void DrawSpectrumOriginal(Graphics g, float[] spectrum)
         {
             int useLength = spectrum.Length / 2;
-            int zeros = 0;
+            float sbandWidth = (float)totalSpectrumWidth / useLength;
             for (int i = 0; i < useLength; i++)
             {
                 float displayingHeight = Math.Abs(spectrumHeight * spectrum[i] * 2);
-                if (Math.Abs(spectrum[i]) < 0.000001f)
-                {
-                    zeros++;
-                }
+                
                 g.FillRectangle(Brushes.Red,
-                    bandWidth + bandWidth + 50 + (i - zeros)*2,
+                    bandWidth + bandWidth + 50 + i * sbandWidth,
                     spectrumBaselineY - displayingHeight,
-                    2, displayingHeight);
+                    sbandWidth, displayingHeight);
             }
         }
 
@@ -170,7 +163,7 @@ namespace WavVisualize
         {
             int useLength = spectrum.Length / 2;
             int valuesPerBand = (int) ((float) useLength / totalSpectrumBands);
-            float bandWidth = (float)totalSpectrumWidth / totalSpectrumBands;
+            float bandWidth = (float) totalSpectrumWidth / totalSpectrumBands;
 
             for (int i = 0; i < totalSpectrumBands; i++)
             {
@@ -180,6 +173,7 @@ namespace WavVisualize
                     //if (spectrum[i * valuesPerBand + j] > maxVal) maxVal = spectrum[i * valuesPerBand + j];
                     sumVal += spectrum[i * valuesPerBand + j];
                 }
+
                 sumVal /= valuesPerBand;
                 sumVal *= 10f;
                 g.FillRectangle(Brushes.Red,
@@ -191,29 +185,51 @@ namespace WavVisualize
 
         private void FormMain_Load(object sender, EventArgs e)
         {
-            string filename = "divinorum.wav";
-            currentWavFileData = WavFileData.ReadWav(filename);
-
-            spectrumHeight = pictureBoxSpectrum.Height;
-            totalSpectrumWidth = pictureBoxSpectrum.Width / 3;
-
-            spectrumBaselineY = pictureBoxSpectrum.Height;
-
-            Task.Run(() => { currentWavFileData.RecreateWaveformBitmap(pictureBoxPlot.Width, pictureBoxPlot.Height); });
-
-            wmp.controls.stop();
-            wmp.controls.currentPosition = 0;
-            wmp.URL = filename;
-            wmp.controls.play();
-            digitalBandsCount = pictureBoxSpectrum.Height / (digitalBandHeight + distanceBetweenBands);
-
-            timerUpdater.Start();
+            
         }
 
         private void pictureBoxPlot_MouseDown(object sender, MouseEventArgs e)
         {
             wmp.controls.currentPosition = ((float) e.X / pictureBoxSpectrum.Width) * wmp.currentMedia.duration;
             wmp.controls.play();
+        }
+
+        private void FormMain_Shown(object sender, EventArgs e)
+        {
+            OpenFileDialog opf = new OpenFileDialog();
+            opf.Filter = "Файлы WAV (*.wav)|*.wav";
+            if (opf.ShowDialog() == DialogResult.OK)
+            {
+                //string filename = "clear.wav";
+                //string filename = "elements.wav";
+                //string filename = "divinorum.wav";
+                //string filename = "energize.wav";
+                string filename = opf.FileName;
+
+                currentWavFileData = WavFileData.ReadWav(filename);
+
+                spectrumHeight = pictureBoxSpectrum.Height;
+                totalSpectrumWidth = pictureBoxSpectrum.Width / 2;
+
+                spectrumBaselineY = pictureBoxSpectrum.Height;
+
+                Task.Run(() =>
+                {
+                    currentWavFileData.RecreateWaveformBitmap(pictureBoxPlot.Width, pictureBoxPlot.Height);
+                });
+
+                wmp.currentMedia = wmp.newMedia(filename);
+                wmp.controls.play();
+                digitalBandsCount = pictureBoxSpectrum.Height / (digitalBandHeight + distanceBetweenBands);
+
+                timerUpdater.Start();
+
+                this.BringToFront();
+            }
+            else
+            {
+                Application.Exit();
+            }
         }
     }
 }

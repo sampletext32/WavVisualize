@@ -12,7 +12,7 @@ namespace WavVisualize
         private static Complex w(int k, int N)
         {
             //if (k % N == 0) return (Complex) 1;
-            double arg = -2 * Math.PI * k / N * (1 / 20000f);
+            double arg = -2 * Math.PI * k / N * (1 / 16384f);
             return new Complex(Math.Cos(arg), Math.Sin(arg));
         }
 
@@ -89,5 +89,7 @@ namespace WavVisualize
 
             return X_n;
         }
+
+
     }
 }
