@@ -3,6 +3,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace WavVisualize
@@ -38,14 +39,24 @@ namespace WavVisualize
 
         public Bitmap[] WaveformBitmaps;
 
-        public void RecreateWaveformBitmap(int width, int height, int threads = 1)
+        public void RecreateWaveformBitmapSequentially(int width, int height, int skip = 0, int threads = 1)
         {
+            Color greenColor = Color.FromArgb(255 / 100, Color.LawnGreen);
+            Brush[] greenBrushes = new Brush[threads];
+
+            Color redColor = Color.FromArgb(255 / 100, Color.Red);
+            Brush[] redBrushes = new Brush[threads];
+
             float yScale = 0.8f;
             float yCenter = height / 2f;
             WaveformBitmaps = new Bitmap[threads];
             for (int b = 0; b < threads; b++)
             {
                 WaveformBitmaps[b] = new Bitmap(width / threads, height);
+
+                greenBrushes[b] = new SolidBrush(greenColor);
+                redBrushes[b] = new SolidBrush(redColor);
+
                 int t = b;
                 Task.Run(() =>
                 {
@@ -53,19 +64,60 @@ namespace WavVisualize
                     {
                         if (LeftChannel != null && RightChannel != null)
                         {
-                            for (int i = 0; i < SamplesCount / threads; i++)
+                            for (int i = 0; i < SamplesCount / threads; i += (1 + skip))
                             {
                                 float xPosition = (float) i / LeftChannel.Length * width;
                                 float valueL = LeftChannel[t * SamplesCount / threads + i] * (height / 2f) * yScale;
                                 float valueR = RightChannel[t * SamplesCount / threads + i] * (height / 2f) * yScale;
 
-                                g.FillRectangle(Brushes.LawnGreen, xPosition, yCenter - valueL, 1, valueL);
+                                g.FillRectangle(greenBrushes[t], xPosition, yCenter - valueL, 1, valueL);
 
-                                g.FillRectangle(Brushes.Red, xPosition, yCenter, 1, valueR);
+                                g.FillRectangle(redBrushes[t], xPosition, yCenter, 1, valueR);
                             }
                         }
                     }
                 });
+            }
+        }
+
+        public void RecreateWaveformBitmapParallel(int width, int height, int skip = 0, int threads = 1)
+        {
+            Color greenColor = Color.FromArgb(255 / 10, Color.LawnGreen);
+            Brush[] greenBrushes = new Brush[threads];
+
+            Color redColor = Color.FromArgb(255 / 10, Color.Red);
+            Brush[] redBrushes = new Brush[threads];
+
+            float yScale = 0.8f;
+            float yCenter = height / 2f;
+            WaveformBitmaps = new Bitmap[threads];
+            for (int b = 0; b < threads; b++)
+            {
+                WaveformBitmaps[b] = new Bitmap(width, height);
+                greenBrushes[b] = new SolidBrush(greenColor);
+                redBrushes[b] = new SolidBrush(redColor);
+                int t = b;
+                Task.Run(() =>
+                {
+                    using (Graphics g = Graphics.FromImage(WaveformBitmaps[t]))
+                    {
+                        if (LeftChannel != null && RightChannel != null)
+                        {
+                            for (int i = t; i < SamplesCount; i += threads * (1 + skip))
+                            {
+                                float xPosition = (float) i / SamplesCount * width;
+                                float valueL = LeftChannel[i] * (height / 2f) * yScale;
+                                float valueR = RightChannel[i] * (height / 2f) *
+                                               yScale;
+
+                                g.FillRectangle(greenBrushes[t], xPosition, yCenter - valueL, 1, valueL);
+
+                                g.FillRectangle(redBrushes[t], xPosition, yCenter, 1, valueR);
+                            }
+                        }
+                    }
+                });
+                Task.Delay(3000);
             }
         }
 

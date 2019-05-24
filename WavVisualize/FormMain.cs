@@ -31,13 +31,25 @@ namespace WavVisualize
         {
             if (currentWavFileData?.WaveformBitmaps != null)
             {
-                int totalWidth = 0;
-                for (int i = 0; i < currentWavFileData.WaveformBitmaps.Length; i++)
+                float totalWidth = 0;
+                if (createWaveformSequentially)
                 {
-                    e.Graphics.DrawImage(currentWavFileData.WaveformBitmaps[i], totalWidth, 0,
-                        currentWavFileData.WaveformBitmaps[i].Width,
-                        currentWavFileData.WaveformBitmaps[i].Height);
-                    totalWidth += currentWavFileData.WaveformBitmaps[i].Width;
+                    for (int i = 0; i < threadsForWaveformCreation; i++)
+                    {
+                        e.Graphics.DrawImage(currentWavFileData.WaveformBitmaps[i], totalWidth, 0,
+                            (float)pictureBoxPlot.Width / threadsForWaveformCreation,
+                            currentWavFileData.WaveformBitmaps[i].Height);
+                        totalWidth += (float)pictureBoxPlot.Width / threadsForWaveformCreation;
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < threadsForWaveformCreation; i++)
+                    {
+                        e.Graphics.DrawImage(currentWavFileData.WaveformBitmaps[i], 0, 0,
+                            pictureBoxPlot.Width,
+                            pictureBoxPlot.Height);
+                    }
                 }
             }
 
@@ -64,6 +76,10 @@ namespace WavVisualize
 
         float _currentVolumeL;
         float _currentVolumeR;
+
+        private bool createWaveformSequentially = false;
+        int threadsForWaveformCreation = 2;
+        int waveformSkipSampleRate = 2;
 
         const int framesPerSecond = 30;
         const float easingCoef = 0.9f;
@@ -122,14 +138,14 @@ namespace WavVisualize
                 int digitalPartsR = (int) (_currentVolumeR * digitalBandsCount);
 
                 e.Graphics.DrawLine(Pens.LawnGreen, 0,
-                    spectrumBaselineY - _currentVolumeL * pictureBoxSpectrum.Height / 2, bandWidth,
-                    spectrumBaselineY - _currentVolumeL * pictureBoxSpectrum.Height / 2);
+                    spectrumBaselineY - _currentVolumeL * spectrumHeight, bandWidth,
+                    spectrumBaselineY - _currentVolumeL * spectrumHeight);
 
 
                 e.Graphics.DrawLine(Pens.Red, bandWidth,
-                    spectrumBaselineY - _currentVolumeR * pictureBoxSpectrum.Height / 2,
+                    spectrumBaselineY - _currentVolumeR * spectrumHeight,
                     bandWidth + bandWidth,
-                    spectrumBaselineY - _currentVolumeR * pictureBoxSpectrum.Height / 2);
+                    spectrumBaselineY - _currentVolumeR * spectrumHeight);
 
                 for (int i = 1; i < digitalPartsL + 1; i++)
                 {
@@ -171,7 +187,7 @@ namespace WavVisualize
         {
             int useLength = spectrum.Length / 2;
             int valuesPerBand = (int) ((float) useLength / totalSpectrumBands);
-            float bandWidth = (float) totalSpectrumWidth / totalSpectrumBands;
+            float sbandWidth = (float) totalSpectrumWidth / totalSpectrumBands;
 
             for (int i = 0; i < totalSpectrumBands; i++)
             {
@@ -185,9 +201,9 @@ namespace WavVisualize
                 sumVal /= valuesPerBand;
                 sumVal *= 10f;
                 g.FillRectangle(Brushes.Red,
-                    bandWidth + bandWidth + 50 + bandWidth * i,
+                    bandWidth + bandWidth + 50 + sbandWidth * i,
                     spectrumBaselineY - Math.Abs(spectrumHeight * sumVal),
-                    bandWidth, Math.Abs(spectrumHeight * sumVal));
+                    sbandWidth, Math.Abs(spectrumHeight * sumVal));
             }
         }
 
@@ -220,7 +236,24 @@ namespace WavVisualize
 
                 spectrumBaselineY = pictureBoxSpectrum.Height;
 
-                currentWavFileData.RecreateWaveformBitmap(pictureBoxPlot.Width, pictureBoxPlot.Height, 3);
+                if (createWaveformSequentially)
+                {
+                    Task.Run(() =>
+                    {
+                        currentWavFileData.RecreateWaveformBitmapSequentially(
+                            pictureBoxPlot.Width, pictureBoxPlot.Height, waveformSkipSampleRate, threadsForWaveformCreation);
+                    });
+                }
+                else
+                {
+                    Task.Run(() =>
+                    {
+                        currentWavFileData.RecreateWaveformBitmapParallel(
+                            pictureBoxPlot.Width, pictureBoxPlot.Height, waveformSkipSampleRate, threadsForWaveformCreation);
+                    });
+                }
+
+                
 
                 wmp.currentMedia = wmp.newMedia(filename);
                 wmp.controls.play();
