@@ -41,11 +41,13 @@
             this.pictureBoxPlot.BackColor = System.Drawing.SystemColors.ButtonHighlight;
             this.pictureBoxPlot.Location = new System.Drawing.Point(0, 0);
             this.pictureBoxPlot.Name = "pictureBoxPlot";
-            this.pictureBoxPlot.Size = new System.Drawing.Size(1776, 128);
+            this.pictureBoxPlot.Size = new System.Drawing.Size(790, 128);
             this.pictureBoxPlot.TabIndex = 0;
             this.pictureBoxPlot.TabStop = false;
             this.pictureBoxPlot.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBoxPlot_Paint);
             this.pictureBoxPlot.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBoxPlot_MouseDown);
+            this.pictureBoxPlot.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pictureBoxPlot_MouseMove);
+            this.pictureBoxPlot.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pictureBoxPlot_MouseUp);
             // 
             // timerUpdater
             // 
@@ -57,7 +59,7 @@
             this.pictureBoxSpectrum.BackColor = System.Drawing.SystemColors.ButtonHighlight;
             this.pictureBoxSpectrum.Location = new System.Drawing.Point(0, 152);
             this.pictureBoxSpectrum.Name = "pictureBoxSpectrum";
-            this.pictureBoxSpectrum.Size = new System.Drawing.Size(1776, 280);
+            this.pictureBoxSpectrum.Size = new System.Drawing.Size(1264, 280);
             this.pictureBoxSpectrum.TabIndex = 1;
             this.pictureBoxSpectrum.TabStop = false;
             this.pictureBoxSpectrum.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBoxSpectrum_Paint);

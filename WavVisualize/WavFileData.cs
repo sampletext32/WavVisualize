@@ -44,7 +44,7 @@ namespace WavVisualize
             Color greenColor = Color.FromArgb(255 / 100, Color.LawnGreen);
             Brush[] greenBrushes = new Brush[threads];
 
-            Color redColor = Color.FromArgb(255 / 100, Color.Red);
+            Color redColor = Color.FromArgb(255 / 100, Color.OrangeRed);
             Brush[] redBrushes = new Brush[threads];
 
             float yScale = 0.8f;
@@ -66,7 +66,7 @@ namespace WavVisualize
                         {
                             for (int i = 0; i < SamplesCount / threads; i += (1 + skip))
                             {
-                                float xPosition = (float) i / LeftChannel.Length * width;
+                                float xPosition = (float) i / SamplesCount * width;
                                 float valueL = LeftChannel[t * SamplesCount / threads + i] * (height / 2f) * yScale;
                                 float valueR = RightChannel[t * SamplesCount / threads + i] * (height / 2f) * yScale;
 
@@ -85,7 +85,7 @@ namespace WavVisualize
             Color greenColor = Color.FromArgb(255 / 10, Color.LawnGreen);
             Brush[] greenBrushes = new Brush[threads];
 
-            Color redColor = Color.FromArgb(255 / 10, Color.Red);
+            Color redColor = Color.FromArgb(255 / 10, Color.OrangeRed);
             Brush[] redBrushes = new Brush[threads];
 
             float yScale = 0.8f;
@@ -117,7 +117,6 @@ namespace WavVisualize
                         }
                     }
                 });
-                Task.Delay(3000);
             }
         }
 
@@ -131,20 +130,20 @@ namespace WavVisualize
             return LeftChannel[(int) (SamplesCount * position)];
         }
 
-        public float[] GetSpectrumForPosition(float position)
+        public float[] GetSpectrumForPosition(float position, int spectrumUseSamples)
         {
-            float[] spectrum = MyFFT.FFT(LeftChannel, (int) (SamplesCount * position), 1024);
+            float[] spectrum = MyFFT.FFT(LeftChannel, (int) (SamplesCount * position), spectrumUseSamples);
             return spectrum;
         }
 
-        public static WavFileData ReadWav(string filename)
+        public static WavFileData ReadWav(Stream stream)
         {
             WavFileData wavFileData = new WavFileData();
             try
             {
-                using (FileStream fs = File.Open(filename, FileMode.Open))
+                using (stream)
                 {
-                    BinaryReader reader = new BinaryReader(fs);
+                    BinaryReader reader = new BinaryReader(stream);
 
                     // chunk 0
                     wavFileData.ChunkId = reader.ReadInt32();
@@ -220,10 +219,24 @@ namespace WavVisualize
                     }
                 }
             }
-            catch
+            catch(Exception ex)
             {
                 return null;
             }
+
+            return wavFileData;
+        }
+
+        public static WavFileData ReadWav(byte[] stream)
+        {
+            WavFileData wavFileData = ReadWav(new MemoryStream(stream));
+
+            return wavFileData;
+        }
+
+        public static WavFileData ReadWav(string filename)
+        {
+            WavFileData wavFileData = ReadWav(File.OpenRead(filename));
 
             return wavFileData;
         }

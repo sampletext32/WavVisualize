@@ -1,18 +1,16 @@
 ﻿using System;
-using System.Numerics;
-using System.Runtime.CompilerServices;
 
 namespace WavVisualize
 {
     public class MyFFT
     {
         /// <summary>
-        /// Вычисление поворачивающего модуля e^(-i*2*PI*k/N * f)
+        /// Вычисление поворачивающего модуля e^(-i*2*PI*x/N)
         /// </summary>
-        private static Complex w(int k, int N)
+        private static Complex w(int x, int n)
         {
-            //if (k % N == 0) return (Complex) 1;
-            double arg = -2 * Math.PI * k / N * (1 / 16384f);
+            if (x % n == 0) return (Complex) 1;
+            double arg = -2 * Math.PI * x / n * (1 / 512f);
             return new Complex(Math.Cos(arg), Math.Sin(arg));
         }
 
@@ -28,7 +26,8 @@ namespace WavVisualize
             float[] retVal = new float[length];
             for (int i = 0; i < length; i++)
             {
-                retVal[i] = (float) complexValues[i].Re / length;
+                retVal[i] = (float) Math.Sqrt(complexValues[i].Re * complexValues[i].Re +
+                                              complexValues[i].Im * complexValues[i].Im) / length / 2;
             }
 
             return retVal;
@@ -89,7 +88,5 @@ namespace WavVisualize
 
             return X_n;
         }
-
-
     }
 }
