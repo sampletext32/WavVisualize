@@ -33,10 +33,10 @@ namespace WavVisualize
         public readonly bool CreateWaveformSequentially = true;
 
         //количество потоков для создания волны (-1, чтобы главный поток рисовал без зависаний)
-        public readonly int ThreadsForWaveformCreation = Environment.ProcessorCount - 1;
+        public readonly int ThreadsForWaveformCreation = Environment.ProcessorCount / 2 - 1;
 
         //частота пропуска сэмплов при создании волны
-        public readonly int WaveformSkipSampleRate = 10;
+        public readonly int WaveformSkipSampleRate = 0;
 
         //сколько раз в секунду обновляется состояние плеера
         public readonly int UpdateRate = 60;
@@ -122,8 +122,8 @@ namespace WavVisualize
             _playerPositionNormalized = (float) (currentPosition / duration);
 
             //вызываем перерисовку волны и спектра
-            pictureBoxPlot.Invalidate();
-            pictureBoxSpectrum.Invalidate();
+            pictureBoxPlot.Refresh();
+            pictureBoxSpectrum.Refresh();
         }
 
         //функция возвращает максимальную громкость на каждом канале
@@ -341,7 +341,7 @@ namespace WavVisualize
             //OpenFile();
         }
 
-        void OpenFile()
+        async Task OpenFile()
         {
             OpenFileDialog opf = new OpenFileDialog();
             //opf.Filter = "Файлы WAV (*.wav)|*.wav";
@@ -350,39 +350,39 @@ namespace WavVisualize
             {
                 string filename = opf.FileName;
 
+                labelStatus.Text = "Opening";
+                Application.DoEvents();
+
+
+                await Task.Run(() =>
+                {
+                    //открываем файл
+                    var reader = new Mp3FileReader(filename);
+
+                    MemoryStream ms = new MemoryStream();
+
+                    Invoke(new Action(() => { labelStatus.Text = "Converting To Wav"; }));
+                    
+                    //создаём PCM поток
+                    var waveStream = WaveFormatConversionStream.CreatePcmStream(reader);
+
+                    //переписываем MP3 в Wav файл в потоке
+                    WaveFileWriter.WriteWavFileToStream(ms, waveStream);
+
+                    Invoke(new Action(() => { labelStatus.Text = "Writing Wav"; }));
+
+                    //возвращаем поток в начало
+                    ms.Seek(0, SeekOrigin.Begin);
+
+                    Invoke(new Action(() => { labelStatus.Text = "Reading Wav"; }));
+
+                    //читаем Wav файл
+                    _currentWavFileData = WavFileData.ReadWav(ms);
+                });
+
+                Invoke(new Action(() => { labelStatus.Text = "Playing"; }));
+
                 this.Text = opf.SafeFileName;
-
-                labelElapsed.Text = "Opening";
-                Application.DoEvents();
-
-                //открываем файл
-                var reader = new Mp3FileReader(filename);
-
-                MemoryStream ms = new MemoryStream();
-
-                labelElapsed.Text = "Converting To Wav";
-                Application.DoEvents();
-
-                //создаём PCM поток
-                var waveStream = WaveFormatConversionStream.CreatePcmStream(reader);
-
-                //переписываем MP3 в Wav файл в потоке
-                WaveFileWriter.WriteWavFileToStream(ms, waveStream);
-
-                labelElapsed.Text = "Writing Wav";
-                Application.DoEvents();
-
-                //возвращаем поток в начало
-                ms.Seek(0, SeekOrigin.Begin);
-
-                labelElapsed.Text = "Reading Wav";
-                Application.DoEvents();
-
-                //читаем Wav файл
-                _currentWavFileData = WavFileData.ReadWav(ms);
-
-                labelElapsed.Text = "Ready";
-                Application.DoEvents();
 
                 //высота спектра = высоте окна
                 SpectrumHeight = pictureBoxSpectrum.Height;
@@ -471,9 +471,9 @@ namespace WavVisualize
             CurrentSpectrum = new float[SpectrumUseSamples];
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private async void button1_Click(object sender, EventArgs e)
         {
-            OpenFile();
+            await OpenFile();
         }
 
         private void button2_Click(object sender, EventArgs e)

@@ -132,8 +132,12 @@ namespace WavVisualize
                     }
                     NotifyThreadFinished();
                 });
-                _threads[threadId] = thread;
-                thread.Start();
+                _threads[t] = thread;
+            }
+
+            for (int threadId = 0; threadId < _threadsForWaveformCreation; threadId++)
+            {
+                _threads[threadId].Start();
             }
         }
 
@@ -196,8 +200,12 @@ namespace WavVisualize
                     }
                     NotifyThreadFinished();
                 });
-                _threads[threadId] = thread;
-                thread.Start();
+                _threads[t] = thread;
+            }
+
+            for (int threadId = 0; threadId < _threadsForWaveformCreation; threadId++)
+            {
+                _threads[threadId].Start();
             }
         }
 
