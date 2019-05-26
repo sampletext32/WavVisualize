@@ -10,6 +10,37 @@ namespace WavVisualize
         //Нужно ли производить параллельные вычисления
         private static bool parallel = false;
 
+        public static bool useCache = true;
+
+        //private static Dictionary<int, Complex[]> _cacheLevels = new Dictionary<int, Complex[]>();
+
+        private static Complex[][] _cacheLevels;
+
+        public static void InitAllCache(int samples)
+        {
+            int base2 = (int)Math.Log(samples, 2);
+            _cacheLevels = new Complex[base2 + 1][];
+            while (samples > 3)
+            {
+                InitCache(samples);
+
+                samples /= 2;
+            }
+        }
+
+        public static void InitCache(int samples)
+        {
+            int base2 = (int) Math.Log(samples, 2);
+
+            Complex[] cache = new Complex[samples];
+            for (int i = 0; i < samples; i++)
+            {
+                cache[i] = w(i, samples);
+            }
+
+            _cacheLevels[base2] = cache;
+        }
+
         /// <summary>
         /// <para>Вычисление поворачивающего модуля e^(-i*2*PI*x/n)</para>
         /// <para>x - индекс сигнала</para>
@@ -20,6 +51,12 @@ namespace WavVisualize
             if (x % n == 0) return (Complex) 1;
             double arg = -2 * Math.PI * x / n;
             return new Complex(Math.Cos(arg), Math.Sin(arg)); //преобразование комплексного экспонентного вида в обычный
+        }
+
+        private static Complex cachedW(int x, int n)
+        {
+            int base2 = (int)Math.Log(n, 2);
+            return _cacheLevels[base2][x];
         }
 
         //Функция производит преобразование Фурье над массивом сигналов values начиная со [start] и используя length сигналов
@@ -97,7 +134,7 @@ namespace WavVisualize
 
                 for (int i = 0; i < length / 2; i++)
                 {
-                    Complex rotationAbsMultipliedByValue = w(i, length) * X_odd[i];
+                    Complex rotationAbsMultipliedByValue = (useCache ? cachedW(i, length) : w(i, length)) * X_odd[i];
                     X[i] = X_even[i] + rotationAbsMultipliedByValue;
                     X[i + length / 2] = X_even[i] - rotationAbsMultipliedByValue;
                 }

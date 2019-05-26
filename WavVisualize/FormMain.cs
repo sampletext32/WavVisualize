@@ -102,6 +102,8 @@ namespace WavVisualize
                 pictureBoxPlot.Height - 5, 20, 10);
         }
 
+        private int fps = 0;
+
         //шаг обновления
         private void timerUpdater_Tick(object sender, EventArgs e)
         {
@@ -124,6 +126,7 @@ namespace WavVisualize
             //вызываем перерисовку волны и спектра
             pictureBoxPlot.Refresh();
             pictureBoxSpectrum.Refresh();
+            fps++;
         }
 
         //функция возвращает максимальную громкость на каждом канале
@@ -338,6 +341,7 @@ namespace WavVisualize
             //выводим коэффициенты на форму
             numericUpDown1.Value = (decimal) (EasingCoef * 10);
             numericUpDown2.Value = (decimal) (Math.Log(SpectrumUseSamples, 2));
+            checkBox1.Checked = MyFFT.useCache;
             //OpenFile();
         }
 
@@ -402,6 +406,8 @@ namespace WavVisualize
                     WaveformSkipSampleRate);
 
                 Task.Run(() => _waveformProvider.StartRecreation());
+
+                MyFFT.InitAllCache(SpectrumUseSamples);
 
                 //просчитываем спектр на самом первом участке, это нужно для инициализации массива
                 CurrentSpectrum = _currentWavFileData.GetSpectrumForPosition(0, SpectrumUseSamples);
@@ -469,6 +475,8 @@ namespace WavVisualize
 
             //создаём массив спектра заново, т.к. во время отрисовки массив не должен меняться
             CurrentSpectrum = new float[SpectrumUseSamples];
+
+            MyFFT.InitAllCache(SpectrumUseSamples);
         }
 
         private async void button1_Click(object sender, EventArgs e)
@@ -479,6 +487,17 @@ namespace WavVisualize
         private void button2_Click(object sender, EventArgs e)
         {
             _waveformProvider.CancelRecreation();
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            MyFFT.useCache = checkBox1.Checked;
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            labelFPS.Text = "FPS: " + fps;
+            fps = 0;
         }
     }
 }
