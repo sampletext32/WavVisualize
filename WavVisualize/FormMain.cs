@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using NAudio.Dsp;
 using NAudio.Wave;
 using WMPLib;
 
@@ -32,16 +33,14 @@ namespace WavVisualize
         {
             if (currentWavFileData?.WaveformBitmaps != null)
             {
-                float scale = WaveformScale;
-                float totalWidth = 0;
                 if (CreateWaveformSequentially)
                 {
                     for (int i = 0; i < ThreadsForWaveformCreation; i++)
                     {
-                        e.Graphics.DrawImage(currentWavFileData.WaveformBitmaps[i], totalWidth, 0,
-                            pictureBoxPlot.Width * scale / ThreadsForWaveformCreation,
+                        e.Graphics.DrawImage(currentWavFileData.WaveformBitmaps[i],
+                            i * pictureBoxPlot.Width / ThreadsForWaveformCreation, 0,
+                            pictureBoxPlot.Width / ThreadsForWaveformCreation,
                             currentWavFileData.WaveformBitmaps[i].Height);
-                        totalWidth += (float) pictureBoxPlot.Width * scale / ThreadsForWaveformCreation;
                     }
                 }
                 else
@@ -49,8 +48,8 @@ namespace WavVisualize
                     for (int i = 0; i < ThreadsForWaveformCreation; i++)
                     {
                         e.Graphics.DrawImage(currentWavFileData.WaveformBitmaps[i],
-                            pictureBoxPlot.Width / 2f - pictureBoxPlot.Width * scale / 2, 0,
-                            pictureBoxPlot.Width * scale,
+                            pictureBoxPlot.Width / 2f - pictureBoxPlot.Width / 2, 0,
+                            pictureBoxPlot.Width,
                             pictureBoxPlot.Height);
                     }
                 }
@@ -80,32 +79,32 @@ namespace WavVisualize
             pictureBoxSpectrum.Invalidate();
         }
 
-        public float WaveformScale = 1f;
-
         public float CurrentVolumeL;
         public float CurrentVolumeR;
 
         public float[] CurrentSpectrum;
 
-        public readonly bool CreateWaveformSequentially = false;
+        public readonly bool CreateWaveformSequentially = true;
         public readonly int ThreadsForWaveformCreation = 8;
         public readonly int WaveformSkipSampleRate = 0;
 
         public readonly int FramesPerSecond = 60;
-        public readonly float EasingCoef = 0.6f;
+        public float EasingCoef = 0.7f;
         public readonly int BandWidth = 20;
-        public readonly int DigitalPieceHeight = 3;
-        public readonly int DistanceBetweenBands = 2;
+        public readonly int DigitalPieceHeight = 2;
+        public readonly int DistanceBetweenBands = 1;
         public float SpectrumHeight;
 
         public bool DisplayDigital = true;
 
         public float SpectrumBaselineY;
 
-        public int DigitalBandPiecesCount = 15;
+        public int DigitalBandPiecesCount;
         public readonly int TotalSpectrumBands = 100;
         public int TotalSpectrumWidth = 10;
-        public readonly int SpectrumUseSamples = 512; //Power Of 2
+        public int SpectrumUseSamples = 8192; //Power Of 2
+
+        public int DrawSpectrumSkipRate = 0;
 
         private void GetMaxVolume(float[] left, float[] right, ref float lMax, ref float rMax, int start, int length)
         {
@@ -123,6 +122,22 @@ namespace WavVisualize
             }
         }
 
+        private void GetAverageVolume(float[] left, float[] right, ref float lAverage, ref float rAverage, int start,
+            int length)
+        {
+            lAverage = 0f;
+            rAverage = 0f;
+            for (int i = 0; i < length && start + i < left.Length; i++)
+            {
+                lAverage += left[start + i];
+
+                rAverage += right[start + i];
+            }
+
+            lAverage /= length;
+            rAverage /= length;
+        }
+
         private void pictureBoxSpectrum_Paint(object sender, PaintEventArgs e)
         {
             if (wmp.playState == WMPPlayState.wmppsPlaying)
@@ -136,13 +151,17 @@ namespace WavVisualize
                 int end = Math.Min(currentWavFileData.SamplesCount, (position / pieceLength + 2) * pieceLength);
 
                 int length = end - start;
-                if (length % 2 == 1) length++;
+                //if (length % 2 == 1) length++;
 
                 float maxL = 0;
                 float maxR = 0;
 
-                GetMaxVolume(currentWavFileData.LeftChannel, currentWavFileData.RightChannel, ref maxL, ref maxR, start,
-                    length);
+                if (start < currentWavFileData.SamplesCount - length)
+                {
+                    GetMaxVolume(currentWavFileData.LeftChannel, currentWavFileData.RightChannel, ref maxL, ref maxR,
+                        start,
+                        length);
+                }
 
                 CurrentVolumeL += (maxL - CurrentVolumeL) * EasingCoef;
                 CurrentVolumeR += (maxR - CurrentVolumeR) * EasingCoef;
@@ -174,14 +193,18 @@ namespace WavVisualize
                         DigitalPieceHeight);
                 }
 
-                float[] newSpectrum =
-                    currentWavFileData.GetSpectrumForPosition(playerPositionNormalized, SpectrumUseSamples);
-
-
-                for (int i = 0; i < SpectrumUseSamples; i++)
+                if (position < currentWavFileData.SamplesCount - SpectrumUseSamples)
                 {
-                    CurrentSpectrum[i] += (newSpectrum[i] - CurrentSpectrum[i]) * EasingCoef;
+                    float[] newSpectrum =
+                        currentWavFileData.GetSpectrumForPosition(
+                            playerPositionNormalized,
+                            SpectrumUseSamples);
+                    for (int i = 0; i < SpectrumUseSamples; i++)
+                    {
+                        CurrentSpectrum[i] += (newSpectrum[i] - CurrentSpectrum[i]) * EasingCoef;
+                    }
                 }
+                
 
                 //DrawSpectrumBeauty(e.Graphics, CurrentSpectrum);
                 DrawSpectrumOriginal(e.Graphics, CurrentSpectrum);
@@ -190,32 +213,50 @@ namespace WavVisualize
 
         private void DrawSpectrumOriginal(Graphics g, float[] spectrum)
         {
-            int useLength = spectrum.Length / 2;
-            float sbandWidth = 3f;
+            int useLength = SpectrumUseSamples / 2;
+            int useBands = Math.Min(TotalSpectrumBands, useLength);
+            float sbandWidth = (float) TotalSpectrumWidth / useBands;
+            float multiplier = 2f; //(float) Math.Log(SpectrumUseSamples, Math.Log(SpectrumUseSamples, 2));
 
-            for (int i = 0; i < useLength; i++)
+            int lastBand = -1;
+            float maxInLastBand = 0f;
+
+            for (int i = 0; i < useLength; i += (1 + DrawSpectrumSkipRate))
             {
-                float normalizedHeight = spectrum[i];
-                normalizedHeight *= (float) Math.Log(i + 1, 10) * 10;//Применяем логарифмическое выравнивание громкости
-
-                if (DisplayDigital)
+                int band = (int) ((float) i / useLength * useBands);
+                if (band > lastBand)
                 {
-                    int digitalParts = (int) (normalizedHeight * DigitalBandPiecesCount);
-                    for (int k = 1; k < digitalParts + 1; k++)
-                    {
-                        g.FillRectangle(Brushes.OrangeRed,
-                            BandWidth + BandWidth + 50 + i * (sbandWidth + DistanceBetweenBands),
-                            SpectrumBaselineY - k * (DigitalPieceHeight + DistanceBetweenBands), sbandWidth,
-                            DigitalPieceHeight);
-                    }
+                    lastBand = band;
+                    maxInLastBand = 0f;
                 }
-                else
+
+                float normalizedHeight = spectrum[i] * multiplier * (float) Math.Log(i + 2, 2);
+
+                //normalizedHeight *= (float) Math.Log(i + 1, 10); //Применяем логарифмическое выравнивание громкости
+
+                if (normalizedHeight > maxInLastBand)
                 {
-                    float analogHeight = normalizedHeight * pictureBoxSpectrum.Height;
-                    g.FillRectangle(Brushes.OrangeRed,
-                        BandWidth + BandWidth + 50 + i * (sbandWidth + DistanceBetweenBands),
-                        SpectrumBaselineY - analogHeight,
-                        sbandWidth, analogHeight);
+                    maxInLastBand = normalizedHeight;
+                    if (DisplayDigital)
+                    {
+                        int digitalParts = (int) (normalizedHeight * DigitalBandPiecesCount);
+                        
+                        for (int k = 1; k < digitalParts + 1; k++)
+                        {
+                            g.FillRectangle(Brushes.OrangeRed,
+                                BandWidth + BandWidth + 50 + band * (sbandWidth + DistanceBetweenBands),
+                                SpectrumBaselineY - k * (DigitalPieceHeight + DistanceBetweenBands), sbandWidth,
+                                DigitalPieceHeight);
+                        }
+                    }
+                    else
+                    {
+                        float analogHeight = normalizedHeight * pictureBoxSpectrum.Height;
+                        g.FillRectangle(Brushes.OrangeRed,
+                            BandWidth + BandWidth + 50 + band * (sbandWidth + DistanceBetweenBands),
+                            SpectrumBaselineY - analogHeight,
+                            sbandWidth, analogHeight);
+                    }
                 }
             }
         }
@@ -272,6 +313,10 @@ namespace WavVisualize
 
         private void FormMain_Shown(object sender, EventArgs e)
         {
+            numericUpDown1.Value = (decimal) (EasingCoef * 10);
+            numericUpDown2.Value = (decimal) (Math.Log(SpectrumUseSamples, 2));
+
+
             OpenFileDialog opf = new OpenFileDialog();
             //opf.Filter = "Файлы WAV (*.wav)|*.wav";
             opf.Filter = "Файлы MP3 (*.mp3)|*.mp3";
@@ -287,8 +332,9 @@ namespace WavVisualize
 
                 WaveFileWriter.WriteWavFileToStream(ms, waveStream);
 
+
                 ms.Seek(0, SeekOrigin.Begin);
-                
+
                 currentWavFileData = WavFileData.ReadWav(ms);
 
                 SpectrumHeight = pictureBoxSpectrum.Height;
@@ -314,7 +360,7 @@ namespace WavVisualize
                             ThreadsForWaveformCreation);
                     });
                 }
-
+                
                 CurrentSpectrum = currentWavFileData.GetSpectrumForPosition(0, SpectrumUseSamples);
 
                 wmp.currentMedia = wmp.newMedia(filename);
@@ -328,9 +374,8 @@ namespace WavVisualize
             }
             else
             {
-                //Application.Exit();
+                Application.Exit();
             }
-            
         }
 
         private void pictureBoxPlot_MouseMove(object sender, MouseEventArgs e)
@@ -346,6 +391,17 @@ namespace WavVisualize
         private void pictureBoxPlot_MouseUp(object sender, MouseEventArgs e)
         {
             pressedOnWaveform = false;
+        }
+
+        private void numericUpDown1_ValueChanged(object sender, EventArgs e)
+        {
+            EasingCoef = (float) numericUpDown1.Value / 10f;
+        }
+
+        private void numericUpDown2_ValueChanged(object sender, EventArgs e)
+        {
+            SpectrumUseSamples = (int) Math.Pow(2, (double) numericUpDown2.Value);
+            CurrentSpectrum = new float[SpectrumUseSamples];
         }
     }
 }

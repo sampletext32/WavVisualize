@@ -41,10 +41,10 @@ namespace WavVisualize
 
         public void RecreateWaveformBitmapSequentially(int width, int height, int skip = 0, int threads = 1)
         {
-            Color greenColor = Color.FromArgb(255 / 100, Color.LawnGreen);
+            Color greenColor = Color.FromArgb(255 / 10, Color.LawnGreen);
             Brush[] greenBrushes = new Brush[threads];
 
-            Color redColor = Color.FromArgb(255 / 100, Color.OrangeRed);
+            Color redColor = Color.FromArgb(255 / 10, Color.OrangeRed);
             Brush[] redBrushes = new Brush[threads];
 
             float yScale = 0.8f;
@@ -76,6 +76,10 @@ namespace WavVisualize
                             }
                         }
                     }
+                }).ContinueWith((task) =>
+                {
+                    greenBrushes[t].Dispose();
+                    redBrushes[t].Dispose();
                 });
             }
         }

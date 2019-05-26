@@ -1,16 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace WavVisualize
 {
     public class MyFFT
     {
+        private static bool parallel = false;
+
         /// <summary>
         /// Вычисление поворачивающего модуля e^(-i*2*PI*x/N)
         /// </summary>
         private static Complex w(int x, int n)
         {
             if (x % n == 0) return (Complex) 1;
-            double arg = -2 * Math.PI * x / n * (1 / 512f);
+            double arg = -2 * Math.PI * x / n;
             return new Complex(Math.Cos(arg), Math.Sin(arg));
         }
 
@@ -32,6 +36,8 @@ namespace WavVisualize
 
             return retVal;
         }
+
+        private static List<Task> tasks = new List<Task>();
 
         /// <summary>
         /// Возвращает спектр сигнала
@@ -57,9 +63,24 @@ namespace WavVisualize
                     x_odd[i] = x[start + 2 * i + 1];
                 }
 
-                Complex[] X_even = fft(x_even, 0, length / 2);
-                Complex[] X_odd = fft(x_odd, 0, length / 2);
                 X = new Complex[length];
+                Complex[] X_even = new Complex[length / 2];
+                Complex[] X_odd = new Complex[length / 2];
+
+                Action[] tasks =
+                {
+                    () => { X_even = fft(x_even, 0, length / 2); },
+                    () => { X_odd = fft(x_odd, 0, length / 2); }
+                };
+                if (parallel)
+                {
+                    Parallel.ForEach(tasks, action => action.Invoke());
+                }
+                else
+                {
+                    Array.ForEach(tasks, action => action.Invoke());
+                }
+
                 for (int i = 0; i < length / 2; i++)
                 {
                     Complex rotationAbsMultipliedByValue = w(i, length) * X_odd[i];
