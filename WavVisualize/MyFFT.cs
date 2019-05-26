@@ -35,6 +35,9 @@ namespace WavVisualize
             }
 
             complexValues = fft(complexValues, 0, length); //производим преобразование Фурье
+
+            inPlace_nfft(complexValues);
+
             float[] frequencies = new float[length]; //создаём массив частот
             for (int i = 0; i < length; i++)
             {
@@ -119,6 +122,18 @@ namespace WavVisualize
             }
 
             return X_n;
+        }
+
+        public static void inPlace_nfft(Complex[] X)
+        {
+            int N = X.Length;
+            for (int i = 0; i < N / 2; i++)
+            {
+                Complex val = X[i];
+
+                X[i] = X[N / 2 + i];
+                X[N / 2 + i] = val;
+            }
         }
     }
 }

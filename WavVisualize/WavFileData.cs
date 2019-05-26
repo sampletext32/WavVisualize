@@ -65,10 +65,11 @@ namespace WavVisualize
 
             #endregion
 
-            float pieceWidth = (float) width / threads; //ширина_картинки = общая_ширина / количество_потоков
+            float pieceWidth =
+                (float) Math.Ceiling((float) width / threads); //ширина_картинки = общая_ширина / количество_потоков
 
             float yScale = 0.8f; //масштабирование по высоте
-            float yCenter = height / 2f; //центр отрисовки
+            int yCenter = height / 2; //центр отрисовки
 
             WaveformBitmaps = new Bitmap[threads]; //создаём массив картинок
 
@@ -90,15 +91,17 @@ namespace WavVisualize
                         {
                             //проходим количество_сэмплов = всего_сэмплов / количество_потоков 
                             //Сдвигаемся на 1 + skip, таким образом, даже если пропуск = 0, мы обработаем весь массив
-                            for (int i = 0; i < SamplesCount / threads; i += (1 + skip))
+                            for (int i = 0; i < ((float) SamplesCount / threads); i += (1 + skip))
                             {
                                 //Позиция по горизонтали = Нормализация_позиции_сэмпла_в_кусочке(i / (SamplesCount / threads)) * Ширину_кусочка 
-                                float xPosition = i / ((float) SamplesCount / threads) * pieceWidth;
+                                int xPosition = (int) (i / ((float) SamplesCount / threads) * pieceWidth);
 
                                 //Значения PCM [номер_потока * сэмплов_на_поток + номер_текущего_сэмпла] * 
                                 //(высота пополам (высота одной громкости) * масштабирование)
-                                float valueL = LeftChannel[t * SamplesCount / threads + i] * (height / 2f) * yScale;
-                                float valueR = RightChannel[t * SamplesCount / threads + i] * (height / 2f) * yScale;
+                                int valueL =
+                                    (int) (LeftChannel[t * SamplesCount / threads + i] * (height / 2f) * yScale);
+                                int valueR =
+                                    (int) (RightChannel[t * SamplesCount / threads + i] * (height / 2f) * yScale);
 
                                 g.FillRectangle(greenBrushes[t], xPosition, yCenter - valueL, 1, valueL);
 
@@ -225,17 +228,19 @@ namespace WavVisualize
                         wavFileData.FmtExtraSize = reader.ReadInt16();
                         reader.ReadBytes(wavFileData.FmtExtraSize);
                     }
-                    
+
                     wavFileData.DataId = reader.ReadInt32();
                     wavFileData.BytesLength = reader.ReadInt32();
-                    
+
                     byte[] data = reader.ReadBytes(wavFileData.BytesLength);
 
-                    wavFileData.BytesForSample = wavFileData.BitDepth / 8;//байт на сэмпл - (глубина кодирования в битах) / 8(бит в байте)
+                    wavFileData.BytesForSample =
+                        wavFileData.BitDepth / 8; //байт на сэмпл - (глубина кодирования в битах) / 8(бит в байте)
 
                     //количество сэмплов =  общее_количество_байт   / байт_на_сэмпл/ количество_каналов
                     //                      Сумма                   / Скорость      / Параллельность
-                    wavFileData.SamplesCount = wavFileData.BytesLength / wavFileData.BytesForSample / wavFileData.Channels;
+                    wavFileData.SamplesCount =
+                        wavFileData.BytesLength / wavFileData.BytesForSample / wavFileData.Channels;
 
                     float[] asFloat;
                     switch (wavFileData.BitDepth)
@@ -255,7 +260,8 @@ namespace WavVisualize
                             //количество значений = количество_сэмплов * количество_каналов
                             var asInt16 = new short[wavFileData.SamplesCount * wavFileData.Channels];
                             Buffer.BlockCopy(data, 0, asInt16, 0, wavFileData.BytesLength);
-                            asFloat = Array.ConvertAll(asInt16, e => e / (float) short.MaxValue);//нормализуем, деля на максимальное значение
+                            asFloat = Array.ConvertAll(asInt16,
+                                e => e / (float) short.MaxValue); //нормализуем, деля на максимальное значение
                             break;
                         default: throw new FormatException("Unknown BitDepth");
                     }

@@ -97,10 +97,11 @@ namespace WavVisualize
                     {
                         //X = нормализованному номеру потока * ширина_поля
                         //Ширина = ширина_поля / количество_потоков
-                        e.Graphics.DrawImage(_currentWavFileData.WaveformBitmaps[i],
-                            (float) i / ThreadsForWaveformCreation * pictureBoxPlot.Width, 0,
-                            (float) pictureBoxPlot.Width / ThreadsForWaveformCreation,
-                            _currentWavFileData.WaveformBitmaps[i].Height);
+                        e.Graphics.DrawImage(
+                            _currentWavFileData.WaveformBitmaps[i],
+                            (int) ((float) i / ThreadsForWaveformCreation * pictureBoxPlot.Width), 0,
+                            (int) Math.Ceiling((float) pictureBoxPlot.Width / ThreadsForWaveformCreation), 
+                            pictureBoxPlot.Height);
                     }
                 }
                 else //если рисуем параллельно
@@ -278,6 +279,8 @@ namespace WavVisualize
             //количество реально используемых сэмплов спектра (издержка быстрого преобразования Фурье)
             int useLength = SpectrumUseSamples / 2;
 
+            int useOffset = SpectrumUseSamples / 2;
+
             //количество задействованных столбиков спектра
             //минимум между количеством частот и количеством столбиков
             int useBands = Math.Min(TotalSpectrumBands, useLength);
@@ -312,7 +315,8 @@ namespace WavVisualize
                 //нормализованная высота столбика спектра
                 //умножаем на постоянный коэффициент
                 //дополнительно применяем логарифмическое выравние громкости (i + 2, чтобы не получить бесконечность)
-                float normalizedHeight = spectrum[i] * multiplier * (float) Math.Log(Math.Max(i - useLength / useBands, 2), 2);
+                float normalizedHeight = spectrum[useOffset + i] * multiplier *
+                                         (float) Math.Log(Math.Max(i - useLength / useBands, 2), 2);
 
                 if (normalizedHeight > maxInLastBand) //если эта частота больше, чем уже отрисована
                 {
