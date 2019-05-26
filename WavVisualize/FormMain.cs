@@ -20,6 +20,8 @@ namespace WavVisualize
         //текущий открытый Wav файл
         private WavFileData _currentWavFileData;
 
+        private WaveformProvider _waveformProvider;
+
         //текущая отображаемая громкость
         public float CurrentVolumeL;
         public float CurrentVolumeR;
@@ -34,7 +36,7 @@ namespace WavVisualize
         public readonly int ThreadsForWaveformCreation = Environment.ProcessorCount - 1;
 
         //частота пропуска сэмплов при создании волны
-        public readonly int WaveformSkipSampleRate = 0;
+        public readonly int WaveformSkipSampleRate = 10;
 
         //сколько раз в секунду обновляется состояние плеера
         public readonly int UpdateRate = 60;
@@ -89,33 +91,7 @@ namespace WavVisualize
         //перерисовка волны
         private void pictureBoxPlot_Paint(object sender, PaintEventArgs e)
         {
-            if (_currentWavFileData?.WaveformBitmaps != null) //если есть картинки волны
-            {
-                if (CreateWaveformSequentially) //если рисуем последовательные куски
-                {
-                    for (int i = 0; i < ThreadsForWaveformCreation; i++) //пробегаем все картинки
-                    {
-                        //X = нормализованному номеру потока * ширина_поля
-                        //Ширина = ширина_поля / количество_потоков
-                        e.Graphics.DrawImage(
-                            _currentWavFileData.WaveformBitmaps[i],
-                            (int) ((float) i / ThreadsForWaveformCreation * pictureBoxPlot.Width), 0,
-                            (int) Math.Ceiling((float) pictureBoxPlot.Width / ThreadsForWaveformCreation), 
-                            pictureBoxPlot.Height);
-                    }
-                }
-                else //если рисуем параллельно
-                {
-                    for (int i = 0; i < ThreadsForWaveformCreation; i++)
-                    {
-                        //рисуем волну на всей области
-                        e.Graphics.DrawImage(_currentWavFileData.WaveformBitmaps[i],
-                            0, 0,
-                            pictureBoxPlot.Width,
-                            pictureBoxPlot.Height);
-                    }
-                }
-            }
+            _waveformProvider?.Draw(e.Graphics);
 
             //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
             e.Graphics.FillRectangle(Brushes.Black, _playerPositionNormalized * pictureBoxPlot.Width, 0, 1,
@@ -412,32 +388,20 @@ namespace WavVisualize
                 SpectrumHeight = pictureBoxSpectrum.Height;
 
                 //общая ширина спектра = половине ширине окна
-                TotalSpectrumWidth = (int)(pictureBoxSpectrum.Width -
+                TotalSpectrumWidth = (int) (pictureBoxSpectrum.Width -
                                             (BandWidth + BandWidth + DistanceBetweenVolumeAndSpectrum) -
                                             DistanceBetweenBands * (TotalSpectrumBands - 1));
 
                 //координата Y 0 спектра - высота окна
                 SpectrumBaselineY = pictureBoxSpectrum.Height;
 
-                //в зависимости от флага вызываем генерацию волны
-                if (CreateWaveformSequentially)
-                {
-                    Task.Run(() =>
-                    {
-                        _currentWavFileData.RecreateWaveformBitmapSequentially(
-                            pictureBoxPlot.Width, pictureBoxPlot.Height, WaveformSkipSampleRate,
-                            ThreadsForWaveformCreation);
-                    });
-                }
-                else
-                {
-                    Task.Run(() =>
-                    {
-                        _currentWavFileData.RecreateWaveformBitmapParallel(
-                            pictureBoxPlot.Width, pictureBoxPlot.Height, WaveformSkipSampleRate,
-                            ThreadsForWaveformCreation);
-                    });
-                }
+                _waveformProvider?.CancelRecreation();
+
+                _waveformProvider = new WaveformProvider(pictureBoxPlot.Width, pictureBoxPlot.Height,
+                    _currentWavFileData, CreateWaveformSequentially, ThreadsForWaveformCreation,
+                    WaveformSkipSampleRate);
+
+                Task.Run(() => _waveformProvider.StartRecreation());
 
                 //просчитываем спектр на самом первом участке, это нужно для инициализации массива
                 CurrentSpectrum = _currentWavFileData.GetSpectrumForPosition(0, SpectrumUseSamples);
@@ -447,7 +411,7 @@ namespace WavVisualize
                 _wmp.controls.play();
 
                 //количество кусочков столбика = (высота окна / (высоту кусочка + расстояние между кусочками))
-                DigitalBandPiecesCount = (int)(SpectrumHeight / (DigitalPieceHeight + DistanceBetweenBands));
+                DigitalBandPiecesCount = (int) (SpectrumHeight / (DigitalPieceHeight + DistanceBetweenBands));
 
                 //изменяем интервал обновления
                 timerUpdater.Interval = 1000 / UpdateRate;
@@ -459,7 +423,6 @@ namespace WavVisualize
             }
             else //если файл не выбран, закрыть приложение
             {
-                
             }
         }
 
@@ -511,6 +474,11 @@ namespace WavVisualize
         private void button1_Click(object sender, EventArgs e)
         {
             OpenFile();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            _waveformProvider.CancelRecreation();
         }
     }
 }
