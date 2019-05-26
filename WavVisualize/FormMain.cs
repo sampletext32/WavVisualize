@@ -362,8 +362,11 @@ namespace WavVisualize
             //выводим коэффициенты на форму
             numericUpDown1.Value = (decimal) (EasingCoef * 10);
             numericUpDown2.Value = (decimal) (Math.Log(SpectrumUseSamples, 2));
+            //OpenFile();
+        }
 
-
+        void OpenFile()
+        {
             OpenFileDialog opf = new OpenFileDialog();
             //opf.Filter = "Файлы WAV (*.wav)|*.wav";
             opf.Filter = "Файлы MP3 (*.mp3)|*.mp3";
@@ -409,7 +412,7 @@ namespace WavVisualize
                 SpectrumHeight = pictureBoxSpectrum.Height;
 
                 //общая ширина спектра = половине ширине окна
-                TotalSpectrumWidth = (int) (pictureBoxSpectrum.Width -
+                TotalSpectrumWidth = (int)(pictureBoxSpectrum.Width -
                                             (BandWidth + BandWidth + DistanceBetweenVolumeAndSpectrum) -
                                             DistanceBetweenBands * (TotalSpectrumBands - 1));
 
@@ -444,7 +447,7 @@ namespace WavVisualize
                 _wmp.controls.play();
 
                 //количество кусочков столбика = (высота окна / (высоту кусочка + расстояние между кусочками))
-                DigitalBandPiecesCount = (int) (SpectrumHeight / (DigitalPieceHeight + DistanceBetweenBands));
+                DigitalBandPiecesCount = (int)(SpectrumHeight / (DigitalPieceHeight + DistanceBetweenBands));
 
                 //изменяем интервал обновления
                 timerUpdater.Interval = 1000 / UpdateRate;
@@ -456,7 +459,7 @@ namespace WavVisualize
             }
             else //если файл не выбран, закрыть приложение
             {
-                Application.Exit();
+                
             }
         }
 
@@ -503,6 +506,11 @@ namespace WavVisualize
 
             //создаём массив спектра заново, т.к. во время отрисовки массив не должен меняться
             CurrentSpectrum = new float[SpectrumUseSamples];
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            OpenFile();
         }
     }
 }
