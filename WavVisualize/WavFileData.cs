@@ -120,6 +120,10 @@ namespace WavVisualize
                             }
                         }
                     }
+                }).ContinueWith((task) =>
+                {
+                    greenBrushes[t].Dispose();
+                    redBrushes[t].Dispose();
                 });
             }
         }
