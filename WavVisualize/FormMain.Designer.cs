@@ -34,6 +34,9 @@
             this.pictureBoxSpectrum = new System.Windows.Forms.PictureBox();
             this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
             this.numericUpDown2 = new System.Windows.Forms.NumericUpDown();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.labelElapsed = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxPlot)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxSpectrum)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
@@ -63,21 +66,16 @@
             this.pictureBoxSpectrum.BackColor = System.Drawing.SystemColors.ButtonHighlight;
             this.pictureBoxSpectrum.Location = new System.Drawing.Point(0, 152);
             this.pictureBoxSpectrum.Name = "pictureBoxSpectrum";
-            this.pictureBoxSpectrum.Size = new System.Drawing.Size(1264, 280);
+            this.pictureBoxSpectrum.Size = new System.Drawing.Size(792, 280);
             this.pictureBoxSpectrum.TabIndex = 1;
             this.pictureBoxSpectrum.TabStop = false;
             this.pictureBoxSpectrum.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBoxSpectrum_Paint);
             // 
             // numericUpDown1
             // 
-            this.numericUpDown1.Location = new System.Drawing.Point(800, 8);
+            this.numericUpDown1.Location = new System.Drawing.Point(944, 8);
             this.numericUpDown1.Maximum = new decimal(new int[] {
-            10,
-            0,
-            0,
-            0});
-            this.numericUpDown1.Minimum = new decimal(new int[] {
-            1,
+            9,
             0,
             0,
             0});
@@ -93,9 +91,9 @@
             // 
             // numericUpDown2
             // 
-            this.numericUpDown2.Location = new System.Drawing.Point(800, 48);
+            this.numericUpDown2.Location = new System.Drawing.Point(944, 48);
             this.numericUpDown2.Maximum = new decimal(new int[] {
-            20,
+            15,
             0,
             0,
             0});
@@ -114,11 +112,41 @@
             0});
             this.numericUpDown2.ValueChanged += new System.EventHandler(this.numericUpDown2_ValueChanged);
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(800, 8);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(79, 17);
+            this.label1.TabIndex = 4;
+            this.label1.Text = "Смягчение";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(800, 48);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(144, 17);
+            this.label2.TabIndex = 5;
+            this.label2.Text = "Количество сэмплов";
+            // 
+            // labelElapsed
+            // 
+            this.labelElapsed.AutoSize = true;
+            this.labelElapsed.Location = new System.Drawing.Point(800, 80);
+            this.labelElapsed.Name = "labelElapsed";
+            this.labelElapsed.Size = new System.Drawing.Size(59, 17);
+            this.labelElapsed.TabIndex = 6;
+            this.labelElapsed.Text = "Elapsed";
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1789, 450);
+            this.ClientSize = new System.Drawing.Size(1073, 450);
+            this.Controls.Add(this.labelElapsed);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.numericUpDown2);
             this.Controls.Add(this.numericUpDown1);
             this.Controls.Add(this.pictureBoxSpectrum);
@@ -132,6 +160,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -142,6 +171,9 @@
         private System.Windows.Forms.PictureBox pictureBoxSpectrum;
         private System.Windows.Forms.NumericUpDown numericUpDown1;
         private System.Windows.Forms.NumericUpDown numericUpDown2;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label labelElapsed;
     }
 }
 

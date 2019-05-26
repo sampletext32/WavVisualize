@@ -1,17 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Media;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using NAudio.Dsp;
 using NAudio.Wave;
 using WMPLib;
 
@@ -20,95 +11,150 @@ namespace WavVisualize
 {
     public partial class FormMain : Form
     {
+        //плеер
+        private WindowsMediaPlayer _wmp = new WindowsMediaPlayer();
+
+        //нормализованная позиция воспроизведения
+        private float _playerPositionNormalized = 0f;
+
+        //текущий открытый Wav файл
+        private WavFileData _currentWavFileData;
+
+        //текущая отображаемая громкость
+        public float CurrentVolumeL;
+        public float CurrentVolumeR;
+
+        //текущий массив спектра
+        public float[] CurrentSpectrum;
+
+        //создавать ли волну последовательно
+        public readonly bool CreateWaveformSequentially = true;
+
+        //количество потоков для создания волны (-1, чтобы главный поток рисовал без зависаний)
+        public readonly int ThreadsForWaveformCreation = Environment.ProcessorCount - 1;
+
+        //частота пропуска сэмплов при создании волны
+        public readonly int WaveformSkipSampleRate = 0;
+
+        //сколько раз в секунду обновляется состояние плеера
+        public readonly int UpdateRate = 60;
+
+        //коэффициент смягчения резких скачков
+        public float EasingCoef = 0.1f;
+
+        //ширина столбиков громкости
+        public readonly int BandWidth = 20;
+
+        //высота цифровых кусочков
+        public readonly int DigitalPieceHeight = 2;
+
+        //расстояние между цифровыми кусочками
+        public readonly int DistanceBetweenBands = 1;
+
+        //общая высота спектра
+        public float SpectrumHeight;
+
+        //нужно ли рисовать цифровые столбики
+        public bool DisplayDigital = true;
+
+        //линия 0 отрисовки спектра
+        public float SpectrumBaselineY;
+
+        //количество кусочков цифрового столбика
+        public int DigitalBandPiecesCount;
+
+        //количество столбиков спектра
+        public readonly int TotalSpectrumBands = 100;
+
+        //общая ширина спектра
+        public int TotalSpectrumWidth;
+
+        //сколько сэмплов идёт на преобразование спектра (обязательно степень двойки)
+        public int SpectrumUseSamples = 8192;
+
+        //частота пропуска частот при отрисовке спектра
+        public int DrawSpectrumSkipRate = 0;
+
+        //расстояние между громкостью и спектром
+        public float DistanceBetweenVolumeAndSpectrum = 20f;
+
+        //нажати ли сейчас мышь на волне
+        public bool PressedOnWaveform;
+
         public FormMain()
         {
             InitializeComponent();
         }
 
-        WindowsMediaPlayer wmp = new WindowsMediaPlayer();
-
-        private WavFileData currentWavFileData;
-
+        //перерисовка волны
         private void pictureBoxPlot_Paint(object sender, PaintEventArgs e)
         {
-            if (currentWavFileData?.WaveformBitmaps != null)
+            if (_currentWavFileData?.WaveformBitmaps != null) //если есть картинки волны
             {
-                if (CreateWaveformSequentially)
+                if (CreateWaveformSequentially) //если рисуем последовательные куски
                 {
-                    for (int i = 0; i < ThreadsForWaveformCreation; i++)
+                    for (int i = 0; i < ThreadsForWaveformCreation; i++) //пробегаем все картинки
                     {
-                        e.Graphics.DrawImage(currentWavFileData.WaveformBitmaps[i],
-                            i * pictureBoxPlot.Width / ThreadsForWaveformCreation, 0,
-                            pictureBoxPlot.Width / ThreadsForWaveformCreation,
-                            currentWavFileData.WaveformBitmaps[i].Height);
+                        //X = нормализованному номеру потока * ширина_поля
+                        //Ширина = ширина_поля / количество_потоков
+                        e.Graphics.DrawImage(_currentWavFileData.WaveformBitmaps[i],
+                            (float) i / ThreadsForWaveformCreation * pictureBoxPlot.Width, 0,
+                            (float) pictureBoxPlot.Width / ThreadsForWaveformCreation,
+                            _currentWavFileData.WaveformBitmaps[i].Height);
                     }
                 }
-                else
+                else //если рисуем параллельно
                 {
                     for (int i = 0; i < ThreadsForWaveformCreation; i++)
                     {
-                        e.Graphics.DrawImage(currentWavFileData.WaveformBitmaps[i],
-                            pictureBoxPlot.Width / 2f - pictureBoxPlot.Width / 2, 0,
+                        //рисуем волну на всей области
+                        e.Graphics.DrawImage(_currentWavFileData.WaveformBitmaps[i],
+                            0, 0,
                             pictureBoxPlot.Width,
                             pictureBoxPlot.Height);
                     }
                 }
             }
 
-            e.Graphics.FillRectangle(Brushes.Black, playerPositionNormalized * pictureBoxPlot.Width, 0, 1,
+            //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
+            e.Graphics.FillRectangle(Brushes.Black, _playerPositionNormalized * pictureBoxPlot.Width, 0, 1,
                 pictureBoxPlot.Height);
 
-            e.Graphics.FillRectangle(Brushes.DarkGray, playerPositionNormalized * pictureBoxPlot.Width - 10,
+            //рисуем каретку текущей позиции шириной 20
+            e.Graphics.FillRectangle(Brushes.DarkGray, _playerPositionNormalized * pictureBoxPlot.Width - 10,
                 pictureBoxPlot.Height - 5, 20, 10);
         }
 
-        private float playerPositionNormalized = 0f;
-
+        //шаг обновления
         private void timerUpdater_Tick(object sender, EventArgs e)
         {
-            int h = (int) wmp.controls.currentPosition / 3600 % 3600;
-            int m = (int) wmp.controls.currentPosition / 60 % 60;
-            int s = (int) wmp.controls.currentPosition % 60;
+            //кешируем позицию и длину трека (так чуть чуть быстрее, чем тягать dll WMP плеера)
+            double currentPosition = _wmp.controls.currentPosition;
+            double duration = _wmp.currentMedia.duration;
 
-            int h1 = (int) wmp.currentMedia.duration / 3600 % 3600;
-            int m1 = (int) wmp.currentMedia.duration / 60 % 60;
-            int s1 = (int) wmp.currentMedia.duration % 60;
-            this.Text = $@"{h:00} : {m:00} : {s:00} / {h1:00} : {m1:00} : {s1:00}";
-            playerPositionNormalized = (float) (wmp.controls.currentPosition / wmp.currentMedia.duration);
+            int h = (int) currentPosition / 3600 % 3600;
+            int m = (int) currentPosition / 60 % 60;
+            int s = (int) currentPosition % 60;
+
+            int h1 = (int) duration / 3600 % 3600;
+            int m1 = (int) duration / 60 % 60;
+            int s1 = (int) duration % 60;
+            labelElapsed.Text = $@"{h:00} : {m:00} : {s:00} / {h1:00} : {m1:00} : {s1:00}";
+
+            //высчитываем нормаль позиции воспроизведения
+            _playerPositionNormalized = (float) (currentPosition / duration);
+
+            //вызываем перерисовку волны и спектра
             pictureBoxPlot.Invalidate();
             pictureBoxSpectrum.Invalidate();
         }
 
-        public float CurrentVolumeL;
-        public float CurrentVolumeR;
-
-        public float[] CurrentSpectrum;
-
-        public readonly bool CreateWaveformSequentially = true;
-        public readonly int ThreadsForWaveformCreation = 8;
-        public readonly int WaveformSkipSampleRate = 0;
-
-        public readonly int FramesPerSecond = 60;
-        public float EasingCoef = 0.7f;
-        public readonly int BandWidth = 20;
-        public readonly int DigitalPieceHeight = 2;
-        public readonly int DistanceBetweenBands = 1;
-        public float SpectrumHeight;
-
-        public bool DisplayDigital = true;
-
-        public float SpectrumBaselineY;
-
-        public int DigitalBandPiecesCount;
-        public readonly int TotalSpectrumBands = 100;
-        public int TotalSpectrumWidth = 10;
-        public int SpectrumUseSamples = 8192; //Power Of 2
-
-        public int DrawSpectrumSkipRate = 0;
-
-        private void GetMaxVolume(float[] left, float[] right, ref float lMax, ref float rMax, int start, int length)
+        //функция возвращает максимальную громкость на каждом канале
+        //на промежутке length начиная со start
+        private static void GetMaxVolume(float[] left, float[] right, ref float lMax, ref float rMax, int start,
+            int length)
         {
-            for (int i = 0; i < length && start + i < left.Length; i++)
+            for (int i = 0; i < length; i++)
             {
                 if (left[start + i] > lMax)
                 {
@@ -122,138 +168,179 @@ namespace WavVisualize
             }
         }
 
-        private void GetAverageVolume(float[] left, float[] right, ref float lAverage, ref float rAverage, int start,
+        //функция возвращает среднюю громкость на каждом канале
+        //на промежутке length начиная со start
+        private static void GetAverageVolume(float[] left, float[] right, ref float lAver, ref float rAver, int start,
             int length)
         {
-            lAverage = 0f;
-            rAverage = 0f;
-            for (int i = 0; i < length && start + i < left.Length; i++)
+            lAver = 0f;
+            rAver = 0f;
+            for (int i = 0; i < length; i++)
             {
-                lAverage += left[start + i];
-
-                rAverage += right[start + i];
+                lAver += left[start + i];
+                rAver += right[start + i];
             }
 
-            lAverage /= length;
-            rAverage /= length;
+            //нормализуем обе громкости
+            lAver /= length;
+            rAver /= length;
         }
 
+        //шаг отрисовки спектра
         private void pictureBoxSpectrum_Paint(object sender, PaintEventArgs e)
         {
-            if (wmp.playState == WMPPlayState.wmppsPlaying)
+            if (_wmp.playState == WMPPlayState.wmppsPlaying) //если сейчас воспроизводится
             {
-                int position = (int) (playerPositionNormalized * currentWavFileData.SamplesCount);
+                //на каком сейчас сэмпле находимся
+                int currentSample = (int) (_playerPositionNormalized * _currentWavFileData.SamplesCount);
 
-                int pieceLength = currentWavFileData.SampleRate / FramesPerSecond;
-                if (position < pieceLength / 2) return;
+                //длина участка сэмплов, на котором измеряем громкость
+                int regionLength = _currentWavFileData.SampleRate / UpdateRate;
 
-                int start = (position / pieceLength + 1) * pieceLength;
-                int end = Math.Min(currentWavFileData.SamplesCount, (position / pieceLength + 2) * pieceLength);
+                //начало участка измерения (количество пройденных участков + 1) * длину одного участка
+                //начинаем со следующего участка, т.к. текущий уже играет и никак не успеет отрисоваться в нужный момент
+                int start = (currentSample / regionLength + 1) * regionLength;
 
-                int length = end - start;
-                //if (length % 2 == 1) length++;
-
-                float maxL = 0;
-                float maxR = 0;
-
-                if (start < currentWavFileData.SamplesCount - length)
+                //если начало участка меньше чем количество сэплов - длина участка (можно вместить ещё участок)
+                if (start < _currentWavFileData.SamplesCount - regionLength)
                 {
-                    GetMaxVolume(currentWavFileData.LeftChannel, currentWavFileData.RightChannel, ref maxL, ref maxR,
-                        start,
-                        length);
-                }
+                    //создаём максимальные громкости
+                    float maxL = 0;
+                    float maxR = 0;
 
-                CurrentVolumeL += (maxL - CurrentVolumeL) * EasingCoef;
-                CurrentVolumeR += (maxR - CurrentVolumeR) * EasingCoef;
+                    //вычисляем громкости
+                    GetMaxVolume(
+                        _currentWavFileData.LeftChannel,
+                        _currentWavFileData.RightChannel,
+                        ref maxL, ref maxR, start, regionLength
+                    );
 
-                int digitalPartsL = (int) (CurrentVolumeL * DigitalBandPiecesCount);
-                int digitalPartsR = (int) (CurrentVolumeR * DigitalBandPiecesCount);
+                    //изменяем текущую нормализованую громкость на Дельту громкости * коэффициент смягчения
+                    CurrentVolumeL += (maxL - CurrentVolumeL) * (1 - EasingCoef);
+                    CurrentVolumeR += (maxR - CurrentVolumeR) * (1 - EasingCoef);
 
-                e.Graphics.DrawLine(Pens.LawnGreen, 0,
-                    SpectrumBaselineY - CurrentVolumeL * SpectrumHeight, BandWidth,
-                    SpectrumBaselineY - CurrentVolumeL * SpectrumHeight);
+                    //вычисляем количество цифровых кусочков = громкость * общее количество кусочков
+                    int digitalPartsL = (int) (CurrentVolumeL * DigitalBandPiecesCount);
+                    int digitalPartsR = (int) (CurrentVolumeR * DigitalBandPiecesCount);
 
+                    //рисуем линию громкости левого канала
+                    e.Graphics.DrawLine(Pens.LawnGreen, 0,
+                        SpectrumBaselineY - CurrentVolumeL * SpectrumHeight, BandWidth,
+                        SpectrumBaselineY - CurrentVolumeL * SpectrumHeight);
 
-                e.Graphics.DrawLine(Pens.OrangeRed, BandWidth,
-                    SpectrumBaselineY - CurrentVolumeR * SpectrumHeight,
-                    BandWidth + BandWidth,
-                    SpectrumBaselineY - CurrentVolumeR * SpectrumHeight);
+                    //рисуем линию громкости правого канала
+                    e.Graphics.DrawLine(Pens.OrangeRed, BandWidth,
+                        SpectrumBaselineY - CurrentVolumeR * SpectrumHeight,
+                        BandWidth + BandWidth,
+                        SpectrumBaselineY - CurrentVolumeR * SpectrumHeight);
 
-                for (int i = 1; i < digitalPartsL + 1; i++)
-                {
-                    e.Graphics.FillRectangle(Brushes.LawnGreen, 0,
-                        SpectrumBaselineY - i * (DigitalPieceHeight + DistanceBetweenBands), BandWidth,
-                        DigitalPieceHeight);
-                }
-
-                for (int i = 1; i < digitalPartsR + 1; i++)
-                {
-                    e.Graphics.FillRectangle(Brushes.OrangeRed, BandWidth,
-                        SpectrumBaselineY - i * (DigitalPieceHeight + DistanceBetweenBands), BandWidth,
-                        DigitalPieceHeight);
-                }
-
-                if (position < currentWavFileData.SamplesCount - SpectrumUseSamples)
-                {
-                    float[] newSpectrum =
-                        currentWavFileData.GetSpectrumForPosition(
-                            playerPositionNormalized,
-                            SpectrumUseSamples);
-                    for (int i = 0; i < SpectrumUseSamples; i++)
+                    //рисуем цифровые части левой громкости
+                    for (int i = 1; i < digitalPartsL + 1; i++)
                     {
-                        CurrentSpectrum[i] += (newSpectrum[i] - CurrentSpectrum[i]) * EasingCoef;
+                        e.Graphics.FillRectangle(Brushes.LawnGreen, 0,
+                            SpectrumBaselineY - i * (DigitalPieceHeight + DistanceBetweenBands), BandWidth,
+                            DigitalPieceHeight);
+                    }
+
+                    //рисуем цифровые части правой громкости
+                    for (int i = 1; i < digitalPartsR + 1; i++)
+                    {
+                        e.Graphics.FillRectangle(Brushes.OrangeRed, BandWidth,
+                            SpectrumBaselineY - i * (DigitalPieceHeight + DistanceBetweenBands), BandWidth,
+                            DigitalPieceHeight);
                     }
                 }
-                
 
-                //DrawSpectrumBeauty(e.Graphics, CurrentSpectrum);
-                DrawSpectrumOriginal(e.Graphics, CurrentSpectrum);
+                //если начало участка меньше чем количество сэплов - сэмплов на преобразование спектра (можно вместить ещё раз рассчитать спектр)
+                if (start < _currentWavFileData.SamplesCount - SpectrumUseSamples)
+                {
+                    //рассчитываем спектр
+                    float[] newSpectrum =
+                        _currentWavFileData.GetSpectrumForPosition(
+                            _playerPositionNormalized,
+                            SpectrumUseSamples);
+
+                    //изменяем текущий нормализованый спектр на Дельту спектра * коэффициент смягчения
+                    for (int i = 0; i < SpectrumUseSamples; i++)
+                    {
+                        CurrentSpectrum[i] += (newSpectrum[i] - CurrentSpectrum[i]) * (1 - EasingCoef);
+                    }
+                }
+
+                //рисуем спектр
+                DrawSpectrum(e.Graphics, CurrentSpectrum);
             }
         }
 
-        private void DrawSpectrumOriginal(Graphics g, float[] spectrum)
+        //функция отвечает за отрисовку спектра
+        private void DrawSpectrum(Graphics g, float[] spectrum)
         {
+            //количество реально используемых сэмплов спектра (издержка быстрого преобразования Фурье)
             int useLength = SpectrumUseSamples / 2;
+
+            //количество задействованных столбиков спектра
+            //минимум между количеством частот и количеством столбиков
             int useBands = Math.Min(TotalSpectrumBands, useLength);
+
+            //ширина одного столбика
             float sbandWidth = (float) TotalSpectrumWidth / useBands;
-            float multiplier = 2f; //(float) Math.Log(SpectrumUseSamples, Math.Log(SpectrumUseSamples, 2));
 
-            int lastBand = -1;
-            float maxInLastBand = 0f;
+            //множитель частоты
+            float multiplier = 3f; //(float) Math.Log(SpectrumUseSamples, Math.Log(SpectrumUseSamples, 2));
 
+            //Для того, чтобы не рисовать нулевые столбики, делаем так
+            //Запоминаем текущий столбик и его максимальное значение
+            //Если вдруг столбик сменился, обнуляем
+            //Если встретили частоту больше уже отрисована, рисуем столбик заново
+
+            int lastBand = -1; //последний активный столбик
+            float maxInLastBand = 0f; //максимальное значение частоты в последнем столбике
+
+            //смещаемся на 1 + DrawSpectrumSkipRate, таким образом покрывая все частоты спектра
             for (int i = 0; i < useLength; i += (1 + DrawSpectrumSkipRate))
             {
+                //вычисляем номер столбика
+                //нормализация номера частоты * количество_столбиков
                 int band = (int) ((float) i / useLength * useBands);
-                if (band > lastBand)
+                if (band > lastBand) //если сменился столбик
                 {
+                    //обнуляем показатель
                     lastBand = band;
                     maxInLastBand = 0f;
                 }
 
-                float normalizedHeight = spectrum[i] * multiplier * (float) Math.Log(i + 2, 2);
+                //нормализованная высота столбика спектра
+                //умножаем на постоянный коэффициент
+                //дополнительно применяем логарифмическое выравние громкости (i + 2, чтобы не получить бесконечность)
+                float normalizedHeight = spectrum[i] * multiplier * (float) Math.Log(Math.Max(i - useLength / useBands, 2), 2);
 
-                //normalizedHeight *= (float) Math.Log(i + 1, 10); //Применяем логарифмическое выравнивание громкости
-
-                if (normalizedHeight > maxInLastBand)
+                if (normalizedHeight > maxInLastBand) //если эта частота больше, чем уже отрисована
                 {
-                    maxInLastBand = normalizedHeight;
-                    if (DisplayDigital)
+                    maxInLastBand = normalizedHeight; //пересохраняем частоту
+                    if (DisplayDigital) //если рисуем в цифровом виде
                     {
+                        //считаем количество цифровых кусочков (нормализация высоты * общее количество кусочков)
                         int digitalParts = (int) (normalizedHeight * DigitalBandPiecesCount);
-                        
+
+                        //рисуем цифровые части столбика
                         for (int k = 1; k < digitalParts + 1; k++)
                         {
                             g.FillRectangle(Brushes.OrangeRed,
-                                BandWidth + BandWidth + 50 + band * (sbandWidth + DistanceBetweenBands),
+                                BandWidth + BandWidth + DistanceBetweenVolumeAndSpectrum +
+                                band * (sbandWidth + DistanceBetweenBands),
                                 SpectrumBaselineY - k * (DigitalPieceHeight + DistanceBetweenBands), sbandWidth,
                                 DigitalPieceHeight);
                         }
                     }
-                    else
+                    else //если рисуем в аналоговом виде
                     {
-                        float analogHeight = normalizedHeight * pictureBoxSpectrum.Height;
+                        //считаем высоту (нормализация высоты * высоту спектра)
+                        float analogHeight = normalizedHeight * SpectrumHeight;
+
+                        //рисуем аналоговый столбик
                         g.FillRectangle(Brushes.OrangeRed,
-                            BandWidth + BandWidth + 50 + band * (sbandWidth + DistanceBetweenBands),
+                            BandWidth + BandWidth + DistanceBetweenVolumeAndSpectrum +
+                            band * (sbandWidth + DistanceBetweenBands),
                             SpectrumBaselineY - analogHeight,
                             sbandWidth, analogHeight);
                     }
@@ -261,58 +348,14 @@ namespace WavVisualize
             }
         }
 
-        private void DrawSpectrumBeauty(Graphics g, float[] spectrum)
-        {
-            int useLength = spectrum.Length / 2;
-            int valuesPerBand = (int) ((float) useLength / TotalSpectrumBands);
-            float sbandWidth = (float) TotalSpectrumWidth / TotalSpectrumBands;
-
-            for (int i = 0; i < TotalSpectrumBands; i++)
-            {
-                float maxVal = 0f;
-                for (int j = 0; j < valuesPerBand; j++)
-                {
-                    if (spectrum[i * valuesPerBand + j] > maxVal) maxVal = spectrum[i * valuesPerBand + j];
-                    //sumVal += spectrum[i * valuesPerBand + j];
-                }
-
-                //sumVal /= valuesPerBand;
-
-                g.FillRectangle(Brushes.LawnGreen, BandWidth + BandWidth + 50 + i * (sbandWidth + DistanceBetweenBands),
-                    SpectrumBaselineY - DigitalPieceHeight, sbandWidth,
-                    DigitalPieceHeight);
-
-                int digitalParts = (int) (maxVal * DigitalBandPiecesCount);
-                for (int k = 1; k < digitalParts + 1; k++)
-                {
-                    g.FillRectangle(Brushes.OrangeRed,
-                        BandWidth + BandWidth + 50 + i * (sbandWidth + DistanceBetweenBands),
-                        SpectrumBaselineY - k * (DigitalPieceHeight + DistanceBetweenBands), sbandWidth,
-                        DigitalPieceHeight);
-                }
-
-                //g.FillRectangle(Brushes.Red,
-                //    bandWidth + bandWidth + 50 + sbandWidth * i,
-                //    spectrumBaselineY - Math.Abs(spectrumHeight * sumVal),
-                //    sbandWidth, Math.Abs(spectrumHeight * sumVal));
-            }
-        }
-
         private void FormMain_Load(object sender, EventArgs e)
         {
         }
 
-        bool pressedOnWaveform;
-
-        private void pictureBoxPlot_MouseDown(object sender, MouseEventArgs e)
-        {
-            pressedOnWaveform = true;
-            wmp.controls.currentPosition = ((float) e.X / pictureBoxPlot.Width) * wmp.currentMedia.duration;
-            wmp.controls.play();
-        }
-
+        //когда форма открылась
         private void FormMain_Shown(object sender, EventArgs e)
         {
+            //выводим коэффициенты на форму
             numericUpDown1.Value = (decimal) (EasingCoef * 10);
             numericUpDown2.Value = (decimal) (Math.Log(SpectrumUseSamples, 2));
 
@@ -324,29 +367,57 @@ namespace WavVisualize
             {
                 string filename = opf.FileName;
 
+                this.Text = opf.SafeFileName;
+
+                labelElapsed.Text = "Opening";
+                Application.DoEvents();
+
+                //открываем файл
                 var reader = new Mp3FileReader(filename);
 
                 MemoryStream ms = new MemoryStream();
 
+                labelElapsed.Text = "Converting To Wav";
+                Application.DoEvents();
+
+                //создаём PCM поток
                 var waveStream = WaveFormatConversionStream.CreatePcmStream(reader);
 
+                //переписываем MP3 в Wav файл в потоке
                 WaveFileWriter.WriteWavFileToStream(ms, waveStream);
 
+                labelElapsed.Text = "Writing Wav";
+                Application.DoEvents();
 
+                //возвращаем поток в начало
                 ms.Seek(0, SeekOrigin.Begin);
 
-                currentWavFileData = WavFileData.ReadWav(ms);
+                labelElapsed.Text = "Reading Wav";
+                Application.DoEvents();
 
+                //читаем Wav файл
+                _currentWavFileData = WavFileData.ReadWav(ms);
+
+                labelElapsed.Text = "Ready";
+                Application.DoEvents();
+
+                //высота спектра = высоте окна
                 SpectrumHeight = pictureBoxSpectrum.Height;
-                TotalSpectrumWidth = pictureBoxSpectrum.Width / 2;
 
+                //общая ширина спектра = половине ширине окна
+                TotalSpectrumWidth = (int) (pictureBoxSpectrum.Width -
+                                            (BandWidth + BandWidth + DistanceBetweenVolumeAndSpectrum) -
+                                            DistanceBetweenBands * (TotalSpectrumBands - 1));
+
+                //координата Y 0 спектра - высота окна
                 SpectrumBaselineY = pictureBoxSpectrum.Height;
 
+                //в зависимости от флага вызываем генерацию волны
                 if (CreateWaveformSequentially)
                 {
                     Task.Run(() =>
                     {
-                        currentWavFileData.RecreateWaveformBitmapSequentially(
+                        _currentWavFileData.RecreateWaveformBitmapSequentially(
                             pictureBoxPlot.Width, pictureBoxPlot.Height, WaveformSkipSampleRate,
                             ThreadsForWaveformCreation);
                     });
@@ -355,52 +426,78 @@ namespace WavVisualize
                 {
                     Task.Run(() =>
                     {
-                        currentWavFileData.RecreateWaveformBitmapParallel(
+                        _currentWavFileData.RecreateWaveformBitmapParallel(
                             pictureBoxPlot.Width, pictureBoxPlot.Height, WaveformSkipSampleRate,
                             ThreadsForWaveformCreation);
                     });
                 }
-                
-                CurrentSpectrum = currentWavFileData.GetSpectrumForPosition(0, SpectrumUseSamples);
 
-                wmp.currentMedia = wmp.newMedia(filename);
-                wmp.controls.play();
-                DigitalBandPiecesCount = pictureBoxSpectrum.Height / (DigitalPieceHeight + DistanceBetweenBands);
+                //просчитываем спектр на самом первом участке, это нужно для инициализации массива
+                CurrentSpectrum = _currentWavFileData.GetSpectrumForPosition(0, SpectrumUseSamples);
 
-                timerUpdater.Interval = 1000 / FramesPerSecond;
-                timerUpdater.Start();
+                //создаём новый медиафайл
+                _wmp.currentMedia = _wmp.newMedia(filename);
+                _wmp.controls.play();
 
+                //количество кусочков столбика = (высота окна / (высоту кусочка + расстояние между кусочками))
+                DigitalBandPiecesCount = (int) (SpectrumHeight / (DigitalPieceHeight + DistanceBetweenBands));
+
+                //изменяем интервал обновления
+                timerUpdater.Interval = 1000 / UpdateRate;
+                timerUpdater.Start(); //запускаем обновление
+
+                //по невероятной причине, из-за открытия диалогового окна, форма находится не в фокусе
+                //поэтому выводим форму на первый план
                 this.BringToFront();
             }
-            else
+            else //если файл не выбран, закрыть приложение
             {
                 Application.Exit();
             }
         }
 
+        //нажатие на волну
+        private void pictureBoxPlot_MouseDown(object sender, MouseEventArgs e)
+        {
+            PressedOnWaveform = true; //сохраняем флаг
+
+            //выставляем позицию воспроизведения, как нормализацию координаты клика * длительность трека
+            _wmp.controls.currentPosition = ((float) e.X / pictureBoxPlot.Width) * _wmp.currentMedia.duration;
+            _wmp.controls.play();
+        }
+
+        //когда двигаем мышь по волне
         private void pictureBoxPlot_MouseMove(object sender, MouseEventArgs e)
         {
-            if (pressedOnWaveform)
+            if (PressedOnWaveform) //если нажата кнопка
             {
-                wmp.controls.currentPosition = ((float) e.X / pictureBoxPlot.Width) * wmp.currentMedia.duration;
-                //wmp.controls.play();
+                //выставляем позицию воспроизведения, как нормализацию координаты клика * длительность трека
+                _wmp.controls.currentPosition = ((float) e.X / pictureBoxPlot.Width) * _wmp.currentMedia.duration;
+                _wmp.controls.play();
+
+                //вызываем перерисовку, т.к. сдвинулась позиция
                 pictureBoxPlot.Refresh();
             }
         }
 
+        //отпустили мышь над волной
         private void pictureBoxPlot_MouseUp(object sender, MouseEventArgs e)
         {
-            pressedOnWaveform = false;
+            PressedOnWaveform = false;
         }
 
+        //обработка изменения смягчающего коэффициента
         private void numericUpDown1_ValueChanged(object sender, EventArgs e)
         {
             EasingCoef = (float) numericUpDown1.Value / 10f;
         }
 
+        //обработка изменения степени двойки количества сэмплов на обработку спектра
         private void numericUpDown2_ValueChanged(object sender, EventArgs e)
         {
             SpectrumUseSamples = (int) Math.Pow(2, (double) numericUpDown2.Value);
+
+            //создаём массив спектра заново, т.к. во время отрисовки массив не должен меняться
             CurrentSpectrum = new float[SpectrumUseSamples];
         }
     }

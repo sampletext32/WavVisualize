@@ -4,46 +4,55 @@ using System.Threading.Tasks;
 
 namespace WavVisualize
 {
+    //Класс отвечающий за преобразование Фурье
     public class MyFFT
     {
+        //Нужно ли производить параллельные вычисления
         private static bool parallel = false;
 
         /// <summary>
-        /// Вычисление поворачивающего модуля e^(-i*2*PI*x/N)
+        /// <para>Вычисление поворачивающего модуля e^(-i*2*PI*x/n)</para>
+        /// <para>x - индекс сигнала</para>
+        /// <para>n - количество сигналов</para>
         /// </summary>
         private static Complex w(int x, int n)
         {
             if (x % n == 0) return (Complex) 1;
             double arg = -2 * Math.PI * x / n;
-            return new Complex(Math.Cos(arg), Math.Sin(arg));
+            return new Complex(Math.Cos(arg), Math.Sin(arg)); //преобразование комплексного экспонентного вида в обычный
         }
 
+        //Функция производит преобразование Фурье над массивом сигналов values начиная со [start] и используя length сигналов
+        //Здесь length должно быть 2^n
         public static float[] FFT(float[] values, int start, int length)
         {
-            Complex[] complexValues = new Complex[length];
+            Complex[] complexValues = new Complex[length]; //создаём пустой массив комплексных чисел
             for (int i = 0; i < length; i++)
             {
-                complexValues[i] = new Complex(values[start + i], 0);
+                complexValues[i] =
+                    new Complex(values[start + i],
+                        0); //заполняем так, чтобы действительная часть была сигналом, а мнимая нулём
             }
 
-            complexValues = fft(complexValues, 0, length);
-            float[] retVal = new float[length];
+            complexValues = fft(complexValues, 0, length); //производим преобразование Фурье
+            float[] frequencies = new float[length]; //создаём массив частот
             for (int i = 0; i < length; i++)
             {
-                retVal[i] = (float) Math.Sqrt(complexValues[i].Re * complexValues[i].Re +
-                                              complexValues[i].Im * complexValues[i].Im) / length / 2;
+                //Все комплексные частоты переводим в числа, используя модуль комплексного числа.
+                //Нормализуем частоты деля все значения на количество сигналов
+                //Дополнительно делим на 2, т.к. только половина выходных сигналов действительно является искомыми частотами
+                frequencies[i] = (float) complexValues[i].Magnitude / length / 2;
             }
 
-            return retVal;
+            return frequencies;
         }
 
-        private static List<Task> tasks = new List<Task>();
-
         /// <summary>
-        /// Возвращает спектр сигнала
+        /// Непосредственное преобразование Фурье
         /// </summary>
-        /// <param name="x">Массив значений сигнала. Количество значений должно быть степенью 2</param>
-        /// <returns>Массив со значениями спектра сигнала</returns>
+        /// <param name="x">Массив комплексных сигналов</param>
+        /// <param name="start">Индекс начала</param>
+        /// <param name="length">Количество сигналов</param>
         public static Complex[] fft(Complex[] x, int start, int length)
         {
             Complex[] X;
@@ -67,11 +76,13 @@ namespace WavVisualize
                 Complex[] X_even = new Complex[length / 2];
                 Complex[] X_odd = new Complex[length / 2];
 
+                //Создаём 2 задачи, т.к. вычисления могут выполняться параллельно
                 Action[] tasks =
                 {
                     () => { X_even = fft(x_even, 0, length / 2); },
                     () => { X_odd = fft(x_odd, 0, length / 2); }
                 };
+
                 if (parallel)
                 {
                     Parallel.ForEach(tasks, action => action.Invoke());
@@ -93,10 +104,10 @@ namespace WavVisualize
         }
 
         /// <summary>
-        /// Центровка массива значений полученных в fft (спектральная составляющая при нулевой частоте будет в центре массива)
+        /// <para>Центрирование значений полученных из преобразования Фурье </para>
+        /// <para>Низкие частоты становятся по-середине</para>
         /// </summary>
-        /// <param name="X">Массив значений полученный в fft</param>
-        /// <returns></returns>
+        /// <param name="X">Массив сигналов</param>
         public static Complex[] nfft(Complex[] X)
         {
             int N = X.Length;
