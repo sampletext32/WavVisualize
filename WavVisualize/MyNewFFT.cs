@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WavVisualize.NewFFT
+namespace WavVisualize
 {
     class MyNewFFT
     {
@@ -31,7 +31,7 @@ namespace WavVisualize.NewFFT
          * assumes no of points provided are a power of 2 */
         public static void FFT(Complex[] buffer)
         {
-            int bits = (int) Math.Log(buffer.Length, 2);
+            int bits = (int)Math.Log(buffer.Length, 2);
             for (int j = 1; j < buffer.Length / 2; j++)
             {
                 int swapPos = BitReverse(j, bits);
@@ -51,7 +51,7 @@ namespace WavVisualize.NewFFT
                         var even = buffer[evenIndex];
                         var odd = buffer[oddIndex];
 
-                        double term = -2 * Math.PI * k / (double) N;
+                        double term = -2 * Math.PI * k / (double)N;
                         Complex exp = new Complex(Math.Cos(term), Math.Sin(term)) * odd;
 
                         buffer[evenIndex] = even + exp;
@@ -64,7 +64,7 @@ namespace WavVisualize.NewFFT
         // aSamples.Length need to be a power of two
         public static Complex[] CalculateFFT(Complex[] aSamples)
         {
-            int power = (int) Math.Log(aSamples.Length, 2);
+            int power = (int)Math.Log(aSamples.Length, 2);
             int count = 1;
             for (int i = 0; i < power; i++)
                 count <<= 1;

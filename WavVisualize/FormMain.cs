@@ -258,7 +258,7 @@ namespace WavVisualize
             //количество реально используемых сэмплов спектра (издержка быстрого преобразования Фурье)
             int useLength = SpectrumUseSamples / 2;
 
-            int useOffset = SpectrumUseSamples / 2;
+            int useOffset = 0;
 
             //количество задействованных столбиков спектра
             //минимум между количеством частот и количеством столбиков
@@ -269,6 +269,9 @@ namespace WavVisualize
 
             //множитель частоты
             float multiplier = 3f; //(float) Math.Log(SpectrumUseSamples, Math.Log(SpectrumUseSamples, 2));
+
+            float frequencyResolution = (float)_currentWavFileData.SampleRate / SpectrumUseSamples;
+
 
             //Для того, чтобы не рисовать нулевые столбики, делаем так
             //Запоминаем текущий столбик и его максимальное значение
@@ -283,7 +286,7 @@ namespace WavVisualize
             {
                 //вычисляем номер столбика
                 //нормализация номера частоты * количество_столбиков
-                int band = (int) ((float) i / useLength * useBands);
+                int band = (int) ((float) i / useLength * useBands * frequencyResolution);
                 if (band > lastBand) //если сменился столбик
                 {
                     //обнуляем показатель
@@ -294,8 +297,8 @@ namespace WavVisualize
                 //нормализованная высота столбика спектра
                 //умножаем на постоянный коэффициент
                 //дополнительно применяем логарифмическое выравние громкости (i + 2, чтобы не получить бесконечность)
-                float normalizedHeight = spectrum[useOffset + i] * multiplier *
-                                         (float) Math.Log(Math.Max(i - useLength / useBands, 2), 2);
+                float normalizedHeight = spectrum[useOffset + i] * multiplier;
+                //normalizedHeight *= (float) Math.Log(Math.Max(i - useLength / useBands, 2), 2);
 
                 if (normalizedHeight > maxInLastBand) //если эта частота больше, чем уже отрисована
                 {
@@ -366,7 +369,7 @@ namespace WavVisualize
                     MemoryStream ms = new MemoryStream();
 
                     Invoke(new Action(() => { labelStatus.Text = "Converting To Wav"; }));
-                    
+
                     //создаём PCM поток
                     var waveStream = WaveFormatConversionStream.CreatePcmStream(reader);
 

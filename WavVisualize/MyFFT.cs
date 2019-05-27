@@ -12,13 +12,24 @@ namespace WavVisualize
 
         public static bool useCache = true;
 
-        //private static Dictionary<int, Complex[]> _cacheLevels = new Dictionary<int, Complex[]>();
-
         private static Complex[][] _cacheLevels;
+
+        private static Complex[] complexValues;
+        private static float[] frequencies;
 
         public static void InitAllCache(int samples)
         {
-            int base2 = (int)Math.Log(samples, 2);
+            complexValues = new Complex[samples];
+            frequencies = new float[samples];
+
+            for (int i = 0; i < samples; i++)
+            {
+                complexValues[i] = new Complex();
+                frequencies[i] = 0f;
+            }
+
+
+            int base2 = fastLog2(samples);
             _cacheLevels = new Complex[base2 + 1][];
             while (samples > 3)
             {
@@ -30,7 +41,7 @@ namespace WavVisualize
 
         public static void InitCache(int samples)
         {
-            int base2 = (int) Math.Log(samples, 2);
+            int base2 = fastLog2(samples);
 
             Complex[] cache = new Complex[samples];
             for (int i = 0; i < samples; i++)
@@ -53,9 +64,35 @@ namespace WavVisualize
             return new Complex(Math.Cos(arg), Math.Sin(arg)); //преобразование комплексного экспонентного вида в обычный
         }
 
+        static int fastLog2(int n)
+        {
+            switch (n)
+            {
+                case 1: return 0;
+                case 2: return 1;
+                case 4: return 1;
+                case 8: return 1;
+                case 16: return 1;
+                case 32: return 1;
+                case 64: return 1;
+                case 128: return 1;
+                case 256: return 1;
+                case 512: return 1;
+                case 1024: return 1;
+                case 2048: return 1;
+                case 4096: return 1;
+                case 8192: return 1;
+                case 16384: return 1;
+                case 32768: return 1;
+                case 65536: return 1;
+            }
+
+            return -1;
+        }
+
         private static Complex cachedW(int x, int n)
         {
-            int base2 = (int)Math.Log(n, 2);
+            int base2 = fastLog2(n);
             return _cacheLevels[base2][x];
         }
 
@@ -63,19 +100,20 @@ namespace WavVisualize
         //Здесь length должно быть 2^n
         public static float[] FFT(float[] values, int start, int length)
         {
-            Complex[] complexValues = new Complex[length]; //создаём пустой массив комплексных чисел
             for (int i = 0; i < length; i++)
             {
-                complexValues[i] =
-                    new Complex(values[start + i],
-                        0); //заполняем так, чтобы действительная часть была сигналом, а мнимая нулём
+                complexValues[i].Re =
+                    values[start + i]; //заполняем так, чтобы действительная часть была сигналом, а мнимая нулём
+                complexValues[i].Im = 0;
             }
 
-            complexValues = fft(complexValues, 0, length); //производим преобразование Фурье
+            //complexValues = fft(complexValues, 0, length); //производим преобразование Фурье
 
-            inPlace_nfft(complexValues);
+            //MyNewFFT.FFT(complexValues);
+            MyNewFFT.CalculateFFT(complexValues);
 
-            float[] frequencies = new float[length]; //создаём массив частот
+            //inPlace_nfft(complexValues);
+
             for (int i = 0; i < length; i++)
             {
                 //Все комплексные частоты переводим в числа, используя модуль комплексного числа.
