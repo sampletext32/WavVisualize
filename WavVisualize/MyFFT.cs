@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using WavVisualize.NewFFT;
 
 namespace WavVisualize
 {
@@ -18,7 +19,7 @@ namespace WavVisualize
 
         public static void InitAllCache(int samples)
         {
-            int base2 = (int)Math.Log(samples, 2);
+            int base2 = (int) Math.Log(samples, 2);
             _cacheLevels = new Complex[base2 + 1][];
             while (samples > 3)
             {
@@ -55,7 +56,7 @@ namespace WavVisualize
 
         private static Complex cachedW(int x, int n)
         {
-            int base2 = (int)Math.Log(n, 2);
+            int base2 = (int) Math.Log(n, 2);
             return _cacheLevels[base2][x];
         }
 
@@ -71,9 +72,12 @@ namespace WavVisualize
                         0); //заполняем так, чтобы действительная часть была сигналом, а мнимая нулём
             }
 
-            complexValues = fft(complexValues, 0, length); //производим преобразование Фурье
+            //complexValues = fft(complexValues, 0, length); //производим преобразование Фурье
+            MyNewFFT.FFT(complexValues);
 
-            inPlace_nfft(complexValues);
+            //complexValues = MyNewFFT.CalculateFFT(complexValues);
+
+            //inPlace_nfft(complexValues);
 
             float[] frequencies = new float[length]; //создаём массив частот
             for (int i = 0; i < length; i++)
@@ -81,7 +85,7 @@ namespace WavVisualize
                 //Все комплексные частоты переводим в числа, используя модуль комплексного числа.
                 //Нормализуем частоты деля все значения на количество сигналов
                 //Дополнительно делим на 2, т.к. только половина выходных сигналов действительно является искомыми частотами
-                frequencies[i] = (float) complexValues[i].Magnitude / length / 2;
+                frequencies[i] = (float) complexValues[i].Magnitude / length;
             }
 
             return frequencies;

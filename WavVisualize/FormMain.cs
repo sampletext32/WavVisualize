@@ -256,9 +256,9 @@ namespace WavVisualize
         private void DrawSpectrum(Graphics g, float[] spectrum)
         {
             //количество реально используемых сэмплов спектра (издержка быстрого преобразования Фурье)
-            int useLength = SpectrumUseSamples / 2;
+            int useLength = SpectrumUseSamples;
 
-            int useOffset = SpectrumUseSamples / 2;
+            int useOffset = 0;
 
             //количество задействованных столбиков спектра
             //минимум между количеством частот и количеством столбиков
@@ -267,8 +267,16 @@ namespace WavVisualize
             //ширина одного столбика
             float sbandWidth = (float) TotalSpectrumWidth / useBands;
 
+            float frequencyResolution = (float) _currentWavFileData.SampleRate / SpectrumUseSamples;
+
+            float[] frequencies = new float[44100];
+            for (int i = 0; i < (int)(useLength / frequencyResolution); i++)
+            {
+                frequencies[(int) (i * frequencyResolution)] += spectrum[useOffset + i];
+            }
+
             //множитель частоты
-            float multiplier = 3f; //(float) Math.Log(SpectrumUseSamples, Math.Log(SpectrumUseSamples, 2));
+            float multiplier = 10f; //(float) Math.Log(SpectrumUseSamples, Math.Log(SpectrumUseSamples, 2));
 
             //Для того, чтобы не рисовать нулевые столбики, делаем так
             //Запоминаем текущий столбик и его максимальное значение
@@ -279,23 +287,22 @@ namespace WavVisualize
             float maxInLastBand = 0f; //максимальное значение частоты в последнем столбике
 
             //смещаемся на 1 + DrawSpectrumSkipRate, таким образом покрывая все частоты спектра
-            for (int i = 0; i < useLength; i += (1 + DrawSpectrumSkipRate))
+            for (int i = 0; i < 2000; i += (1 + DrawSpectrumSkipRate))
             {
                 //вычисляем номер столбика
                 //нормализация номера частоты * количество_столбиков
-                int band = (int) ((float) i / useLength * useBands);
-                if (band > lastBand) //если сменился столбик
-                {
-                    //обнуляем показатель
-                    lastBand = band;
-                    maxInLastBand = 0f;
-                }
+                //int band = (int) ((float) i / useLength * useBands);
+
+                int band = i * TotalSpectrumBands / 2000;
 
                 //нормализованная высота столбика спектра
                 //умножаем на постоянный коэффициент
+                float normalizedHeight = frequencies[i] * multiplier; //spectrum[useOffset + i] * multiplier;
+
+
                 //дополнительно применяем логарифмическое выравние громкости (i + 2, чтобы не получить бесконечность)
-                float normalizedHeight = spectrum[useOffset + i] * multiplier *
-                                         (float) Math.Log(Math.Max(i - useLength / useBands, 2), 2);
+                //normalizedHeight *= (float) Math.Log(Math.Max(i - useLength / useBands, 2), 2);
+
 
                 if (normalizedHeight > maxInLastBand) //если эта частота больше, чем уже отрисована
                 {
@@ -366,7 +373,7 @@ namespace WavVisualize
                     MemoryStream ms = new MemoryStream();
 
                     Invoke(new Action(() => { labelStatus.Text = "Converting To Wav"; }));
-                    
+
                     //создаём PCM поток
                     var waveStream = WaveFormatConversionStream.CreatePcmStream(reader);
 
