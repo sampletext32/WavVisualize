@@ -66,11 +66,8 @@
       <DependentUpon>FormMain.cs</DependentUpon>
     </Compile>
     <Compile Include="MyFFT.cs" />
-<<<<<<< HEAD
     <Compile Include="NewFFT\MyNewFFT.cs" />
-=======
     <Compile Include="MyNewFFT.cs" />
->>>>>>> OldFFT
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WaveformProvider.cs" />
