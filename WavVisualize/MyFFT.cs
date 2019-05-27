@@ -72,16 +72,11 @@ namespace WavVisualize
                         0); //заполняем так, чтобы действительная часть была сигналом, а мнимая нулём
             }
 
-            //complexValues = fft(complexValues, 0, length); //производим преобразование Фурье
+            complexValues = fft(complexValues, 0, length); //производим преобразование Фурье
             //MyNewFFT.FFT(complexValues);
 
-            complexValues = MyNewFFT.CalculateFFT(complexValues);
-
-<<<<<<< HEAD
-=======
             //complexValues = MyNewFFT.CalculateFFT(complexValues);
-
->>>>>>> OldFFT
+            //MyNewFFT.FFT(complexValues);
             //inPlace_nfft(complexValues);
 
             float[] frequencies = new float[length]; //создаём массив частот
@@ -90,7 +85,7 @@ namespace WavVisualize
                 //Все комплексные частоты переводим в числа, используя модуль комплексного числа.
                 //Нормализуем частоты деля все значения на количество сигналов
                 //Дополнительно делим на 2, т.к. только половина выходных сигналов действительно является искомыми частотами
-                frequencies[i] = (float) complexValues[i].Re / length;
+                frequencies[i] = (float) complexValues[i].Magnitude / length;
             }
 
             return frequencies;

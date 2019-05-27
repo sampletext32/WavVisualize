@@ -262,21 +262,15 @@ namespace WavVisualize
 
             //количество задействованных столбиков спектра
             //минимум между количеством частот и количеством столбиков
-            int useBands = Math.Min(TotalSpectrumBands, useLength);
+            int useBands = Math.Min(TotalSpectrumWidth, useLength);
 
             //ширина одного столбика
             float sbandWidth = (float) TotalSpectrumWidth / useBands;
 
             float frequencyResolution = (float) _currentWavFileData.SampleRate / SpectrumUseSamples;
-
-            float[] frequencies = new float[44100];
-            for (int i = 0; i < (int)(useLength / frequencyResolution); i++)
-            {
-                frequencies[(int) (i * frequencyResolution)] = spectrum[useOffset + i];
-            }
-
+            
             //множитель частоты
-            float multiplier = 10f; //(float) Math.Log(SpectrumUseSamples, Math.Log(SpectrumUseSamples, 2));
+            float multiplier = 1f; //(float) Math.Log(SpectrumUseSamples, Math.Log(SpectrumUseSamples, 2));
 
             //Для того, чтобы не рисовать нулевые столбики, делаем так
             //Запоминаем текущий столбик и его максимальное значение
@@ -287,7 +281,7 @@ namespace WavVisualize
             float maxInLastBand = 0f; //максимальное значение частоты в последнем столбике
 
             //смещаемся на 1 + DrawSpectrumSkipRate, таким образом покрывая все частоты спектра
-            for (int i = 0; i < 2000; i += (1 + DrawSpectrumSkipRate))
+            for (int i = 0; i < useLength; i += (1 + DrawSpectrumSkipRate))
             {
                 //вычисляем номер столбика
                 //нормализация номера частоты * количество_столбиков
@@ -297,12 +291,11 @@ namespace WavVisualize
 
                 //нормализованная высота столбика спектра
                 //умножаем на постоянный коэффициент
-                //float normalizedHeight = frequencies[i] * multiplier; //spectrum[useOffset + i] * multiplier;
-                float normalizedHeight = frequencies[i] * multiplier; //spectrum[useOffset + i] * multiplier;
+                float normalizedHeight = spectrum[i] * multiplier; //spectrum[useOffset + i] * multiplier;
 
 
                 //дополнительно применяем логарифмическое выравние громкости (i + 2, чтобы не получить бесконечность)
-                //normalizedHeight *= (float) Math.Log(Math.Max(i - useLength / useBands, 2), 2);
+                normalizedHeight *= (float) Math.Log(Math.Max(i - useLength / useBands, 2), 2);
 
 
                 if (normalizedHeight > maxInLastBand) //если эта частота больше, чем уже отрисована
