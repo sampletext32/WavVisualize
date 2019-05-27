@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using WavVisualize.NewFFT;
 
 namespace WavVisualize
 {
@@ -73,7 +74,9 @@ namespace WavVisualize
 
             complexValues = fft(complexValues, 0, length); //производим преобразование Фурье
 
-            inPlace_nfft(complexValues);
+            //complexValues = MyNewFFT.CalculateFFT(complexValues);
+
+            //inPlace_nfft(complexValues);
 
             float[] frequencies = new float[length]; //создаём массив частот
             for (int i = 0; i < length; i++)

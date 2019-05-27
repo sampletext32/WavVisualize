@@ -256,9 +256,9 @@ namespace WavVisualize
         private void DrawSpectrum(Graphics g, float[] spectrum)
         {
             //количество реально используемых сэмплов спектра (издержка быстрого преобразования Фурье)
-            int useLength = SpectrumUseSamples / 2;
+            int useLength = SpectrumUseSamples;
 
-            int useOffset = SpectrumUseSamples / 2;
+            int useOffset = 0;
 
             //количество задействованных столбиков спектра
             //минимум между количеством частот и количеством столбиков
