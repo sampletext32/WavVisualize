@@ -256,7 +256,7 @@ namespace WavVisualize
         private void DrawSpectrum(Graphics g, float[] spectrum)
         {
             //количество реально используемых сэмплов спектра (издержка быстрого преобразования Фурье)
-            int useLength = SpectrumUseSamples;
+            int useLength = SpectrumUseSamples / 2;
 
             int useOffset = 0;
 
@@ -272,7 +272,7 @@ namespace WavVisualize
             float[] frequencies = new float[44100];
             for (int i = 0; i < (int)(useLength / frequencyResolution); i++)
             {
-                frequencies[(int) (i * frequencyResolution)] += spectrum[useOffset + i];
+                frequencies[(int) (i * frequencyResolution)] = spectrum[useOffset + i];
             }
 
             //множитель частоты
@@ -291,12 +291,13 @@ namespace WavVisualize
             {
                 //вычисляем номер столбика
                 //нормализация номера частоты * количество_столбиков
-                //int band = (int) ((float) i / useLength * useBands);
+                int band = (int) ((float) i / useLength * useBands);
 
-                int band = i * TotalSpectrumBands / 2000;
+                //int band = i * TotalSpectrumBands / 2000;
 
                 //нормализованная высота столбика спектра
                 //умножаем на постоянный коэффициент
+                //float normalizedHeight = frequencies[i] * multiplier; //spectrum[useOffset + i] * multiplier;
                 float normalizedHeight = frequencies[i] * multiplier; //spectrum[useOffset + i] * multiplier;
 
 
