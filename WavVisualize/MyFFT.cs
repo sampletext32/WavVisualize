@@ -77,6 +77,11 @@ namespace WavVisualize
 
             complexValues = MyNewFFT.CalculateFFT(complexValues);
 
+<<<<<<< HEAD
+=======
+            //complexValues = MyNewFFT.CalculateFFT(complexValues);
+
+>>>>>>> OldFFT
             //inPlace_nfft(complexValues);
 
             float[] frequencies = new float[length]; //создаём массив частот
