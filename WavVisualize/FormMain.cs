@@ -270,7 +270,7 @@ namespace WavVisualize
             float sbandWidth = (float) TotalSpectrumWidth / useBands;
 
             //множитель частоты
-            float multiplier = 3f; //(float) Math.Log(SpectrumUseSamples, Math.Log(SpectrumUseSamples, 2));
+            float multiplier = 10f; //(float) Math.Log(SpectrumUseSamples, Math.Log(SpectrumUseSamples, 2));
 
 
             //Для того, чтобы не рисовать нулевые столбики, делаем так
@@ -298,7 +298,7 @@ namespace WavVisualize
                 //умножаем на постоянный коэффициент
                 //дополнительно применяем логарифмическое выравние громкости (i + 2, чтобы не получить бесконечность)
                 float normalizedHeight = spectrum[useOffset + i] * multiplier;
-                normalizedHeight *= (float) Math.Log(Math.Max(i - useLength / useBands, 2), 2);
+                normalizedHeight *= (float) Math.Log(Math.Max(i/* - useLength / useBands*/, 2), 10) ;
 
                 if (normalizedHeight > maxInLastBand) //если эта частота больше, чем уже отрисована
                 {
