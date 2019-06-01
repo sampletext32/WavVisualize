@@ -13,6 +13,11 @@ namespace WavVisualize
 
         private PlayState _playState;
 
+        public bool IsPlaying()
+        {
+            return _playState == PlayState.Playing;
+        }
+
         public float GetNormalizedPosition()
         {
             if (_playState != PlayState.NonInitialized)

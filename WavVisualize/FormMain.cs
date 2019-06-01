@@ -12,7 +12,7 @@ namespace WavVisualize
     public partial class FormMain : Form
     {
         //плеер
-        private WindowsMediaPlayer _wmp = new WindowsMediaPlayer();
+        private PlayerProvider _playerProvider;
 
         //нормализованная позиция воспроизведения
         private float _playerPositionNormalized;
@@ -86,6 +86,7 @@ namespace WavVisualize
         public FormMain()
         {
             InitializeComponent();
+            _playerProvider = new PlayerProvider();
         }
 
         //перерисовка волны
@@ -108,8 +109,8 @@ namespace WavVisualize
         private void timerUpdater_Tick(object sender, EventArgs e)
         {
             //кешируем позицию и длину трека (так чуть чуть быстрее, чем тягать dll WMP плеера)
-            double currentPosition = _wmp.controls.currentPosition;
-            double duration = _wmp.currentMedia.duration;
+            float currentPosition = _playerProvider.GetElapsedSeconds();
+            float duration = _playerProvider.GetDurationSeconds();
 
             int h = (int) currentPosition / 3600 % 3600;
             int m = (int) currentPosition / 60 % 60;
@@ -121,7 +122,7 @@ namespace WavVisualize
             labelElapsed.Text = $@"{h:00} : {m:00} : {s:00} / {h1:00} : {m1:00} : {s1:00}";
 
             //высчитываем нормаль позиции воспроизведения
-            _playerPositionNormalized = (float) (currentPosition / duration);
+            _playerPositionNormalized = _playerProvider.GetNormalizedPosition();
 
             //вызываем перерисовку волны и спектра
             pictureBoxPlot.Refresh();
@@ -169,10 +170,10 @@ namespace WavVisualize
         //шаг отрисовки спектра
         private void pictureBoxSpectrum_Paint(object sender, PaintEventArgs e)
         {
-            if (_wmp.playState == WMPPlayState.wmppsPlaying) //если сейчас воспроизводится
+            if (_playerProvider.IsPlaying()) //если сейчас воспроизводится
             {
                 //на каком сейчас сэмпле находимся
-                int currentSample = (int) (_playerPositionNormalized * _currentWavFileData.SamplesCount);
+                int currentSample = (int) (_playerProvider.GetNormalizedPosition() * _currentWavFileData.SamplesCount);
 
                 //длина участка сэмплов, на котором измеряем громкость
                 int regionLength = _currentWavFileData.SampleRate / UpdateRate;
@@ -237,7 +238,7 @@ namespace WavVisualize
                     //рассчитываем спектр
                     float[] newSpectrum =
                         _currentWavFileData.GetSpectrumForPosition(
-                            _playerPositionNormalized,
+                            _playerProvider.GetNormalizedPosition(),
                             SpectrumUseSamples);
 
                     //изменяем текущий нормализованый спектр на Дельту спектра * коэффициент смягчения
