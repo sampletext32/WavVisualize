@@ -7,28 +7,48 @@ using WMPLib;
 
 namespace WavVisualize
 {
-    class PlayerProvider
+    public class PlayerProvider
     {
         private WindowsMediaPlayer _wmp;
 
+        private PlayState _playState;
+
         public float GetNormalizedPosition()
         {
-            return GetElapsedSeconds() / GetDurationSeconds();
+            if (_playState != PlayState.NonInitialized)
+            {
+                return GetElapsedSeconds() / GetDurationSeconds();
+            }
+
+            return 0f;
         }
 
         public float GetElapsedSeconds()
         {
-            return (float) _wmp.controls.currentPosition;
+            if (_playState != PlayState.NonInitialized)
+            {
+                return (float) _wmp.controls.currentPosition;
+            }
+
+            return 0f;
         }
 
         public float GetDurationSeconds()
         {
-            return (float) _wmp.currentMedia.duration;
+            if (_playState != PlayState.NonInitialized)
+            {
+                return (float) _wmp.currentMedia.duration;
+            }
+
+            return 0f;
         }
 
         public void SetNormalizedPosition(float position)
         {
-            _wmp.controls.currentPosition = position * _wmp.currentMedia.duration;
+            if (_playState != PlayState.NonInitialized)
+            {
+                _wmp.controls.currentPosition = position * _wmp.currentMedia.duration;
+            }
         }
 
         public void SetFile(string filename)
@@ -39,15 +59,18 @@ namespace WavVisualize
         public void Play()
         {
             _wmp.controls.play();
+            _playState = PlayState.Playing;
         }
 
         public void Pause()
         {
             _wmp.controls.pause();
+            _playState = PlayState.Paused;
         }
 
         public PlayerProvider()
         {
+            _playState = PlayState.NonInitialized;
             _wmp = new WindowsMediaPlayer();
         }
     }
