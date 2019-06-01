@@ -15,7 +15,7 @@ namespace WavVisualize
         private WindowsMediaPlayer _wmp = new WindowsMediaPlayer();
 
         //нормализованная позиция воспроизведения
-        private float _playerPositionNormalized = 0f;
+        private float _playerPositionNormalized;
 
         //текущий открытый Wav файл
         private WavFileData _currentWavFileData;
