@@ -13,10 +13,7 @@ namespace WavVisualize
     {
         //плеер
         private PlayerProvider _playerProvider;
-
-        //нормализованная позиция воспроизведения
-        private float _playerPositionNormalized;
-
+        
         //текущий открытый Wav файл
         private WavFileData _currentWavFileData;
 
@@ -95,11 +92,11 @@ namespace WavVisualize
             _waveformProvider?.Draw(e.Graphics);
 
             //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
-            e.Graphics.FillRectangle(Brushes.Black, _playerPositionNormalized * pictureBoxPlot.Width, 0, 1,
+            e.Graphics.FillRectangle(Brushes.Black, _playerProvider.GetNormalizedPosition() * pictureBoxPlot.Width, 0, 1,
                 pictureBoxPlot.Height);
 
             //рисуем каретку текущей позиции шириной 20
-            e.Graphics.FillRectangle(Brushes.DarkGray, _playerPositionNormalized * pictureBoxPlot.Width - 10,
+            e.Graphics.FillRectangle(Brushes.DarkGray, _playerProvider.GetNormalizedPosition() * pictureBoxPlot.Width - 10,
                 pictureBoxPlot.Height - 5, 20, 10);
         }
 
@@ -120,10 +117,7 @@ namespace WavVisualize
             int m1 = (int) duration / 60 % 60;
             int s1 = (int) duration % 60;
             labelElapsed.Text = $@"{h:00} : {m:00} : {s:00} / {h1:00} : {m1:00} : {s1:00}";
-
-            //высчитываем нормаль позиции воспроизведения
-            _playerPositionNormalized = _playerProvider.GetNormalizedPosition();
-
+            
             //вызываем перерисовку волны и спектра
             pictureBoxPlot.Refresh();
             pictureBoxSpectrum.Refresh();
@@ -176,11 +170,11 @@ namespace WavVisualize
                 int currentSample = (int) (_playerProvider.GetNormalizedPosition() * _currentWavFileData.SamplesCount);
 
                 //длина участка сэмплов, на котором измеряем громкость
-                int regionLength = _currentWavFileData.SampleRate / UpdateRate;
+                int regionLength = SpectrumUseSamples;//_currentWavFileData.SampleRate / UpdateRate;
 
                 //начало участка измерения (количество пройденных участков + 1) * длину одного участка
                 //начинаем со следующего участка, т.к. текущий уже играет и никак не успеет отрисоваться в нужный момент
-                int start = (currentSample / regionLength + 1) * regionLength;
+                int start = (currentSample / SpectrumUseSamples) * SpectrumUseSamples;
 
                 //если начало участка меньше чем количество сэплов - длина участка (можно вместить ещё участок)
                 if (start < _currentWavFileData.SamplesCount - regionLength)
@@ -299,7 +293,7 @@ namespace WavVisualize
                 //умножаем на постоянный коэффициент
                 //дополнительно применяем логарифмическое выравние громкости (i + 2, чтобы не получить бесконечность)
                 float normalizedHeight = spectrum[useOffset + i] * multiplier;
-                normalizedHeight *= (float) Math.Log(Math.Max(i/* - useLength / useBands*/, 2), 10) ;
+                normalizedHeight *= (float) Math.Log(i, 10) ;
 
                 if (normalizedHeight > maxInLastBand) //если эта частота больше, чем уже отрисована
                 {
@@ -417,8 +411,8 @@ namespace WavVisualize
                 CurrentSpectrum = _currentWavFileData.GetSpectrumForPosition(0, SpectrumUseSamples);
 
                 //создаём новый медиафайл
-                _wmp.currentMedia = _wmp.newMedia(filename);
-                _wmp.controls.play();
+                _playerProvider.SetFile(filename);
+                _playerProvider.Play();
 
                 //количество кусочков столбика = (высота окна / (высоту кусочка + расстояние между кусочками))
                 DigitalBandPiecesCount = (int) (SpectrumHeight / (DigitalPieceHeight + DistanceBetweenBands));
@@ -442,8 +436,8 @@ namespace WavVisualize
             PressedOnWaveform = true; //сохраняем флаг
 
             //выставляем позицию воспроизведения, как нормализацию координаты клика * длительность трека
-            _wmp.controls.currentPosition = ((float) e.X / pictureBoxPlot.Width) * _wmp.currentMedia.duration;
-            _wmp.controls.play();
+            _playerProvider.SetNormalizedPosition((float)e.X / pictureBoxPlot.Width);
+            _playerProvider.Play();
         }
 
         //когда двигаем мышь по волне
@@ -452,8 +446,8 @@ namespace WavVisualize
             if (PressedOnWaveform) //если нажата кнопка
             {
                 //выставляем позицию воспроизведения, как нормализацию координаты клика * длительность трека
-                _wmp.controls.currentPosition = ((float) e.X / pictureBoxPlot.Width) * _wmp.currentMedia.duration;
-                _wmp.controls.play();
+                _playerProvider.SetNormalizedPosition((float)e.X / pictureBoxPlot.Width);
+                _playerProvider.Play();
 
                 //вызываем перерисовку, т.к. сдвинулась позиция
                 pictureBoxPlot.Refresh();

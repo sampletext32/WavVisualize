@@ -22,6 +22,10 @@ namespace WavVisualize
         {
             if (_playState != PlayState.NonInitialized)
             {
+                if (Math.Abs(GetDurationSeconds()) < 0.00000001f)
+                {
+                    return 0f;
+                }
                 return GetElapsedSeconds() / GetDurationSeconds();
             }
 

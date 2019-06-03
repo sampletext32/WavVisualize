@@ -67,6 +67,8 @@
     </Compile>
     <Compile Include="MyFFT.cs" />
     <Compile Include="MyNewFFT.cs" />
+    <Compile Include="PlayerProvider.cs" />
+    <Compile Include="PlayState.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WaveformProvider.cs" />
