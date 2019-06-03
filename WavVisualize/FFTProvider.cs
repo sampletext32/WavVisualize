@@ -12,7 +12,6 @@ namespace WavVisualize
         protected Complex[] ValuesBuffer;
 
         protected int Samples;
-
         
         protected abstract void Algorithm();
 

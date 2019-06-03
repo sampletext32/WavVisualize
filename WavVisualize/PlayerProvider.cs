@@ -14,6 +14,11 @@ namespace WavVisualize
 
         private PlayState _playState;
 
+        public PlayState GetPlayState()
+        {
+            return _playState;
+        }
+
         public bool IsPlaying()
         {
             return _playState == PlayState.Playing;
@@ -87,7 +92,20 @@ namespace WavVisualize
         {
             _playState = PlayState.NonInitialized;
             _wmp = new WindowsMediaPlayer();
+            _wmp.PlayStateChange += _wmp_PlayStateChange;
             _wmp.settings.autoStart = false;
+        }
+
+        private void _wmp_PlayStateChange(int NewState)
+        {
+            if (_wmp.playState == WMPPlayState.wmppsPlaying)
+            {
+                _playState = PlayState.Playing;
+            }
+            else
+            {
+                _playState = PlayState.Paused;
+            }
         }
     }
 }

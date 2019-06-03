@@ -19,13 +19,10 @@ namespace WavVisualize
         protected override void Algorithm()
         {
             int power = FastPowLog2Provider.FastLog2(Samples);
-            int count = 1;
-            for (int i = 0; i < power; i++)
-                count <<= 1;
-
-            int mid = count >> 1; // mid = count / 2;
+            
+            int mid = Samples >> 1; // mid = count / 2;
             int j = 0;
-            for (int i = 0; i < count - 1; i++)
+            for (int i = 0; i < Samples - 1; i++)
             {
                 if (i < j)
                 {
@@ -58,7 +55,7 @@ namespace WavVisualize
 
                 for (int n = 0; n < l1; n++)
                 {
-                    for (int i = n; i < count; i += l2)
+                    for (int i = n; i < Samples; i += l2)
                     {
                         int i1 = i + l1;
                         Complex tmp = r2 * ValuesBuffer[i1];

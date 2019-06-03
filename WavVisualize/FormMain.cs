@@ -83,9 +83,7 @@ namespace WavVisualize
 
         //нажати ли сейчас мышь на волне
         public bool PressedOnWaveform;
-
-        public bool IsPlaying;
-
+        
         public FormMain()
         {
             InitializeComponent();
@@ -114,6 +112,7 @@ namespace WavVisualize
         //шаг обновления
         private void timerUpdater_Tick(object sender, EventArgs e)
         {
+            labelStatus.Text = _playerProvider.GetPlayState().ToString();
             //кешируем позицию и длину трека (так чуть чуть быстрее, чем тягать dll WMP плеера)
             float currentPosition = _playerProvider.GetElapsedSeconds();
             float duration = _playerProvider.GetDurationSeconds();
@@ -506,8 +505,7 @@ namespace WavVisualize
 
         private void buttonPlayPause_Click(object sender, EventArgs e)
         {
-            IsPlaying = !IsPlaying;
-            if (IsPlaying)
+            if (!_playerProvider.IsPlaying())
             {
                 _playerProvider.Play();
             }

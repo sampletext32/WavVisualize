@@ -1,6 +1,6 @@
 ﻿namespace WavVisualize
 {
-    enum PlayState
+    public enum PlayState
     {
         Playing,
         Paused,
