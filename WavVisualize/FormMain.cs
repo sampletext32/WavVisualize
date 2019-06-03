@@ -21,6 +21,8 @@ namespace WavVisualize
 
         private FFTProvider _fftProvider;
 
+        private VolumeProvider _volumeProvider;
+
         private int TrimFrequency = 20000;
 
         //текущая отображаемая громкость
@@ -83,7 +85,7 @@ namespace WavVisualize
 
         //нажати ли сейчас мышь на волне
         public bool PressedOnWaveform;
-        
+
         public FormMain()
         {
             InitializeComponent();
@@ -132,43 +134,6 @@ namespace WavVisualize
             fps++;
         }
 
-        //функция возвращает максимальную громкость на каждом канале
-        //на промежутке length начиная со start
-        private static void GetMaxVolume(float[] left, float[] right, ref float lMax, ref float rMax, int start,
-            int length)
-        {
-            for (int i = 0; i < length; i++)
-            {
-                if (left[start + i] > lMax)
-                {
-                    lMax = left[start + i];
-                }
-
-                if (right[start + i] > rMax)
-                {
-                    rMax = right[start + i];
-                }
-            }
-        }
-
-        //функция возвращает среднюю громкость на каждом канале
-        //на промежутке length начиная со start
-        private static void GetAverageVolume(float[] left, float[] right, ref float lAver, ref float rAver, int start,
-            int length)
-        {
-            lAver = 0f;
-            rAver = 0f;
-            for (int i = 0; i < length; i++)
-            {
-                lAver += left[start + i];
-                rAver += right[start + i];
-            }
-
-            //нормализуем обе громкости
-            lAver /= length;
-            rAver /= length;
-        }
-
         public void CopySpectrum(float[] values, float easing)
         {
             for (int i = 0; i < SpectrumUseSamples; i++)
@@ -197,20 +162,11 @@ namespace WavVisualize
                 //если начало участка меньше чем количество сэплов - длина участка (можно вместить ещё участок)
                 if (start < _currentWavFileData.SamplesCount - regionLength && start >= 0)
                 {
-                    //создаём максимальные громкости
-                    float maxL = 0;
-                    float maxR = 0;
-
-                    //вычисляем громкости
-                    GetMaxVolume(
-                        _currentWavFileData.LeftChannel,
-                        _currentWavFileData.RightChannel,
-                        ref maxL, ref maxR, start, regionLength
-                    );
+                    _volumeProvider.Calculate(start);
 
                     //изменяем текущую нормализованую громкость на Дельту громкости * коэффициент смягчения
-                    CurrentVolumeL += (maxL - CurrentVolumeL) * (1 - EasingCoef);
-                    CurrentVolumeR += (maxR - CurrentVolumeR) * (1 - EasingCoef);
+                    CurrentVolumeL += (_volumeProvider.GetL() - CurrentVolumeL) * (1 - EasingCoef);
+                    CurrentVolumeR += (_volumeProvider.GetR() - CurrentVolumeR) * (1 - EasingCoef);
 
                     //вычисляем количество цифровых кусочков = громкость * общее количество кусочков
                     int digitalPartsL = (int) (CurrentVolumeL * DigitalBandPiecesCount);
@@ -417,6 +373,10 @@ namespace WavVisualize
 
                 Task.Run(() => _waveformProvider.StartRecreation());
 
+                _volumeProvider =
+                    new AverageInRegionVolumeProvider(_currentWavFileData.LeftChannel, _currentWavFileData.RightChannel,
+                        _currentWavFileData.SampleRate / UpdateRate);
+
                 //MyFFT.InitAllCache(SpectrumUseSamples);
 
                 //просчитываем спектр на самом первом участке, это нужно для инициализации массива
@@ -513,7 +473,6 @@ namespace WavVisualize
             {
                 _playerProvider.Pause();
             }
-
         }
     }
 }

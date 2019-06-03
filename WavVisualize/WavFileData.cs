@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace WavVisualize
 {
     //Класс отвечающий за работу с Wav файлом
-    class WavFileData
+    public class WavFileData
     {
         #region Параметры Wav файла
 
@@ -38,7 +38,7 @@ namespace WavVisualize
         public float[] RightChannel;
 
         #endregion
-        
+
         //функция рассчитывает спектр для заданного количества сэмплов начиная с нормализованной позиции
         public float[] GetSpectrumForPosition(float position, FFTProvider fftProvider)
         {

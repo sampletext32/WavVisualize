@@ -58,6 +58,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AverageInRegionVolumeProvider.cs" />
     <Compile Include="CorrectCooleyTukeyInPlaceFFTProvider.cs" />
     <Compile Include="FastPowLog2Provider.cs" />
     <Compile Include="BrokenCooleyTukeyInPlaceFFTProvider.cs" />
@@ -69,12 +70,14 @@
     <Compile Include="FormMain.Designer.cs">
       <DependentUpon>FormMain.cs</DependentUpon>
     </Compile>
+    <Compile Include="MaxInRegionVolumeProvider.cs" />
     <Compile Include="MyFFT.cs" />
     <Compile Include="MyNewFFT.cs" />
     <Compile Include="PlayerProvider.cs" />
     <Compile Include="PlayState.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="VolumeProvider.cs" />
     <Compile Include="WaveformProvider.cs" />
     <Compile Include="WavFileData.cs" />
     <EmbeddedResource Include="FormMain.resx">
