@@ -43,10 +43,12 @@
             this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.labelFPS = new System.Windows.Forms.Label();
+            this.trackBar1 = new System.Windows.Forms.TrackBar();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxPlot)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxSpectrum)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
             this.SuspendLayout();
             // 
             // pictureBoxPlot
@@ -200,11 +202,23 @@
             this.labelFPS.TabIndex = 11;
             this.labelFPS.Text = "FPS";
             // 
+            // trackBar1
+            // 
+            this.trackBar1.Location = new System.Drawing.Point(800, 272);
+            this.trackBar1.Maximum = 20000;
+            this.trackBar1.Minimum = 1000;
+            this.trackBar1.Name = "trackBar1";
+            this.trackBar1.Size = new System.Drawing.Size(264, 56);
+            this.trackBar1.TabIndex = 12;
+            this.trackBar1.Value = 1000;
+            this.trackBar1.Scroll += new System.EventHandler(this.trackBar1_Scroll);
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1073, 450);
+            this.Controls.Add(this.trackBar1);
             this.Controls.Add(this.labelFPS);
             this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.labelStatus);
@@ -225,6 +239,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxSpectrum)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -246,6 +261,7 @@
         private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.Label labelFPS;
+        private System.Windows.Forms.TrackBar trackBar1;
     }
 }
 

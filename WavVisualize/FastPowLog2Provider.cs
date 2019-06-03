@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WavVisualize
 {
-    class PowLog2Provider
+    class FastPowLog2Provider
     {
         public static int FastLog2(int n)
         {

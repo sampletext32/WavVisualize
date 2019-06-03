@@ -21,6 +21,8 @@ namespace WavVisualize
 
         private FFTProvider _fftProvider;
 
+        private int TrimFrequency = 20000;
+
         //текущая отображаемая громкость
         public float CurrentVolumeL;
         public float CurrentVolumeR;
@@ -86,7 +88,7 @@ namespace WavVisualize
         {
             InitializeComponent();
             _playerProvider = new PlayerProvider();
-            _fftProvider = new CooleyTukeyInPlaceFFTProvider(SpectrumUseSamples);
+            _fftProvider = new CorrectCooleyTukeyInPlaceFFTProvider(SpectrumUseSamples);
         }
 
         //перерисовка волны
@@ -175,14 +177,16 @@ namespace WavVisualize
                 int currentSample = (int) (_playerProvider.GetNormalizedPosition() * _currentWavFileData.SamplesCount);
 
                 //длина участка сэмплов, на котором измеряем громкость
-                int regionLength = SpectrumUseSamples; //_currentWavFileData.SampleRate / UpdateRate;
+                int regionLength =
+                    _currentWavFileData.SamplesCount / UpdateRate; //_currentWavFileData.SampleRate / UpdateRate;
 
                 //начало участка измерения (количество пройденных участков + 1) * длину одного участка
                 //начинаем со следующего участка, т.к. текущий уже играет и никак не успеет отрисоваться в нужный момент
-                int start = (currentSample / SpectrumUseSamples) * SpectrumUseSamples;
+                //int start = (currentSample / regionLength - 1) * regionLength;
+                int start = currentSample;
 
                 //если начало участка меньше чем количество сэплов - длина участка (можно вместить ещё участок)
-                if (start < _currentWavFileData.SamplesCount - regionLength)
+                if (start < _currentWavFileData.SamplesCount - regionLength && start >= 0)
                 {
                     //создаём максимальные громкости
                     float maxL = 0;
@@ -231,12 +235,13 @@ namespace WavVisualize
                     }
                 }
 
-                //если начало участка меньше чем количество сэплов - сэмплов на преобразование спектра (можно вместить ещё раз рассчитать спектр)
-                if (start < _currentWavFileData.SamplesCount - SpectrumUseSamples)
+                //если начало участка меньше чем количество сэмплов - сэмплов на преобразование спектра (можно вместить ещё раз рассчитать спектр)
+                if (start < _currentWavFileData.SamplesCount - SpectrumUseSamples && start >= 0)
                 {
                     //рассчитываем спектр
                     float[] newSpectrum =
-                        _currentWavFileData.GetSpectrumForPosition(_playerProvider.GetNormalizedPosition(), _fftProvider);
+                        _currentWavFileData.GetSpectrumForPosition(_playerProvider.GetNormalizedPosition(),
+                            _fftProvider);
 
                     //изменяем текущий нормализованый спектр на Дельту спектра * коэффициент смягчения
                     for (int i = 0; i < SpectrumUseSamples; i++)
@@ -254,7 +259,7 @@ namespace WavVisualize
         private void DrawSpectrum(Graphics g, float[] spectrum)
         {
             //количество реально используемых сэмплов спектра (издержка быстрого преобразования Фурье)
-            int useLength = SpectrumUseSamples / 2;
+            float useLength = (int) (SpectrumUseSamples / ((float) _currentWavFileData.SampleRate / TrimFrequency));
 
             int useOffset = 0;
 
@@ -262,7 +267,8 @@ namespace WavVisualize
 
             //количество задействованных столбиков спектра
             //минимум между количеством частот и количеством столбиков
-            int useBands = Math.Min(TotalSpectrumBands, (int) (useLength));
+            //int useBands = Math.Min(TotalSpectrumBands, (int) (useLength));
+            int useBands = TotalSpectrumBands;
 
             //ширина одного столбика
             float sbandWidth = (float) TotalSpectrumWidth / useBands;
@@ -340,8 +346,9 @@ namespace WavVisualize
         private void FormMain_Shown(object sender, EventArgs e)
         {
             //выводим коэффициенты на форму
-            numericUpDown1.Value = (decimal) (EasingCoef * 10);
-            numericUpDown2.Value = (decimal) (Math.Log(SpectrumUseSamples, 2));
+            numericUpDown1.Value = (int) (EasingCoef * 10);
+
+            numericUpDown2.Value = FastPowLog2Provider.FastLog2(SpectrumUseSamples);
             checkBox1.Checked = MyFFT.useCache;
             //OpenFile();
         }
@@ -472,12 +479,12 @@ namespace WavVisualize
         //обработка изменения степени двойки количества сэмплов на обработку спектра
         private void numericUpDown2_ValueChanged(object sender, EventArgs e)
         {
-            SpectrumUseSamples = PowLog2Provider.FastPow2((int) numericUpDown2.Value);
+            SpectrumUseSamples = FastPowLog2Provider.FastPow2((int) numericUpDown2.Value);
 
             //создаём массив спектра заново, т.к. во время отрисовки массив не должен меняться
             CurrentSpectrum = new float[SpectrumUseSamples];
 
-            _fftProvider = new CooleyTukeyInPlaceFFTProvider(SpectrumUseSamples);
+            _fftProvider = new CorrectCooleyTukeyInPlaceFFTProvider(SpectrumUseSamples);
         }
 
         private async void button1_Click(object sender, EventArgs e)
@@ -499,6 +506,11 @@ namespace WavVisualize
         {
             labelFPS.Text = "FPS: " + fps;
             fps = 0;
+        }
+
+        private void trackBar1_Scroll(object sender, EventArgs e)
+        {
+            TrimFrequency = trackBar1.Value;
         }
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WavVisualize
 {
-    class CooleyTukeyInPlaceFFTProvider : FFTProvider
+    class BrokenCooleyTukeyInPlaceFFTProvider : FFTProvider
     {
         /*
             Performs a Bit Reversal Algorithm on a positive integer 
@@ -31,7 +31,7 @@ namespace WavVisualize
 
         protected override void Algorithm()
         {
-            int bits = PowLog2Provider.FastLog2(Samples);
+            int bits = FastPowLog2Provider.FastLog2(Samples);
             for (int j = 1; j < Samples / 2; j++)
             {
                 int swapPos = BitReverse(j, bits);
@@ -61,7 +61,7 @@ namespace WavVisualize
             }
         }
 
-        public CooleyTukeyInPlaceFFTProvider(int samples) : base(samples)
+        public BrokenCooleyTukeyInPlaceFFTProvider(int samples) : base(samples)
         {
         }
     }

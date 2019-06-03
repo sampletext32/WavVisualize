@@ -58,8 +58,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PowLog2Provider.cs" />
-    <Compile Include="CooleyTukeyInPlaceFFTProvider.cs" />
+    <Compile Include="CorrectCooleyTukeyInPlaceFFTProvider.cs" />
+    <Compile Include="FastPowLog2Provider.cs" />
+    <Compile Include="BrokenCooleyTukeyInPlaceFFTProvider.cs" />
     <Compile Include="Complex.cs" />
     <Compile Include="FFTProvider.cs" />
     <Compile Include="FormMain.cs">
