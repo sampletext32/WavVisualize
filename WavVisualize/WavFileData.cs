@@ -40,9 +40,10 @@ namespace WavVisualize
         #endregion
         
         //функция рассчитывает спектр для заданного количества сэмплов начиная с нормализованной позиции
-        public float[] GetSpectrumForPosition(float position, int spectrumUseSamples)
+        public float[] GetSpectrumForPosition(float position, FFTProvider fftProvider)
         {
-            float[] spectrum = MyFFT.FFT(LeftChannel, (int) (SamplesCount * position), spectrumUseSamples);
+            fftProvider.Calculate(LeftChannel, (int)(SamplesCount * position));
+            float[] spectrum = fftProvider.Get();
             return spectrum;
         }
 

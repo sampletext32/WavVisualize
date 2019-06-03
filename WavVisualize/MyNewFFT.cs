@@ -8,9 +8,11 @@ namespace WavVisualize
 {
     class MyNewFFT
     {
-        /* Performs a Bit Reversal Algorithm on a postive integer 
-     * for given number of bits
-     * e.g. 011 with 3 bits is reversed to 110 */
+        /*
+            Performs a Bit Reversal Algorithm on a positive integer 
+            for given number of bits
+            e.g. 011 with 3 bits is reversed to 110 
+        */
         public static int BitReverse(int n, int bits)
         {
             int reversedN = n;
@@ -31,7 +33,7 @@ namespace WavVisualize
          * assumes no of points provided are a power of 2 */
         public static void FFT(Complex[] buffer)
         {
-            int bits = (int)Math.Log(buffer.Length, 2);
+            int bits = (int) Math.Log(buffer.Length, 2);
             for (int j = 1; j < buffer.Length / 2; j++)
             {
                 int swapPos = BitReverse(j, bits);
@@ -51,7 +53,7 @@ namespace WavVisualize
                         var even = buffer[evenIndex];
                         var odd = buffer[oddIndex];
 
-                        double term = -2 * Math.PI * k / (double)N;
+                        double term = -2 * Math.PI * k / (double) N;
                         Complex exp = new Complex(Math.Cos(term), Math.Sin(term)) * odd;
 
                         buffer[evenIndex] = even + exp;
@@ -64,7 +66,7 @@ namespace WavVisualize
         // aSamples.Length need to be a power of two
         public static Complex[] CalculateFFT(Complex[] aSamples)
         {
-            int power = (int)Math.Log(aSamples.Length, 2);
+            int power = (int) Math.Log(aSamples.Length, 2);
             int count = 1;
             for (int i = 0; i < power; i++)
                 count <<= 1;

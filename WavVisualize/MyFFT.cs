@@ -29,7 +29,7 @@ namespace WavVisualize
             }
 
 
-            int base2 = fastLog2(samples);
+            int base2 = FastLog2(samples);
             _cacheLevels = new Complex[base2 + 1][];
             while (samples > 3)
             {
@@ -41,7 +41,7 @@ namespace WavVisualize
 
         public static void InitCache(int samples)
         {
-            int base2 = fastLog2(samples);
+            int base2 = FastLog2(samples);
 
             Complex[] cache = new Complex[samples];
             for (int i = 0; i < samples; i++)
@@ -64,7 +64,7 @@ namespace WavVisualize
             return new Complex(Math.Cos(arg), Math.Sin(arg)); //преобразование комплексного экспонентного вида в обычный
         }
 
-        static int fastLog2(int n)
+        static int FastLog2(int n)
         {
             switch (n)
             {
@@ -92,7 +92,7 @@ namespace WavVisualize
 
         private static Complex cachedW(int x, int n)
         {
-            int base2 = fastLog2(n);
+            int base2 = FastLog2(n);
             return _cacheLevels[base2][x];
         }
 

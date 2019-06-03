@@ -13,11 +13,13 @@ namespace WavVisualize
     {
         //плеер
         private PlayerProvider _playerProvider;
-        
+
         //текущий открытый Wav файл
         private WavFileData _currentWavFileData;
 
         private WaveformProvider _waveformProvider;
+
+        private FFTProvider _fftProvider;
 
         //текущая отображаемая громкость
         public float CurrentVolumeL;
@@ -84,6 +86,7 @@ namespace WavVisualize
         {
             InitializeComponent();
             _playerProvider = new PlayerProvider();
+            _fftProvider = new CooleyTukeyInPlaceFFTProvider(SpectrumUseSamples);
         }
 
         //перерисовка волны
@@ -92,11 +95,13 @@ namespace WavVisualize
             _waveformProvider?.Draw(e.Graphics);
 
             //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
-            e.Graphics.FillRectangle(Brushes.Black, _playerProvider.GetNormalizedPosition() * pictureBoxPlot.Width, 0, 1,
+            e.Graphics.FillRectangle(Brushes.Black, _playerProvider.GetNormalizedPosition() * pictureBoxPlot.Width, 0,
+                1,
                 pictureBoxPlot.Height);
 
             //рисуем каретку текущей позиции шириной 20
-            e.Graphics.FillRectangle(Brushes.DarkGray, _playerProvider.GetNormalizedPosition() * pictureBoxPlot.Width - 10,
+            e.Graphics.FillRectangle(Brushes.DarkGray,
+                _playerProvider.GetNormalizedPosition() * pictureBoxPlot.Width - 10,
                 pictureBoxPlot.Height - 5, 20, 10);
         }
 
@@ -117,7 +122,7 @@ namespace WavVisualize
             int m1 = (int) duration / 60 % 60;
             int s1 = (int) duration % 60;
             labelElapsed.Text = $@"{h:00} : {m:00} : {s:00} / {h1:00} : {m1:00} : {s1:00}";
-            
+
             //вызываем перерисовку волны и спектра
             pictureBoxPlot.Refresh();
             pictureBoxSpectrum.Refresh();
@@ -170,7 +175,7 @@ namespace WavVisualize
                 int currentSample = (int) (_playerProvider.GetNormalizedPosition() * _currentWavFileData.SamplesCount);
 
                 //длина участка сэмплов, на котором измеряем громкость
-                int regionLength = SpectrumUseSamples;//_currentWavFileData.SampleRate / UpdateRate;
+                int regionLength = SpectrumUseSamples; //_currentWavFileData.SampleRate / UpdateRate;
 
                 //начало участка измерения (количество пройденных участков + 1) * длину одного участка
                 //начинаем со следующего участка, т.к. текущий уже играет и никак не успеет отрисоваться в нужный момент
@@ -231,9 +236,7 @@ namespace WavVisualize
                 {
                     //рассчитываем спектр
                     float[] newSpectrum =
-                        _currentWavFileData.GetSpectrumForPosition(
-                            _playerProvider.GetNormalizedPosition(),
-                            SpectrumUseSamples);
+                        _currentWavFileData.GetSpectrumForPosition(_playerProvider.GetNormalizedPosition(), _fftProvider);
 
                     //изменяем текущий нормализованый спектр на Дельту спектра * коэффициент смягчения
                     for (int i = 0; i < SpectrumUseSamples; i++)
@@ -255,11 +258,11 @@ namespace WavVisualize
 
             int useOffset = 0;
 
-            float frequencyResolution = (float)_currentWavFileData.SampleRate / SpectrumUseSamples;
+            float frequencyResolution = (float) _currentWavFileData.SampleRate / SpectrumUseSamples;
 
             //количество задействованных столбиков спектра
             //минимум между количеством частот и количеством столбиков
-            int useBands = Math.Min(TotalSpectrumBands, (int)(useLength));
+            int useBands = Math.Min(TotalSpectrumBands, (int) (useLength));
 
             //ширина одного столбика
             float sbandWidth = (float) TotalSpectrumWidth / useBands;
@@ -293,7 +296,7 @@ namespace WavVisualize
                 //умножаем на постоянный коэффициент
                 //дополнительно применяем логарифмическое выравние громкости (i + 2, чтобы не получить бесконечность)
                 float normalizedHeight = spectrum[useOffset + i] * multiplier;
-                normalizedHeight *= (float) Math.Log(i, 10) ;
+                normalizedHeight *= (float) Math.Log(i, 10);
 
                 if (normalizedHeight > maxInLastBand) //если эта частота больше, чем уже отрисована
                 {
@@ -405,10 +408,10 @@ namespace WavVisualize
 
                 Task.Run(() => _waveformProvider.StartRecreation());
 
-                MyFFT.InitAllCache(SpectrumUseSamples);
+                //MyFFT.InitAllCache(SpectrumUseSamples);
 
                 //просчитываем спектр на самом первом участке, это нужно для инициализации массива
-                CurrentSpectrum = _currentWavFileData.GetSpectrumForPosition(0, SpectrumUseSamples);
+                CurrentSpectrum = _currentWavFileData.GetSpectrumForPosition(0, _fftProvider);
 
                 //создаём новый медиафайл
                 _playerProvider.SetFile(filename);
@@ -436,7 +439,7 @@ namespace WavVisualize
             PressedOnWaveform = true; //сохраняем флаг
 
             //выставляем позицию воспроизведения, как нормализацию координаты клика * длительность трека
-            _playerProvider.SetNormalizedPosition((float)e.X / pictureBoxPlot.Width);
+            _playerProvider.SetNormalizedPosition((float) e.X / pictureBoxPlot.Width);
             _playerProvider.Play();
         }
 
@@ -446,7 +449,7 @@ namespace WavVisualize
             if (PressedOnWaveform) //если нажата кнопка
             {
                 //выставляем позицию воспроизведения, как нормализацию координаты клика * длительность трека
-                _playerProvider.SetNormalizedPosition((float)e.X / pictureBoxPlot.Width);
+                _playerProvider.SetNormalizedPosition((float) e.X / pictureBoxPlot.Width);
                 _playerProvider.Play();
 
                 //вызываем перерисовку, т.к. сдвинулась позиция
@@ -469,12 +472,12 @@ namespace WavVisualize
         //обработка изменения степени двойки количества сэмплов на обработку спектра
         private void numericUpDown2_ValueChanged(object sender, EventArgs e)
         {
-            SpectrumUseSamples = (int) Math.Pow(2, (double) numericUpDown2.Value);
+            SpectrumUseSamples = PowLog2Provider.FastPow2((int) numericUpDown2.Value);
 
             //создаём массив спектра заново, т.к. во время отрисовки массив не должен меняться
             CurrentSpectrum = new float[SpectrumUseSamples];
 
-            MyFFT.InitAllCache(SpectrumUseSamples);
+            _fftProvider = new CooleyTukeyInPlaceFFTProvider(SpectrumUseSamples);
         }
 
         private async void button1_Click(object sender, EventArgs e)
@@ -489,7 +492,7 @@ namespace WavVisualize
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
-            MyFFT.useCache = checkBox1.Checked;
+            //MyFFT.useCache = checkBox1.Checked;
         }
 
         private void timer1_Tick(object sender, EventArgs e)
