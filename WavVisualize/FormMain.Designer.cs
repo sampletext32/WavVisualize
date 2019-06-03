@@ -38,12 +38,11 @@
             this.label2 = new System.Windows.Forms.Label();
             this.labelElapsed = new System.Windows.Forms.Label();
             this.button1 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
             this.labelStatus = new System.Windows.Forms.Label();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.labelFPS = new System.Windows.Forms.Label();
             this.trackBar1 = new System.Windows.Forms.TrackBar();
+            this.buttonPlayPause = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxPlot)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxSpectrum)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
@@ -83,7 +82,7 @@
             // 
             this.numericUpDown1.Location = new System.Drawing.Point(944, 8);
             this.numericUpDown1.Maximum = new decimal(new int[] {
-            9,
+            19,
             0,
             0,
             0});
@@ -149,43 +148,22 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(800, 112);
+            this.button1.Location = new System.Drawing.Point(800, 160);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(264, 23);
+            this.button1.Size = new System.Drawing.Size(264, 32);
             this.button1.TabIndex = 7;
             this.button1.Text = "Open File";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
-            // button2
-            // 
-            this.button2.Location = new System.Drawing.Point(800, 144);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(75, 23);
-            this.button2.TabIndex = 8;
-            this.button2.Text = "button2";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
-            // 
             // labelStatus
             // 
             this.labelStatus.AutoSize = true;
-            this.labelStatus.Location = new System.Drawing.Point(800, 184);
+            this.labelStatus.Location = new System.Drawing.Point(800, 200);
             this.labelStatus.Name = "labelStatus";
             this.labelStatus.Size = new System.Drawing.Size(48, 17);
             this.labelStatus.TabIndex = 9;
             this.labelStatus.Text = "Status";
-            // 
-            // checkBox1
-            // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(800, 208);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(98, 21);
-            this.checkBox1.TabIndex = 10;
-            this.checkBox1.Text = "checkBox1";
-            this.checkBox1.UseVisualStyleBackColor = true;
-            this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
             // timer1
             // 
@@ -196,7 +174,7 @@
             // labelFPS
             // 
             this.labelFPS.AutoSize = true;
-            this.labelFPS.Location = new System.Drawing.Point(800, 240);
+            this.labelFPS.Location = new System.Drawing.Point(800, 224);
             this.labelFPS.Name = "labelFPS";
             this.labelFPS.Size = new System.Drawing.Size(34, 17);
             this.labelFPS.TabIndex = 11;
@@ -204,7 +182,7 @@
             // 
             // trackBar1
             // 
-            this.trackBar1.Location = new System.Drawing.Point(800, 272);
+            this.trackBar1.Location = new System.Drawing.Point(800, 248);
             this.trackBar1.Maximum = 20000;
             this.trackBar1.Minimum = 1000;
             this.trackBar1.Name = "trackBar1";
@@ -213,16 +191,25 @@
             this.trackBar1.Value = 1000;
             this.trackBar1.Scroll += new System.EventHandler(this.trackBar1_Scroll);
             // 
+            // buttonPlayPause
+            // 
+            this.buttonPlayPause.Location = new System.Drawing.Point(800, 104);
+            this.buttonPlayPause.Name = "buttonPlayPause";
+            this.buttonPlayPause.Size = new System.Drawing.Size(264, 48);
+            this.buttonPlayPause.TabIndex = 13;
+            this.buttonPlayPause.Text = "Play / Pause";
+            this.buttonPlayPause.UseVisualStyleBackColor = true;
+            this.buttonPlayPause.Click += new System.EventHandler(this.buttonPlayPause_Click);
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1073, 450);
+            this.Controls.Add(this.buttonPlayPause);
             this.Controls.Add(this.trackBar1);
             this.Controls.Add(this.labelFPS);
-            this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.labelStatus);
-            this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.labelElapsed);
             this.Controls.Add(this.label2);
@@ -256,12 +243,11 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label labelElapsed;
         private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Label labelStatus;
-        private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.Label labelFPS;
         private System.Windows.Forms.TrackBar trackBar1;
+        private System.Windows.Forms.Button buttonPlayPause;
     }
 }
 

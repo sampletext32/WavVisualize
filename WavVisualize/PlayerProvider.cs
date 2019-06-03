@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WMPLib;
 
@@ -16,6 +17,11 @@ namespace WavVisualize
         public bool IsPlaying()
         {
             return _playState == PlayState.Playing;
+        }
+
+        public bool IsPaused()
+        {
+            return _playState == PlayState.Paused;
         }
 
         public float GetNormalizedPosition()
@@ -81,6 +87,7 @@ namespace WavVisualize
         {
             _playState = PlayState.NonInitialized;
             _wmp = new WindowsMediaPlayer();
+            _wmp.settings.autoStart = false;
         }
     }
 }
