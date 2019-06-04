@@ -242,8 +242,12 @@
             this.Controls.Add(this.numericUpDown1);
             this.Controls.Add(this.pictureBoxSpectrum);
             this.Controls.Add(this.pictureBoxPlot);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "FormMain";
-            this.Text = "Form1";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.Text = "Awesome Player";
             this.Load += new System.EventHandler(this.FormMain_Load);
             this.Shown += new System.EventHandler(this.FormMain_Shown);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxPlot)).EndInit();

@@ -23,7 +23,7 @@ namespace WavVisualize
 
         private VolumeProvider _volumeProvider;
 
-        private int TrimFrequency = 20000;
+        public int TrimFrequency = 20000;
 
         //текущая отображаемая громкость
         public float CurrentVolumeL;
