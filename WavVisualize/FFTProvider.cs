@@ -10,9 +10,9 @@ namespace WavVisualize
     {
         protected float[] Frequencies;
         protected Complex[] ValuesBuffer;
-
         protected int Samples;
-        
+        private bool _applyTimeThinning;
+
         protected abstract void Algorithm();
 
         public void Calculate(float[] values, int start)
@@ -26,21 +26,49 @@ namespace WavVisualize
 
         private void CopyValues(float[] values, int start)
         {
-            for (int i = 0; i < Samples; i++)
+            if (_applyTimeThinning)
             {
-                ValuesBuffer[i].Re = values[start + i];
-                ValuesBuffer[i].Im = 0;
+                for (int i = 0; i < Samples; i++)
+                {
+                    if (i % 2 == 0)
+                    {
+                        ValuesBuffer[i].Re = values[start + i / 2];
+                    }
+                    else
+                    {
+                        ValuesBuffer[i].Re = 0;
+                    }
+                    ValuesBuffer[i].Im = 0;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < Samples; i++)
+                {
+                    ValuesBuffer[i].Re = values[start + i];
+                    ValuesBuffer[i].Im = 0;
+                }
             }
         }
 
         private void TakeValues()
         {
-            for (int i = 0; i < Samples; i++)
+            if (_applyTimeThinning)
             {
-                //Все комплексные частоты переводим в числа, используя модуль комплексного числа.
-                //Нормализуем частоты деля все значения на количество сигналов
-                //Дополнительно делим на 2, т.к. только половина выходных сигналов действительно является искомыми частотами
-                Frequencies[i] = (float) ValuesBuffer[i].Magnitude / Samples / 2;
+                for (int i = 0; i < Samples; i++)
+                {
+                    Frequencies[i] = (float) ValuesBuffer[i].Magnitude / Samples;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < Samples; i++)
+                {
+                    //Все комплексные частоты переводим в числа, используя модуль комплексного числа.
+                    //Нормализуем частоты деля все значения на количество сигналов
+                    //Дополнительно делим на 2, т.к. только половина выходных сигналов действительно является искомыми частотами
+                    Frequencies[i] = (float)ValuesBuffer[i].Magnitude / Samples / 2;
+                }
             }
         }
 
@@ -49,9 +77,10 @@ namespace WavVisualize
             return Frequencies;
         }
 
-        protected FFTProvider(int samples)
+        protected FFTProvider(int samples, bool applyTimeThinning)
         {
             Samples = samples;
+            _applyTimeThinning = applyTimeThinning;
             Frequencies = new float[Samples];
             ValuesBuffer = new Complex[Samples];
             for (int i = 0; i < Samples; i++)

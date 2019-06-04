@@ -61,7 +61,7 @@ namespace WavVisualize
             }
         }
 
-        public BrokenCooleyTukeyInPlaceFFTProvider(int samples) : base(samples)
+        public BrokenCooleyTukeyInPlaceFFTProvider(int samples, bool applyTimeThinning) : base(samples, applyTimeThinning)
         {
         }
     }

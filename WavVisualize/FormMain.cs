@@ -86,11 +86,13 @@ namespace WavVisualize
         //нажати ли сейчас мышь на волне
         public bool PressedOnWaveform;
 
+        public bool ApplyTimeThinning = true;
+
         public FormMain()
         {
             InitializeComponent();
             _playerProvider = new PlayerProvider();
-            _fftProvider = new CorrectCooleyTukeyInPlaceFFTProvider(SpectrumUseSamples);
+            _fftProvider = new CorrectCooleyTukeyInPlaceFFTProvider(SpectrumUseSamples, ApplyTimeThinning);
         }
 
         //перерисовка волны
@@ -217,7 +219,16 @@ namespace WavVisualize
         private void DrawSpectrum(Graphics g)
         {
             //количество реально используемых сэмплов спектра (издержка быстрого преобразования Фурье)
-            float useLength = (int) (SpectrumUseSamples / ((float) _currentWavFileData.SampleRate / TrimFrequency));
+            float useLength;
+            if (ApplyTimeThinning)
+            {
+                useLength = (int) ((SpectrumUseSamples / 2f) /
+                                   ((float) _currentWavFileData.SampleRate / TrimFrequency));
+            }
+            else
+            {
+                useLength = (int) (SpectrumUseSamples / ((float) _currentWavFileData.SampleRate / TrimFrequency));
+            }
 
             int useOffset = 0;
 
@@ -308,7 +319,11 @@ namespace WavVisualize
 
             numericUpDown2.Value = FastPowLog2Provider.FastLog2(SpectrumUseSamples);
 
-            trackBar1.Value = TrimFrequency;
+            trackBarTrimFrequency.Value = TrimFrequency;
+
+            checkBoxApplyTimeThinning.Checked = ApplyTimeThinning;
+
+            labelMaxFrequency.Text = "Max Frequency: " + TrimFrequency;
         }
 
         async Task OpenFile()
@@ -374,7 +389,7 @@ namespace WavVisualize
                 Task.Run(() => _waveformProvider.StartRecreation());
 
                 _volumeProvider =
-                    new AverageInRegionVolumeProvider(_currentWavFileData.LeftChannel, _currentWavFileData.RightChannel,
+                    new MaxInRegionVolumeProvider(_currentWavFileData.LeftChannel, _currentWavFileData.RightChannel,
                         _currentWavFileData.SampleRate / UpdateRate);
 
                 //MyFFT.InitAllCache(SpectrumUseSamples);
@@ -444,7 +459,7 @@ namespace WavVisualize
             //создаём массив спектра заново, т.к. во время отрисовки массив не должен меняться
             CurrentSpectrum = new float[SpectrumUseSamples];
 
-            _fftProvider = new CorrectCooleyTukeyInPlaceFFTProvider(SpectrumUseSamples);
+            _fftProvider = new CorrectCooleyTukeyInPlaceFFTProvider(SpectrumUseSamples, ApplyTimeThinning);
         }
 
         private async void button1_Click(object sender, EventArgs e)
@@ -458,9 +473,10 @@ namespace WavVisualize
             fps = 0;
         }
 
-        private void trackBar1_Scroll(object sender, EventArgs e)
+        private void trackBarTrimFrequency_Scroll(object sender, EventArgs e)
         {
-            TrimFrequency = trackBar1.Value;
+            TrimFrequency = trackBarTrimFrequency.Value;
+            labelMaxFrequency.Text = "Max Frequency: " + TrimFrequency;
         }
 
         private void buttonPlayPause_Click(object sender, EventArgs e)
@@ -473,6 +489,13 @@ namespace WavVisualize
             {
                 _playerProvider.Pause();
             }
+        }
+
+        private void checkBoxApplyTimeThinning_CheckedChanged(object sender, EventArgs e)
+        {
+            ApplyTimeThinning = !ApplyTimeThinning;
+            //здесь не пересоздаём массив спектра, т.к. он уже имеет нужный размер
+            _fftProvider = new CorrectCooleyTukeyInPlaceFFTProvider(SpectrumUseSamples, ApplyTimeThinning);
         }
     }
 }

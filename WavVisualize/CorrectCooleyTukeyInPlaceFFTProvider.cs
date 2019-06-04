@@ -8,7 +8,7 @@ namespace WavVisualize
 {
     class CorrectCooleyTukeyInPlaceFFTProvider : FFTProvider
     {
-        public CorrectCooleyTukeyInPlaceFFTProvider(int samples) : base(samples)
+        public CorrectCooleyTukeyInPlaceFFTProvider(int samples, bool applyTimeThinning) : base(samples, applyTimeThinning)
         {
             r = new Complex(0, 0);
             r2 = new Complex(0, 0);
@@ -20,7 +20,7 @@ namespace WavVisualize
         {
             int power = FastPowLog2Provider.FastLog2(Samples);
             
-            int mid = Samples >> 1; // mid = count / 2;
+            int mid = Samples >> 1;
             int j = 0;
             for (int i = 0; i < Samples - 1; i++)
             {
