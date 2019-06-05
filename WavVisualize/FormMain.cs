@@ -92,7 +92,7 @@ namespace WavVisualize
         {
             InitializeComponent();
             _playerProvider = new PlayerProvider();
-            _fftProvider = new CorrectCooleyTukeyInPlaceFFTProvider(SpectrumUseSamples, ApplyTimeThinning);
+            _fftProvider = new ClassicRecursiveFFTProvider(SpectrumUseSamples, ApplyTimeThinning);
         }
 
         //перерисовка волны
@@ -269,7 +269,7 @@ namespace WavVisualize
 
                 //нормализованная высота столбика спектра
                 //умножаем на постоянный коэффициент
-                //дополнительно применяем логарифмическое выравние громкости (i + 2, чтобы не получить бесконечность)
+                //дополнительно применяем логарифмическое выравние громкости
                 float normalizedHeight = CurrentSpectrum[useOffset + i] * multiplier;
                 normalizedHeight *= (float) Math.Log(i, 10);
 

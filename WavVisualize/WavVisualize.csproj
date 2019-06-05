@@ -59,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AverageInRegionVolumeProvider.cs" />
+    <Compile Include="ClassicRecursiveFFTProvider.cs" />
     <Compile Include="CorrectCooleyTukeyInPlaceFFTProvider.cs" />
     <Compile Include="FastPowLog2Provider.cs" />
     <Compile Include="BrokenCooleyTukeyInPlaceFFTProvider.cs" />
