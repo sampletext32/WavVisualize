@@ -92,7 +92,7 @@ namespace WavVisualize
         {
             InitializeComponent();
             _playerProvider = new PlayerProvider();
-            _fftProvider = new ClassicRecursiveFFTProvider(SpectrumUseSamples, ApplyTimeThinning);
+            _fftProvider = new CachedRecursiveFFTProvider(SpectrumUseSamples, ApplyTimeThinning);
         }
 
         //перерисовка волны
@@ -459,7 +459,7 @@ namespace WavVisualize
             //создаём массив спектра заново, т.к. во время отрисовки массив не должен меняться
             CurrentSpectrum = new float[SpectrumUseSamples];
 
-            _fftProvider = new CorrectCooleyTukeyInPlaceFFTProvider(SpectrumUseSamples, ApplyTimeThinning);
+            _fftProvider = new CachedRecursiveFFTProvider(SpectrumUseSamples, ApplyTimeThinning);
         }
 
         private async void button1_Click(object sender, EventArgs e)
@@ -495,7 +495,7 @@ namespace WavVisualize
         {
             ApplyTimeThinning = !ApplyTimeThinning;
             //здесь не пересоздаём массив спектра, т.к. он уже имеет нужный размер
-            _fftProvider = new CorrectCooleyTukeyInPlaceFFTProvider(SpectrumUseSamples, ApplyTimeThinning);
+            _fftProvider = new CachedRecursiveFFTProvider(SpectrumUseSamples, ApplyTimeThinning);
         }
     }
 }
