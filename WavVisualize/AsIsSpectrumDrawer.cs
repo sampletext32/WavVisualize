@@ -9,19 +9,18 @@ namespace WavVisualize
 {
     class AsIsSpectrumDrawer : SpectrumDrawer
     {
-        public AsIsSpectrumDrawer(int spectrumSamples, float constantHeightMultiplier, float left, float right, float top, float bottom, Color color) :
-            base(spectrumSamples, constantHeightMultiplier, left, right, top, bottom, color)
+        protected override void InnerDraw(Graphics g, int useLength)
         {
-        }
-
-        public override void Draw(Graphics g)
-        {
-            for (int i = 0; i < SpectrumSamples; i++)
+            for (int i = 0; i < useLength; i++)
             {
-                float x = (float) i / SpectrumSamples * Width;
+                float x = (float)i / useLength * Width;
                 float value = SpectrumValues[i] * Log10Normalizing(i) * Height * ConstantHeightMultiplier;
                 g.FillRectangle(Brush, Left + x, Bottom - value, 1, value);
             }
+        }
+
+        public AsIsSpectrumDrawer(int spectrumSamples, float constantHeightMultiplier, float left, float right, float top, float bottom, Color color) : base(spectrumSamples, constantHeightMultiplier, left, right, top, bottom, color)
+        {
         }
     }
 }

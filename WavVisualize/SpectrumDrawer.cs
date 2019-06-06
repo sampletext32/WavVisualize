@@ -24,6 +24,20 @@ namespace WavVisualize
 
         protected float ConstantHeightMultiplier;
 
+        protected int TrimmingFrequency;
+
+        protected bool ApplyTimeThinning;
+
+        public void SetTrimmingFrequency(int frequency)
+        {
+            TrimmingFrequency = frequency;
+        }
+
+        public void SetApplyTimeThinning(bool apply)
+        {
+            ApplyTimeThinning = apply;
+        }
+
         protected float Log10Normalizing(int i)
         {
             return (float) Math.Log10(i);
@@ -34,9 +48,27 @@ namespace WavVisualize
             EasingProvider.Ease(SpectrumValues, spectrum, easing);
         }
 
-        public abstract void Draw(Graphics g);
+        public virtual void InnerDraw(Graphics g)
+        {
+            int useSamples;
+            if (ApplyTimeThinning)
+            {
+                useSamples = SpectrumSamples / 4;
+            }
+            else
+            {
+                useSamples = SpectrumSamples / 2;
+            }
 
-        protected SpectrumDrawer(int spectrumSamples, float constantHeightMultiplier, float left, float right, float top, float bottom, Color color)
+            useSamples = (int) (useSamples * TrimmingFrequency / 20000f);
+
+            InnerDraw(g, useSamples);
+        }
+
+        protected abstract void InnerDraw(Graphics g, int useLength);
+
+        protected SpectrumDrawer(int spectrumSamples, float constantHeightMultiplier, float left, float right,
+            float top, float bottom, Color color)
         {
             SpectrumSamples = spectrumSamples;
             ConstantHeightMultiplier = constantHeightMultiplier;

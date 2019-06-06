@@ -58,10 +58,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AsIsNoMirrorSpectrumDrawer.cs" />
+    <Compile Include="AnalogBandSpectrumDrawer.cs" />
+    <Compile Include="DigitalBandSpectrumDrawer.cs" />
     <Compile Include="AsIsSpectrumDrawer.cs" />
-    <Compile Include="EasingProvider.cs" />
+    <Compile Include="BandBasedSpectrumDrawer.cs" />
+    <Compile Include="Utils\EasingProvider.cs" />
     <Compile Include="SpectrumDrawer.cs" />
+    <Compile Include="Utils\TimeProvider.cs" />
     <Compile Include="VolumeDrawer\AnalogVolumeDrawer.cs" />
     <Compile Include="VolumeDrawer\DigitalVolumeDrawer.cs" />
     <Compile Include="VolumeDrawer\VolumeDrawer.cs" />

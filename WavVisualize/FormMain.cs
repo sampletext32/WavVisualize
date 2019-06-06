@@ -80,7 +80,7 @@ namespace WavVisualize
 
         //сколько сэмплов идёт на преобразование спектра (обязательно степень двойки)
         public int SpectrumUseSamples = 4096;
-        
+
         //частота пропуска частот при отрисовке спектра
         public int DrawSpectrumSkipRate = 0;
 
@@ -123,16 +123,27 @@ namespace WavVisualize
         private void SetVolumeDrawer()
         {
             _volumeDrawer = new DigitalVolumeDrawer(0, VolumeBandWidth * 2, 0, pictureBoxSpectrum.Height,
-                Color.LawnGreen, Color.OrangeRed, 50, DistanceBetweenBands);
+                Color.LawnGreen, Color.OrangeRed, 50, 2);
         }
 
         private void SetSpectrumDrawer()
         {
             CurrentSpectrum = new float[SpectrumUseSamples];
 
-            _spectrumDrawer = new AsIsNoMirrorSpectrumDrawer(SpectrumUseSamples, 10f,
-                VolumeBandWidth * 2 + DistanceBetweenVolumeAndSpectrum, pictureBoxSpectrum.Width, 0,
-                pictureBoxSpectrum.Height, Color.OrangeRed);
+            //_spectrumDrawer = new AsIsSpectrumDrawer(SpectrumUseSamples, 10f,
+            //    VolumeBandWidth * 2 + DistanceBetweenVolumeAndSpectrum, pictureBoxSpectrum.Width, 0,
+            //    pictureBoxSpectrum.Height, Color.OrangeRed);
+
+            //_spectrumDrawer = new DigitalBandSpectrumDrawer(SpectrumUseSamples, 10f,
+            //    VolumeBandWidth * 2 + DistanceBetweenVolumeAndSpectrum, pictureBoxSpectrum.Width,
+            //    0, pictureBoxSpectrum.Height, Color.OrangeRed, TotalSpectrumBands, DistanceBetweenBands, 50, 2);
+
+            _spectrumDrawer = new AnalogBandSpectrumDrawer(SpectrumUseSamples, 10f,
+                VolumeBandWidth * 2 + DistanceBetweenVolumeAndSpectrum, pictureBoxSpectrum.Width,
+                0, pictureBoxSpectrum.Height, Color.OrangeRed, TotalSpectrumBands, DistanceBetweenBands);
+
+            _spectrumDrawer.SetTrimmingFrequency(TrimFrequency);
+            _spectrumDrawer.SetApplyTimeThinning(ApplyTimeThinning);
 
             if (_currentWavFileData != null)
             {
@@ -180,7 +191,10 @@ namespace WavVisualize
             Tuple<int, int, int> currentTime = TimeProvider.SecondsAsTime(currentPosition);
             Tuple<int, int, int> durationTime = TimeProvider.SecondsAsTime(duration);
 
-            labelElapsed.Text = $@"{currentTime.Item1:00} : {currentTime.Item2:00} : {currentTime.Item3:00} / {durationTime.Item1:00} : {durationTime.Item2:00} : {durationTime.Item3:00}";
+            labelElapsed.Text =
+                $@"{currentTime.Item1:00} : {currentTime.Item2:00} : {currentTime.Item3:00} / {
+                        durationTime.Item1
+                    :00} : {durationTime.Item2:00} : {durationTime.Item3:00}";
 
             //вызываем перерисовку волны и спектра
             pictureBoxPlot.Refresh();
@@ -225,103 +239,9 @@ namespace WavVisualize
                 if (currentSample < _currentWavFileData.SamplesCount - SpectrumUseSamples && currentSample >= 0)
                 {
                     //рисуем спектр
-                    //DrawSpectrum(e.Graphics);
                     float[] spectrum = _currentWavFileData.GetSpectrumForPosition(normalized, _fftProvider);
                     _spectrumDrawer.LoadSpectrum(spectrum, 1 - EasingCoef);
-                    _spectrumDrawer.Draw(e.Graphics);
-                }
-            }
-        }
-
-        //функция отвечает за отрисовку спектра
-        private void DrawSpectrum(Graphics g)
-        {
-            //количество реально используемых сэмплов спектра (издержка быстрого преобразования Фурье)
-            float useLength;
-            if (ApplyTimeThinning)
-            {
-                useLength = (int) ((SpectrumUseSamples / 2f) /
-                                   ((float) _currentWavFileData.SampleRate / TrimFrequency));
-            }
-            else
-            {
-                useLength = (int) (SpectrumUseSamples / ((float) _currentWavFileData.SampleRate / TrimFrequency));
-            }
-
-            int useOffset = 0;
-
-            float frequencyResolution = (float) _currentWavFileData.SampleRate / SpectrumUseSamples;
-
-            //количество задействованных столбиков спектра
-            //минимум между количеством частот и количеством столбиков
-            //int useBands = Math.Min(TotalSpectrumBands, (int) (useLength));
-            int useBands = TotalSpectrumBands;
-
-            //ширина одного столбика
-            float sbandWidth = (float) TotalSpectrumWidth / useBands;
-
-            //множитель частоты
-            float multiplier = 10f; //(float) Math.Log(SpectrumUseSamples, Math.Log(SpectrumUseSamples, 2));
-
-
-            //Для того, чтобы не рисовать нулевые столбики, делаем так
-            //Запоминаем текущий столбик и его максимальное значение
-            //Если вдруг столбик сменился, обнуляем
-            //Если встретили частоту больше уже отрисована, рисуем столбик заново
-
-            int lastBand = -1; //последний активный столбик
-            float maxInLastBand = 0f; //максимальное значение частоты в последнем столбике
-
-            //смещаемся на 1 + DrawSpectrumSkipRate, таким образом покрывая все частоты спектра
-            for (int i = 0; i < useLength; i += (1 + DrawSpectrumSkipRate))
-            {
-                //вычисляем номер столбика
-                //нормализация номера частоты * количество_столбиков
-                int band = (int) ((float) i / useLength * useBands);
-                if (band > lastBand) //если сменился столбик
-                {
-                    //обнуляем показатель
-                    lastBand = band;
-                    maxInLastBand = 0f;
-                }
-
-                //нормализованная высота столбика спектра
-                //умножаем на постоянный коэффициент
-                //дополнительно применяем логарифмическое выравние громкости
-                float normalizedHeight = CurrentSpectrum[useOffset + i] * multiplier;
-                normalizedHeight *= (float) Math.Log10(i);
-
-                if (normalizedHeight > maxInLastBand) //если эта частота больше, чем уже отрисована
-                {
-                    maxInLastBand = normalizedHeight; //пересохраняем частоту
-                    if (DisplayDigital) //если рисуем в цифровом виде
-                    {
-                        //считаем количество цифровых кусочков (нормализация высоты * общее количество кусочков)
-                        int digitalParts = (int) (normalizedHeight * DigitalBandPiecesCount);
-
-                        //рисуем цифровые части столбика
-                        for (int k = 0; k < digitalParts; k++)
-                        {
-                            g.FillRectangle(Brushes.OrangeRed,
-                                VolumeBandWidth + VolumeBandWidth + DistanceBetweenVolumeAndSpectrum +
-                                band * (sbandWidth + DistanceBetweenBands),
-                                SpectrumBaselineY - k * (DigitalPieceHeight + DistanceBetweenBands) -
-                                DigitalPieceHeight, sbandWidth,
-                                DigitalPieceHeight);
-                        }
-                    }
-                    else //если рисуем в аналоговом виде
-                    {
-                        //считаем высоту (нормализация высоты * высоту спектра)
-                        float analogHeight = normalizedHeight * SpectrumHeight;
-
-                        //рисуем аналоговый столбик
-                        g.FillRectangle(Brushes.OrangeRed,
-                            VolumeBandWidth + VolumeBandWidth + DistanceBetweenVolumeAndSpectrum +
-                            band * (sbandWidth + DistanceBetweenBands),
-                            SpectrumBaselineY - analogHeight,
-                            sbandWidth, analogHeight);
-                    }
+                    _spectrumDrawer.InnerDraw(e.Graphics);
                 }
             }
         }
@@ -469,6 +389,7 @@ namespace WavVisualize
         private void trackBarTrimFrequency_Scroll(object sender, EventArgs e)
         {
             TrimFrequency = trackBarTrimFrequency.Value;
+            SetSpectrumDrawer();
             labelMaxFrequency.Text = "Max Frequency: " + TrimFrequency;
         }
 
@@ -489,6 +410,7 @@ namespace WavVisualize
             ApplyTimeThinning = !ApplyTimeThinning;
             //здесь не пересоздаём массив спектра, т.к. он уже имеет нужный размер
             SetFFTProvider();
+            SetSpectrumDrawer();
         }
     }
 }
