@@ -23,10 +23,10 @@ namespace WavVisualize
         protected float Width;
         protected float Height;
 
-        public void LoadVolume(float volumeL, float volumeR)
+        public void LoadVolume(float volumeL, float volumeR, float easing)
         {
-            NormalizedVolumeL = volumeL;
-            NormalizedVolumeR = volumeR;
+            NormalizedVolumeL = EasingProvider.Ease(NormalizedVolumeL, volumeL, easing);
+            NormalizedVolumeR = EasingProvider.Ease(NormalizedVolumeR, volumeR, easing);
         }
 
         public abstract void Draw(Graphics g);

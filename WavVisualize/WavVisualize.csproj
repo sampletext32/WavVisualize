@@ -58,6 +58,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AsIsSpectrumDrawer.cs" />
+    <Compile Include="EasingProvider.cs" />
+    <Compile Include="SpectrumDrawer.cs" />
     <Compile Include="VolumeDrawer\AnalogVolumeDrawer.cs" />
     <Compile Include="VolumeDrawer\DigitalVolumeDrawer.cs" />
     <Compile Include="VolumeDrawer\VolumeDrawer.cs" />
