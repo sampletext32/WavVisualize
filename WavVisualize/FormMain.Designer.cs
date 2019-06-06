@@ -32,12 +32,12 @@
             this.pictureBoxPlot = new System.Windows.Forms.PictureBox();
             this.timerUpdater = new System.Windows.Forms.Timer(this.components);
             this.pictureBoxSpectrum = new System.Windows.Forms.PictureBox();
-            this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
-            this.numericUpDown2 = new System.Windows.Forms.NumericUpDown();
+            this.numericUpDownEasing = new System.Windows.Forms.NumericUpDown();
+            this.numericUpDownPow2Spectrum = new System.Windows.Forms.NumericUpDown();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.labelElapsed = new System.Windows.Forms.Label();
-            this.button1 = new System.Windows.Forms.Button();
+            this.buttonOpenFile = new System.Windows.Forms.Button();
             this.labelStatus = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.labelFPS = new System.Windows.Forms.Label();
@@ -47,8 +47,8 @@
             this.labelMaxFrequency = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxPlot)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxSpectrum)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownEasing)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPow2Spectrum)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarTrimFrequency)).BeginInit();
             this.SuspendLayout();
             // 
@@ -80,46 +80,46 @@
             this.pictureBoxSpectrum.TabStop = false;
             this.pictureBoxSpectrum.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBoxSpectrum_Paint);
             // 
-            // numericUpDown1
+            // numericUpDownEasing
             // 
-            this.numericUpDown1.Location = new System.Drawing.Point(968, 8);
-            this.numericUpDown1.Maximum = new decimal(new int[] {
+            this.numericUpDownEasing.Location = new System.Drawing.Point(968, 8);
+            this.numericUpDownEasing.Maximum = new decimal(new int[] {
             19,
             0,
             0,
             0});
-            this.numericUpDown1.Name = "numericUpDown1";
-            this.numericUpDown1.Size = new System.Drawing.Size(96, 22);
-            this.numericUpDown1.TabIndex = 2;
-            this.numericUpDown1.Value = new decimal(new int[] {
+            this.numericUpDownEasing.Name = "numericUpDownEasing";
+            this.numericUpDownEasing.Size = new System.Drawing.Size(96, 22);
+            this.numericUpDownEasing.TabIndex = 2;
+            this.numericUpDownEasing.Value = new decimal(new int[] {
             9,
             0,
             0,
             0});
-            this.numericUpDown1.ValueChanged += new System.EventHandler(this.numericUpDown1_ValueChanged);
+            this.numericUpDownEasing.ValueChanged += new System.EventHandler(this.numericUpDownEasing_ValueChanged);
             // 
-            // numericUpDown2
+            // numericUpDownPow2Spectrum
             // 
-            this.numericUpDown2.Location = new System.Drawing.Point(968, 48);
-            this.numericUpDown2.Maximum = new decimal(new int[] {
+            this.numericUpDownPow2Spectrum.Location = new System.Drawing.Point(968, 48);
+            this.numericUpDownPow2Spectrum.Maximum = new decimal(new int[] {
             15,
             0,
             0,
             0});
-            this.numericUpDown2.Minimum = new decimal(new int[] {
+            this.numericUpDownPow2Spectrum.Minimum = new decimal(new int[] {
             1,
             0,
             0,
             0});
-            this.numericUpDown2.Name = "numericUpDown2";
-            this.numericUpDown2.Size = new System.Drawing.Size(96, 22);
-            this.numericUpDown2.TabIndex = 3;
-            this.numericUpDown2.Value = new decimal(new int[] {
+            this.numericUpDownPow2Spectrum.Name = "numericUpDownPow2Spectrum";
+            this.numericUpDownPow2Spectrum.Size = new System.Drawing.Size(96, 22);
+            this.numericUpDownPow2Spectrum.TabIndex = 3;
+            this.numericUpDownPow2Spectrum.Value = new decimal(new int[] {
             10,
             0,
             0,
             0});
-            this.numericUpDown2.ValueChanged += new System.EventHandler(this.numericUpDown2_ValueChanged);
+            this.numericUpDownPow2Spectrum.ValueChanged += new System.EventHandler(this.numericUpDownPow2Spectrum_ValueChanged);
             // 
             // label1
             // 
@@ -148,15 +148,15 @@
             this.labelElapsed.TabIndex = 6;
             this.labelElapsed.Text = "Elapsed";
             // 
-            // button1
+            // buttonOpenFile
             // 
-            this.button1.Location = new System.Drawing.Point(800, 160);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(264, 32);
-            this.button1.TabIndex = 7;
-            this.button1.Text = "Open File";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.buttonOpenFile.Location = new System.Drawing.Point(800, 160);
+            this.buttonOpenFile.Name = "buttonOpenFile";
+            this.buttonOpenFile.Size = new System.Drawing.Size(264, 32);
+            this.buttonOpenFile.TabIndex = 7;
+            this.buttonOpenFile.Text = "Open File";
+            this.buttonOpenFile.UseVisualStyleBackColor = true;
+            this.buttonOpenFile.Click += new System.EventHandler(this.buttonOpenFile_Click);
             // 
             // labelStatus
             // 
@@ -234,12 +234,12 @@
             this.Controls.Add(this.trackBarTrimFrequency);
             this.Controls.Add(this.labelFPS);
             this.Controls.Add(this.labelStatus);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.buttonOpenFile);
             this.Controls.Add(this.labelElapsed);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.numericUpDown2);
-            this.Controls.Add(this.numericUpDown1);
+            this.Controls.Add(this.numericUpDownPow2Spectrum);
+            this.Controls.Add(this.numericUpDownEasing);
             this.Controls.Add(this.pictureBoxSpectrum);
             this.Controls.Add(this.pictureBoxPlot);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -252,8 +252,8 @@
             this.Shown += new System.EventHandler(this.FormMain_Shown);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxPlot)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxSpectrum)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownEasing)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPow2Spectrum)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarTrimFrequency)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -265,12 +265,12 @@
         private System.Windows.Forms.PictureBox pictureBoxPlot;
         private System.Windows.Forms.Timer timerUpdater;
         private System.Windows.Forms.PictureBox pictureBoxSpectrum;
-        private System.Windows.Forms.NumericUpDown numericUpDown1;
-        private System.Windows.Forms.NumericUpDown numericUpDown2;
+        private System.Windows.Forms.NumericUpDown numericUpDownEasing;
+        private System.Windows.Forms.NumericUpDown numericUpDownPow2Spectrum;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label labelElapsed;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button buttonOpenFile;
         private System.Windows.Forms.Label labelStatus;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.Label labelFPS;

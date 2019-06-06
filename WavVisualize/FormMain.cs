@@ -23,6 +23,8 @@ namespace WavVisualize
 
         private VolumeProvider _volumeProvider;
 
+        private VolumeDrawer _volumeDrawer;
+
         public int TrimFrequency = 20000;
 
         //текущая отображаемая громкость
@@ -42,13 +44,13 @@ namespace WavVisualize
         public readonly int WaveformSkipSampleRate = 0;
 
         //сколько раз в секунду обновляется состояние плеера
-        public readonly int UpdateRate = 60;
+        public int UpdateRate = 60;
 
         //коэффициент смягчения резких скачков
         public float EasingCoef = 0.1f;
 
         //ширина столбиков громкости
-        public readonly int BandWidth = 20;
+        public readonly int VolumeBandWidth = 20;
 
         //высота цифровых кусочков
         public readonly int DigitalPieceHeight = 2;
@@ -92,7 +94,9 @@ namespace WavVisualize
         {
             InitializeComponent();
             _playerProvider = new PlayerProvider();
-            _fftProvider = new CachedRecursiveFFTProvider(SpectrumUseSamples, ApplyTimeThinning);
+            _fftProvider = new CorrectCooleyTukeyInPlaceFFTProvider(SpectrumUseSamples, ApplyTimeThinning);
+            _volumeDrawer = new DigitalVolumeDrawer(0, VolumeBandWidth * 2, 0, pictureBoxSpectrum.Height,
+                Color.LawnGreen, Color.OrangeRed, 50, DistanceBetweenBands);
         }
 
         //перерисовка волны
@@ -170,36 +174,19 @@ namespace WavVisualize
                     CurrentVolumeL += (_volumeProvider.GetL() - CurrentVolumeL) * (1 - EasingCoef);
                     CurrentVolumeR += (_volumeProvider.GetR() - CurrentVolumeR) * (1 - EasingCoef);
 
-                    //вычисляем количество цифровых кусочков = громкость * общее количество кусочков
-                    int digitalPartsL = (int) (CurrentVolumeL * DigitalBandPiecesCount);
-                    int digitalPartsR = (int) (CurrentVolumeR * DigitalBandPiecesCount);
+                    _volumeDrawer.LoadVolume(CurrentVolumeL, CurrentVolumeR);
+                    _volumeDrawer.Draw(e.Graphics);
 
-                    //рисуем линию громкости левого канала
-                    e.Graphics.DrawLine(Pens.LawnGreen, 0,
-                        SpectrumBaselineY - CurrentVolumeL * SpectrumHeight, BandWidth,
-                        SpectrumBaselineY - CurrentVolumeL * SpectrumHeight);
-
-                    //рисуем линию громкости правого канала
-                    e.Graphics.DrawLine(Pens.OrangeRed, BandWidth,
-                        SpectrumBaselineY - CurrentVolumeR * SpectrumHeight,
-                        BandWidth + BandWidth,
-                        SpectrumBaselineY - CurrentVolumeR * SpectrumHeight);
-
-                    //рисуем цифровые части левой громкости
-                    for (int i = 1; i < digitalPartsL + 1; i++)
-                    {
-                        e.Graphics.FillRectangle(Brushes.LawnGreen, 0,
-                            SpectrumBaselineY - i * (DigitalPieceHeight + DistanceBetweenBands), BandWidth,
-                            DigitalPieceHeight);
-                    }
-
-                    //рисуем цифровые части правой громкости
-                    for (int i = 1; i < digitalPartsR + 1; i++)
-                    {
-                        e.Graphics.FillRectangle(Brushes.OrangeRed, BandWidth,
-                            SpectrumBaselineY - i * (DigitalPieceHeight + DistanceBetweenBands), BandWidth,
-                            DigitalPieceHeight);
-                    }
+                    ////рисуем линию громкости левого канала
+                    //e.Graphics.DrawLine(Pens.LawnGreen, 0,
+                    //    SpectrumBaselineY - CurrentVolumeL * SpectrumHeight, VolumeBandWidth,
+                    //    SpectrumBaselineY - CurrentVolumeL * SpectrumHeight);
+                    //
+                    ////рисуем линию громкости правого канала
+                    //e.Graphics.DrawLine(Pens.OrangeRed, VolumeBandWidth,
+                    //    SpectrumBaselineY - CurrentVolumeR * SpectrumHeight,
+                    //    VolumeBandWidth + VolumeBandWidth,
+                    //    SpectrumBaselineY - CurrentVolumeR * SpectrumHeight);
                 }
 
                 //если начало участка меньше чем количество сэмплов - сэмплов на преобразование спектра (можно вместить ещё раз рассчитать спектр)
@@ -285,7 +272,7 @@ namespace WavVisualize
                         for (int k = 1; k < digitalParts + 1; k++)
                         {
                             g.FillRectangle(Brushes.OrangeRed,
-                                BandWidth + BandWidth + DistanceBetweenVolumeAndSpectrum +
+                                VolumeBandWidth + VolumeBandWidth + DistanceBetweenVolumeAndSpectrum +
                                 band * (sbandWidth + DistanceBetweenBands),
                                 SpectrumBaselineY - k * (DigitalPieceHeight + DistanceBetweenBands), sbandWidth,
                                 DigitalPieceHeight);
@@ -298,7 +285,7 @@ namespace WavVisualize
 
                         //рисуем аналоговый столбик
                         g.FillRectangle(Brushes.OrangeRed,
-                            BandWidth + BandWidth + DistanceBetweenVolumeAndSpectrum +
+                            VolumeBandWidth + VolumeBandWidth + DistanceBetweenVolumeAndSpectrum +
                             band * (sbandWidth + DistanceBetweenBands),
                             SpectrumBaselineY - analogHeight,
                             sbandWidth, analogHeight);
@@ -315,9 +302,9 @@ namespace WavVisualize
         private void FormMain_Shown(object sender, EventArgs e)
         {
             //выводим коэффициенты на форму
-            numericUpDown1.Value = (int) (EasingCoef * 10);
+            numericUpDownEasing.Value = (int) (EasingCoef * 10);
 
-            numericUpDown2.Value = FastPowLog2Provider.FastLog2(SpectrumUseSamples);
+            numericUpDownPow2Spectrum.Value = FastPowLog2Provider.FastLog2(SpectrumUseSamples);
 
             trackBarTrimFrequency.Value = TrimFrequency;
 
@@ -374,7 +361,7 @@ namespace WavVisualize
 
                 //общая ширина спектра = половине ширине окна
                 TotalSpectrumWidth = (int) (pictureBoxSpectrum.Width -
-                                            (BandWidth + BandWidth + DistanceBetweenVolumeAndSpectrum) -
+                                            (VolumeBandWidth + VolumeBandWidth + DistanceBetweenVolumeAndSpectrum) -
                                             DistanceBetweenBands * (TotalSpectrumBands - 1));
 
                 //координата Y 0 спектра - высота окна
@@ -446,31 +433,31 @@ namespace WavVisualize
         }
 
         //обработка изменения смягчающего коэффициента
-        private void numericUpDown1_ValueChanged(object sender, EventArgs e)
+        private void numericUpDownEasing_ValueChanged(object sender, EventArgs e)
         {
-            EasingCoef = (float) numericUpDown1.Value / 10f;
+            EasingCoef = (float) numericUpDownEasing.Value / 10f;
         }
 
         //обработка изменения степени двойки количества сэмплов на обработку спектра
-        private void numericUpDown2_ValueChanged(object sender, EventArgs e)
+        private void numericUpDownPow2Spectrum_ValueChanged(object sender, EventArgs e)
         {
-            SpectrumUseSamples = FastPowLog2Provider.FastPow2((int) numericUpDown2.Value);
+            SpectrumUseSamples = FastPowLog2Provider.FastPow2((int) numericUpDownPow2Spectrum.Value);
 
             //создаём массив спектра заново, т.к. во время отрисовки массив не должен меняться
             CurrentSpectrum = new float[SpectrumUseSamples];
 
-            _fftProvider = new CachedRecursiveFFTProvider(SpectrumUseSamples, ApplyTimeThinning);
-        }
-
-        private async void button1_Click(object sender, EventArgs e)
-        {
-            await OpenFile();
+            _fftProvider = new CorrectCooleyTukeyInPlaceFFTProvider(SpectrumUseSamples, ApplyTimeThinning);
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
             labelFPS.Text = "FPS: " + fps;
             fps = 0;
+        }
+
+        private async void buttonOpenFile_Click(object sender, EventArgs e)
+        {
+            await OpenFile();
         }
 
         private void trackBarTrimFrequency_Scroll(object sender, EventArgs e)
@@ -495,7 +482,7 @@ namespace WavVisualize
         {
             ApplyTimeThinning = !ApplyTimeThinning;
             //здесь не пересоздаём массив спектра, т.к. он уже имеет нужный размер
-            _fftProvider = new CachedRecursiveFFTProvider(SpectrumUseSamples, ApplyTimeThinning);
+            _fftProvider = new CorrectCooleyTukeyInPlaceFFTProvider(SpectrumUseSamples, ApplyTimeThinning);
         }
     }
 }

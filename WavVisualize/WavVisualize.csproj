@@ -58,6 +58,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="VolumeDrawer\AnalogVolumeDrawer.cs" />
+    <Compile Include="VolumeDrawer\DigitalVolumeDrawer.cs" />
+    <Compile Include="VolumeDrawer\VolumeDrawer.cs" />
     <Compile Include="VolumeProviders\AverageInRegionVolumeProvider.cs" />
     <Compile Include="FFTProviders\CachedRecursiveFFTProvider.cs" />
     <Compile Include="FFTProviders\ClassicRecursiveFFTProvider.cs" />
