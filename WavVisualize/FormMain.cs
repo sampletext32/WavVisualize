@@ -80,7 +80,7 @@ namespace WavVisualize
 
         //сколько сэмплов идёт на преобразование спектра (обязательно степень двойки)
         public int SpectrumUseSamples = 4096;
-
+        
         //частота пропуска частот при отрисовке спектра
         public int DrawSpectrumSkipRate = 0;
 
@@ -130,7 +130,7 @@ namespace WavVisualize
         {
             CurrentSpectrum = new float[SpectrumUseSamples];
 
-            _spectrumDrawer = new AsIsSpectrumDrawer(SpectrumUseSamples, 10f,
+            _spectrumDrawer = new AsIsNoMirrorSpectrumDrawer(SpectrumUseSamples, 10f,
                 VolumeBandWidth * 2 + DistanceBetweenVolumeAndSpectrum, pictureBoxSpectrum.Width, 0,
                 pictureBoxSpectrum.Height, Color.OrangeRed);
 
@@ -177,14 +177,10 @@ namespace WavVisualize
             float currentPosition = _playerProvider.GetElapsedSeconds();
             float duration = _playerProvider.GetDurationSeconds();
 
-            int h = (int) currentPosition / 3600 % 3600;
-            int m = (int) currentPosition / 60 % 60;
-            int s = (int) currentPosition % 60;
+            Tuple<int, int, int> currentTime = TimeProvider.SecondsAsTime(currentPosition);
+            Tuple<int, int, int> durationTime = TimeProvider.SecondsAsTime(duration);
 
-            int h1 = (int) duration / 3600 % 3600;
-            int m1 = (int) duration / 60 % 60;
-            int s1 = (int) duration % 60;
-            labelElapsed.Text = $@"{h:00} : {m:00} : {s:00} / {h1:00} : {m1:00} : {s1:00}";
+            labelElapsed.Text = $@"{currentTime.Item1:00} : {currentTime.Item2:00} : {currentTime.Item3:00} / {durationTime.Item1:00} : {durationTime.Item2:00} : {durationTime.Item3:00}";
 
             //вызываем перерисовку волны и спектра
             pictureBoxPlot.Refresh();

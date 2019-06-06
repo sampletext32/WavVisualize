@@ -58,6 +58,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AsIsNoMirrorSpectrumDrawer.cs" />
     <Compile Include="AsIsSpectrumDrawer.cs" />
     <Compile Include="EasingProvider.cs" />
     <Compile Include="SpectrumDrawer.cs" />
