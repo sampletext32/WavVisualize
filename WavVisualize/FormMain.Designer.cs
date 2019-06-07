@@ -55,9 +55,9 @@
             // pictureBoxPlot
             // 
             this.pictureBoxPlot.BackColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.pictureBoxPlot.Location = new System.Drawing.Point(0, 0);
+            this.pictureBoxPlot.Location = new System.Drawing.Point(64, 0);
             this.pictureBoxPlot.Name = "pictureBoxPlot";
-            this.pictureBoxPlot.Size = new System.Drawing.Size(790, 128);
+            this.pictureBoxPlot.Size = new System.Drawing.Size(728, 128);
             this.pictureBoxPlot.TabIndex = 0;
             this.pictureBoxPlot.TabStop = false;
             this.pictureBoxPlot.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBoxPlot_Paint);

@@ -27,12 +27,14 @@ namespace WavVisualize
 
         private SpectrumDrawer _spectrumDrawer;
 
+        private SpectrumDiagram _spectrumDiagram;
+
         public int TrimFrequency = 20000;
 
         //текущая отображаемая громкость
         public float CurrentVolumeL;
         public float CurrentVolumeR;
-        
+
         //создавать ли волну последовательно
         public readonly bool CreateWaveformSequentially = true;
 
@@ -125,9 +127,9 @@ namespace WavVisualize
 
         private void SetSpectrumDrawer()
         {
-           _spectrumDrawer = new AsIsSpectrumDrawer(SpectrumUseSamples, 10f,
-               VolumeBandWidth * 2 + DistanceBetweenVolumeAndSpectrum, pictureBoxSpectrum.Width, 0,
-               pictureBoxSpectrum.Height, Color.OrangeRed);
+            _spectrumDrawer = new AsIsSpectrumDrawer(SpectrumUseSamples, 10f,
+                VolumeBandWidth * 2 + DistanceBetweenVolumeAndSpectrum, pictureBoxSpectrum.Width, 0,
+                pictureBoxSpectrum.Height, Color.OrangeRed);
 
             //_spectrumDrawer = new DigitalBandSpectrumDrawer(SpectrumUseSamples, 10f,
             //    VolumeBandWidth * 2 + DistanceBetweenVolumeAndSpectrum, pictureBoxSpectrum.Width,
@@ -136,16 +138,26 @@ namespace WavVisualize
             //_spectrumDrawer = new AnalogBandSpectrumDrawer(SpectrumUseSamples, 10f,
             //    VolumeBandWidth * 2 + DistanceBetweenVolumeAndSpectrum, pictureBoxSpectrum.Width,
             //    0, pictureBoxSpectrum.Height, Color.OrangeRed, TotalSpectrumBands, DistanceBetweenBands);
+            
+            //_spectrumDrawer.SetTrimmingFrequency(TrimFrequency);
+            //_spectrumDrawer.SetApplyTimeThinning(ApplyTimeThinning);
 
-            _spectrumDrawer.SetTrimmingFrequency(TrimFrequency);
-            _spectrumDrawer.SetApplyTimeThinning(ApplyTimeThinning);
+            //if (_currentWavFileData != null)
+            //{
+            //    _spectrumDrawer.LoadSpectrum(_currentWavFileData.GetSpectrumForPosition(
+            //            _playerProvider.GetNormalizedPosition(),
+            //            _fftProvider), 1 - EasingCoef);
+            //}
+        }
 
-            if (_currentWavFileData != null)
-            {
-                _spectrumDrawer.LoadSpectrum(_currentWavFileData.GetSpectrumForPosition(
-                        _playerProvider.GetNormalizedPosition(),
-                        _fftProvider), 1 - EasingCoef);
-            }
+        public void SetSpectrumDiagram()
+        {
+            _spectrumDiagram?.Cancel();
+            _spectrumDiagram = new SpectrumDiagram(SpectrumUseSamples,
+                VolumeBandWidth * 2 + DistanceBetweenVolumeAndSpectrum, pictureBoxSpectrum.Width,
+                0, pictureBoxSpectrum.Height, _currentWavFileData);
+            _spectrumDiagram.SetTrimmingFrequency(TrimFrequency);
+            _spectrumDiagram.Recreate();
         }
 
         public FormMain()
@@ -230,13 +242,15 @@ namespace WavVisualize
                     //    SpectrumBaselineY - CurrentVolumeR * SpectrumHeight);
                 }
 
+                _spectrumDiagram.Draw(e.Graphics);
+
                 //если начало участка меньше чем количество сэмплов - сэмплов на преобразование спектра (можно вместить ещё раз рассчитать спектр)
                 if (currentSample < _currentWavFileData.SamplesCount - SpectrumUseSamples && currentSample >= 0)
                 {
                     //рисуем спектр
-                    float[] spectrum = _currentWavFileData.GetSpectrumForPosition(normalized, _fftProvider);
-                    _spectrumDrawer.LoadSpectrum(spectrum, 1 - EasingCoef);
-                    _spectrumDrawer.Draw(e.Graphics);
+                    //float[] spectrum = _currentWavFileData.GetSpectrumForPosition(normalized, _fftProvider);
+                    //_spectrumDrawer.LoadSpectrum(spectrum, 1 - EasingCoef);
+                    //_spectrumDrawer.Draw(e.Graphics);
                 }
             }
         }
@@ -309,7 +323,9 @@ namespace WavVisualize
                 //создаём новый медиафайл
                 _playerProvider.SetFile(filename);
 
-                SetSpectrumDrawer();
+                //SetSpectrumDrawer();
+                SetSpectrumDiagram();
+
 
                 //изменяем интервал обновления
                 timerUpdater.Interval = 1000 / UpdateRate;
@@ -382,6 +398,7 @@ namespace WavVisualize
         {
             TrimFrequency = trackBarTrimFrequency.Value;
             SetSpectrumDrawer();
+            SetSpectrumDiagram();
             labelMaxFrequency.Text = "Max Frequency: " + TrimFrequency;
         }
 

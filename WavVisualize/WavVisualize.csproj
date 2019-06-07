@@ -59,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnalogBandSpectrumDrawer.cs" />
+    <Compile Include="SpectrumDiagram.cs" />
     <Compile Include="SpectrumDrawer\DigitalBandSpectrumDrawer.cs" />
     <Compile Include="SpectrumDrawer\AsIsSpectrumDrawer.cs" />
     <Compile Include="SpectrumDrawer\BandBasedSpectrumDrawer.cs" />
