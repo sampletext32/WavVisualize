@@ -41,8 +41,7 @@ namespace WavVisualize
                 intensity = 1;
             }
 
-            return new SolidBrush(Color.FromArgb((int) (255 * intensity), (int) (255 * intensity),
-                (int) (255 * intensity)));
+            return new SolidBrush(Color.FromArgb((int) (intensity * 255), Color.OrangeRed));
         }
 
         public void Draw(Graphics g)
@@ -65,25 +64,23 @@ namespace WavVisualize
 
                 float[] heightPixels = new float[(int) Height + 1];
                 int lastX = 0;
-                for (int i = 0; i < FileData.SamplesCount - SpectrumSamples; i += SpectrumSamples)
+                for (int i = 0; i < Width; i++)
                 {
                     if (_cancel)
                     {
                         break;
                     }
 
-                    float[] spectrum = FileData.GetSpectrumForPosition((float) i / FileData.SamplesCount, FftProvider);
+                    float realPosition = Math.Min((float) i / Width,
+                        (float) (FileData.SamplesCount - SpectrumSamples) / FileData.SamplesCount);
 
-                    int xPosition = (int) ((float) i / FileData.SamplesCount * Width);
-                    if (xPosition > lastX)
+                    float[] spectrum = FileData.GetSpectrumForPosition(realPosition, FftProvider);
+
+                    for (int j = 0; j < (int) Height; j++)
                     {
-                        lastX = xPosition;
-                        for (int j = 0; j < (int) Height; j++)
-                        {
-                            Brush b = GetBrush(heightPixels[j]);
-                            g.FillRectangle(b, xPosition, j, 1, 1);
-                            b.Dispose();
-                        }
+                        Brush b = GetBrush(heightPixels[j]);
+                        g.FillRectangle(b, i, j, 1, 1);
+                        b.Dispose();
                     }
 
                     for (int j = 0; j < useSamples; j++)

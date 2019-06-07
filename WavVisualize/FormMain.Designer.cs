@@ -29,9 +29,9 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.pictureBoxPlot = new System.Windows.Forms.PictureBox();
+            this.pictureBoxWaveform = new System.Windows.Forms.PictureBox();
             this.timerUpdater = new System.Windows.Forms.Timer(this.components);
-            this.pictureBoxSpectrum = new System.Windows.Forms.PictureBox();
+            this.pictureBoxRealtimeSpectrum = new System.Windows.Forms.PictureBox();
             this.numericUpDownEasing = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownPow2Spectrum = new System.Windows.Forms.NumericUpDown();
             this.label1 = new System.Windows.Forms.Label();
@@ -45,44 +45,48 @@
             this.buttonPlayPause = new System.Windows.Forms.Button();
             this.checkBoxApplyTimeThinning = new System.Windows.Forms.CheckBox();
             this.labelMaxFrequency = new System.Windows.Forms.Label();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxPlot)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxSpectrum)).BeginInit();
+            this.pictureBoxSpectrumDiagram = new System.Windows.Forms.PictureBox();
+            this.pictureBoxVolume = new System.Windows.Forms.PictureBox();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxWaveform)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxRealtimeSpectrum)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownEasing)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPow2Spectrum)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarTrimFrequency)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxSpectrumDiagram)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxVolume)).BeginInit();
             this.SuspendLayout();
             // 
-            // pictureBoxPlot
+            // pictureBoxWaveform
             // 
-            this.pictureBoxPlot.BackColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.pictureBoxPlot.Location = new System.Drawing.Point(64, 0);
-            this.pictureBoxPlot.Name = "pictureBoxPlot";
-            this.pictureBoxPlot.Size = new System.Drawing.Size(728, 128);
-            this.pictureBoxPlot.TabIndex = 0;
-            this.pictureBoxPlot.TabStop = false;
-            this.pictureBoxPlot.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBoxPlot_Paint);
-            this.pictureBoxPlot.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBoxPlot_MouseDown);
-            this.pictureBoxPlot.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pictureBoxPlot_MouseMove);
-            this.pictureBoxPlot.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pictureBoxPlot_MouseUp);
+            this.pictureBoxWaveform.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.pictureBoxWaveform.Location = new System.Drawing.Point(0, 8);
+            this.pictureBoxWaveform.Name = "pictureBoxWaveform";
+            this.pictureBoxWaveform.Size = new System.Drawing.Size(1248, 128);
+            this.pictureBoxWaveform.TabIndex = 0;
+            this.pictureBoxWaveform.TabStop = false;
+            this.pictureBoxWaveform.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBoxWaveform_Paint);
+            this.pictureBoxWaveform.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBoxPlot_MouseDown);
+            this.pictureBoxWaveform.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pictureBoxPlot_MouseMove);
+            this.pictureBoxWaveform.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pictureBoxPlot_MouseUp);
             // 
             // timerUpdater
             // 
             this.timerUpdater.Interval = 16;
             this.timerUpdater.Tick += new System.EventHandler(this.timerUpdater_Tick);
             // 
-            // pictureBoxSpectrum
+            // pictureBoxRealtimeSpectrum
             // 
-            this.pictureBoxSpectrum.BackColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.pictureBoxSpectrum.Location = new System.Drawing.Point(0, 152);
-            this.pictureBoxSpectrum.Name = "pictureBoxSpectrum";
-            this.pictureBoxSpectrum.Size = new System.Drawing.Size(792, 280);
-            this.pictureBoxSpectrum.TabIndex = 1;
-            this.pictureBoxSpectrum.TabStop = false;
-            this.pictureBoxSpectrum.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBoxSpectrum_Paint);
+            this.pictureBoxRealtimeSpectrum.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.pictureBoxRealtimeSpectrum.Location = new System.Drawing.Point(0, 400);
+            this.pictureBoxRealtimeSpectrum.Name = "pictureBoxRealtimeSpectrum";
+            this.pictureBoxRealtimeSpectrum.Size = new System.Drawing.Size(1248, 248);
+            this.pictureBoxRealtimeSpectrum.TabIndex = 1;
+            this.pictureBoxRealtimeSpectrum.TabStop = false;
+            this.pictureBoxRealtimeSpectrum.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBoxSpectrum_Paint);
             // 
             // numericUpDownEasing
             // 
-            this.numericUpDownEasing.Location = new System.Drawing.Point(968, 8);
+            this.numericUpDownEasing.Location = new System.Drawing.Point(1480, 8);
             this.numericUpDownEasing.Maximum = new decimal(new int[] {
             19,
             0,
@@ -100,7 +104,7 @@
             // 
             // numericUpDownPow2Spectrum
             // 
-            this.numericUpDownPow2Spectrum.Location = new System.Drawing.Point(968, 48);
+            this.numericUpDownPow2Spectrum.Location = new System.Drawing.Point(1480, 48);
             this.numericUpDownPow2Spectrum.Maximum = new decimal(new int[] {
             15,
             0,
@@ -124,7 +128,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(800, 8);
+            this.label1.Location = new System.Drawing.Point(1312, 8);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(51, 17);
             this.label1.TabIndex = 4;
@@ -133,7 +137,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(800, 48);
+            this.label2.Location = new System.Drawing.Point(1312, 48);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(168, 17);
             this.label2.TabIndex = 5;
@@ -142,7 +146,7 @@
             // labelElapsed
             // 
             this.labelElapsed.AutoSize = true;
-            this.labelElapsed.Location = new System.Drawing.Point(800, 80);
+            this.labelElapsed.Location = new System.Drawing.Point(1312, 80);
             this.labelElapsed.Name = "labelElapsed";
             this.labelElapsed.Size = new System.Drawing.Size(59, 17);
             this.labelElapsed.TabIndex = 6;
@@ -150,7 +154,7 @@
             // 
             // buttonOpenFile
             // 
-            this.buttonOpenFile.Location = new System.Drawing.Point(800, 160);
+            this.buttonOpenFile.Location = new System.Drawing.Point(1312, 160);
             this.buttonOpenFile.Name = "buttonOpenFile";
             this.buttonOpenFile.Size = new System.Drawing.Size(264, 32);
             this.buttonOpenFile.TabIndex = 7;
@@ -161,7 +165,7 @@
             // labelStatus
             // 
             this.labelStatus.AutoSize = true;
-            this.labelStatus.Location = new System.Drawing.Point(800, 200);
+            this.labelStatus.Location = new System.Drawing.Point(1312, 200);
             this.labelStatus.Name = "labelStatus";
             this.labelStatus.Size = new System.Drawing.Size(48, 17);
             this.labelStatus.TabIndex = 9;
@@ -176,7 +180,7 @@
             // labelFPS
             // 
             this.labelFPS.AutoSize = true;
-            this.labelFPS.Location = new System.Drawing.Point(800, 224);
+            this.labelFPS.Location = new System.Drawing.Point(1312, 224);
             this.labelFPS.Name = "labelFPS";
             this.labelFPS.Size = new System.Drawing.Size(34, 17);
             this.labelFPS.TabIndex = 11;
@@ -184,7 +188,7 @@
             // 
             // trackBarTrimFrequency
             // 
-            this.trackBarTrimFrequency.Location = new System.Drawing.Point(800, 248);
+            this.trackBarTrimFrequency.Location = new System.Drawing.Point(1312, 248);
             this.trackBarTrimFrequency.Maximum = 20000;
             this.trackBarTrimFrequency.Minimum = 1000;
             this.trackBarTrimFrequency.Name = "trackBarTrimFrequency";
@@ -195,7 +199,7 @@
             // 
             // buttonPlayPause
             // 
-            this.buttonPlayPause.Location = new System.Drawing.Point(800, 104);
+            this.buttonPlayPause.Location = new System.Drawing.Point(1312, 104);
             this.buttonPlayPause.Name = "buttonPlayPause";
             this.buttonPlayPause.Size = new System.Drawing.Size(264, 48);
             this.buttonPlayPause.TabIndex = 13;
@@ -206,7 +210,7 @@
             // checkBoxApplyTimeThinning
             // 
             this.checkBoxApplyTimeThinning.AutoSize = true;
-            this.checkBoxApplyTimeThinning.Location = new System.Drawing.Point(808, 352);
+            this.checkBoxApplyTimeThinning.Location = new System.Drawing.Point(1320, 352);
             this.checkBoxApplyTimeThinning.Name = "checkBoxApplyTimeThinning";
             this.checkBoxApplyTimeThinning.Size = new System.Drawing.Size(159, 21);
             this.checkBoxApplyTimeThinning.TabIndex = 14;
@@ -217,17 +221,39 @@
             // labelMaxFrequency
             // 
             this.labelMaxFrequency.AutoSize = true;
-            this.labelMaxFrequency.Location = new System.Drawing.Point(808, 312);
+            this.labelMaxFrequency.Location = new System.Drawing.Point(1320, 312);
             this.labelMaxFrequency.Name = "labelMaxFrequency";
             this.labelMaxFrequency.Size = new System.Drawing.Size(112, 17);
             this.labelMaxFrequency.TabIndex = 15;
             this.labelMaxFrequency.Text = "Max Frequency: ";
             // 
+            // pictureBoxSpectrumDiagram
+            // 
+            this.pictureBoxSpectrumDiagram.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.pictureBoxSpectrumDiagram.Location = new System.Drawing.Point(0, 144);
+            this.pictureBoxSpectrumDiagram.Name = "pictureBoxSpectrumDiagram";
+            this.pictureBoxSpectrumDiagram.Size = new System.Drawing.Size(1248, 248);
+            this.pictureBoxSpectrumDiagram.TabIndex = 16;
+            this.pictureBoxSpectrumDiagram.TabStop = false;
+            this.pictureBoxSpectrumDiagram.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBoxSpectrumDiagram_Paint);
+            // 
+            // pictureBoxVolume
+            // 
+            this.pictureBoxVolume.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.pictureBoxVolume.Location = new System.Drawing.Point(1256, 144);
+            this.pictureBoxVolume.Name = "pictureBoxVolume";
+            this.pictureBoxVolume.Size = new System.Drawing.Size(48, 248);
+            this.pictureBoxVolume.TabIndex = 17;
+            this.pictureBoxVolume.TabStop = false;
+            this.pictureBoxVolume.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBoxVolume_Paint);
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1073, 450);
+            this.ClientSize = new System.Drawing.Size(1585, 657);
+            this.Controls.Add(this.pictureBoxVolume);
+            this.Controls.Add(this.pictureBoxSpectrumDiagram);
             this.Controls.Add(this.labelMaxFrequency);
             this.Controls.Add(this.checkBoxApplyTimeThinning);
             this.Controls.Add(this.buttonPlayPause);
@@ -240,8 +266,8 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.numericUpDownPow2Spectrum);
             this.Controls.Add(this.numericUpDownEasing);
-            this.Controls.Add(this.pictureBoxSpectrum);
-            this.Controls.Add(this.pictureBoxPlot);
+            this.Controls.Add(this.pictureBoxRealtimeSpectrum);
+            this.Controls.Add(this.pictureBoxWaveform);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -250,11 +276,13 @@
             this.Text = "Awesome Player";
             this.Load += new System.EventHandler(this.FormMain_Load);
             this.Shown += new System.EventHandler(this.FormMain_Shown);
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxPlot)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxSpectrum)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxWaveform)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxRealtimeSpectrum)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownEasing)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPow2Spectrum)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarTrimFrequency)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxSpectrumDiagram)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxVolume)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -262,9 +290,9 @@
 
         #endregion
 
-        private System.Windows.Forms.PictureBox pictureBoxPlot;
+        private System.Windows.Forms.PictureBox pictureBoxWaveform;
         private System.Windows.Forms.Timer timerUpdater;
-        private System.Windows.Forms.PictureBox pictureBoxSpectrum;
+        private System.Windows.Forms.PictureBox pictureBoxRealtimeSpectrum;
         private System.Windows.Forms.NumericUpDown numericUpDownEasing;
         private System.Windows.Forms.NumericUpDown numericUpDownPow2Spectrum;
         private System.Windows.Forms.Label label1;
@@ -278,6 +306,8 @@
         private System.Windows.Forms.Button buttonPlayPause;
         private System.Windows.Forms.CheckBox checkBoxApplyTimeThinning;
         private System.Windows.Forms.Label labelMaxFrequency;
+        private System.Windows.Forms.PictureBox pictureBoxSpectrumDiagram;
+        private System.Windows.Forms.PictureBox pictureBoxVolume;
     }
 }
 
