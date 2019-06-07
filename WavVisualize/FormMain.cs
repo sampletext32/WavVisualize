@@ -119,7 +119,7 @@ namespace WavVisualize
         private void SetVolumeDrawer()
         {
             _volumeDrawer = new DigitalVolumeDrawer(0, pictureBoxVolume.Width, 0, pictureBoxVolume.Height,
-                Color.LawnGreen, Color.OrangeRed, 70, 1);
+                Color.LawnGreen, Color.OrangeRed, 50, 1);
         }
 
         private void SetSpectrumDrawer()
@@ -152,6 +152,7 @@ namespace WavVisualize
             _spectrumDiagram = new SpectrumDiagram(SpectrumUseSamples, 0, pictureBoxSpectrumDiagram.Width, 0,
                 pictureBoxSpectrumDiagram.Height, _currentWavFileData);
             _spectrumDiagram.SetTrimmingFrequency(TrimFrequency);
+            _spectrumDiagram.SetApplyTimeThinning(ApplyTimeThinning);
             _spectrumDiagram.Recreate();
         }
 

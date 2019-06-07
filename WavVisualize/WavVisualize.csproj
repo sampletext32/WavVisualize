@@ -58,8 +58,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AnalogBandSpectrumDrawer.cs" />
-    <Compile Include="BasicWaveformProvider.cs" />
+    <Compile Include="SpectrumDrawer\AnalogBandSpectrumDrawer.cs" />
+    <Compile Include="WaveformProviders\BasicWaveformProvider.cs" />
     <Compile Include="SpectrumDiagram.cs" />
     <Compile Include="SpectrumDrawer\DigitalBandSpectrumDrawer.cs" />
     <Compile Include="SpectrumDrawer\AsIsSpectrumDrawer.cs" />

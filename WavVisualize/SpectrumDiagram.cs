@@ -26,12 +26,19 @@ namespace WavVisualize
         private Bitmap Diagram;
 
         protected int TrimmingFrequency;
+        protected bool ApplyTimeThinning;
 
         private bool _cancel;
 
         public void SetTrimmingFrequency(int frequency)
         {
             TrimmingFrequency = frequency;
+        }
+
+        public void SetApplyTimeThinning(bool apply)
+        {
+            ApplyTimeThinning = apply;
+            FftProvider = new CorrectCooleyTukeyInPlaceFFTProvider(SpectrumSamples, ApplyTimeThinning);
         }
 
         Brush GetBrush(float intensity)
@@ -60,7 +67,11 @@ namespace WavVisualize
             {
                 Graphics g = Graphics.FromImage(Diagram);
 
-                int useSamples = (int) (SpectrumSamples / 4 * TrimmingFrequency / 20000f);
+                int useSamples = (int) (SpectrumSamples / 2 * TrimmingFrequency / 20000f);
+                if (ApplyTimeThinning)
+                {
+                    useSamples /= 2;
+                }
 
                 float[] heightPixels = new float[(int) Height + 1];
                 int lastX = 0;
@@ -114,7 +125,7 @@ namespace WavVisualize
 
             Diagram = new Bitmap((int) Width, (int) Height);
 
-            FftProvider = new CorrectCooleyTukeyInPlaceFFTProvider(SpectrumSamples, true);
+            FftProvider = new CorrectCooleyTukeyInPlaceFFTProvider(SpectrumSamples, ApplyTimeThinning);
             FileData = fileData;
         }
     }
