@@ -41,7 +41,7 @@ namespace WavVisualize
                 intensity = 1;
             }
 
-            return new SolidBrush(Color.FromArgb((int) (intensity * 255), Color.OrangeRed));
+            return new SolidBrush(Color.FromArgb((int) (10  + intensity * (255 - 10)), Color.OrangeRed));
         }
 
         public void Draw(Graphics g)

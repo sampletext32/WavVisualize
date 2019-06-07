@@ -30,11 +30,7 @@ namespace WavVisualize
         private SpectrumDiagram _spectrumDiagram;
 
         public int TrimFrequency = 20000;
-
-        //текущая отображаемая громкость
-        public float CurrentVolumeL;
-        public float CurrentVolumeR;
-
+        
         //создавать ли волну последовательно
         public readonly bool CreateWaveformSequentially = true;
 
@@ -107,13 +103,12 @@ namespace WavVisualize
 
         private void SetWaveformProvider()
         {
-            _waveformProvider?.CancelRecreation();
+            _waveformProvider?.Cancel();
 
-            _waveformProvider = new WaveformProvider(pictureBoxWaveform.Width, pictureBoxWaveform.Height,
-                _currentWavFileData, CreateWaveformSequentially, ThreadsForWaveformCreation,
-                WaveformSkipSampleRate);
+            _waveformProvider = new ParallelWaveformProvider(0, pictureBoxWaveform.Width, 0, pictureBoxWaveform.Height,
+                Color.LawnGreen, Color.OrangeRed, _currentWavFileData, 0.8f, Environment.ProcessorCount / 2);
 
-            Task.Run(() => _waveformProvider.StartRecreation());
+            _waveformProvider.Recreate();
         }
 
         private void SetFFTProvider()
@@ -219,7 +214,7 @@ namespace WavVisualize
                 float normalized = _playerProvider.GetNormalizedPosition();
                 //на каком сейчас сэмпле находимся
                 int currentSample = (int) (normalized * _currentWavFileData.SamplesCount);
-                
+
                 //если начало участка меньше чем количество сэмплов - сэмплов на преобразование спектра (можно вместить ещё раз рассчитать спектр)
                 if (currentSample < _currentWavFileData.SamplesCount - SpectrumUseSamples && currentSample >= 0)
                 {

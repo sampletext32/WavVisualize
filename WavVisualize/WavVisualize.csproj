@@ -59,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnalogBandSpectrumDrawer.cs" />
+    <Compile Include="BasicWaveformProvider.cs" />
     <Compile Include="SpectrumDiagram.cs" />
     <Compile Include="SpectrumDrawer\DigitalBandSpectrumDrawer.cs" />
     <Compile Include="SpectrumDrawer\AsIsSpectrumDrawer.cs" />
@@ -88,6 +89,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VolumeProviders\VolumeProvider.cs" />
+    <Compile Include="WaveformProviders\ParallelWaveformProvider.cs" />
     <Compile Include="WaveformProviders\WaveformProvider.cs" />
     <Compile Include="DataContainers\WavFileData.cs" />
     <EmbeddedResource Include="FormMain.resx">
