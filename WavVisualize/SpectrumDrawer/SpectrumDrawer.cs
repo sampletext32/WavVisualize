@@ -48,7 +48,7 @@ namespace WavVisualize
             EasingProvider.Ease(SpectrumValues, spectrum, easing);
         }
 
-        public virtual void InnerDraw(Graphics g)
+        public void Draw(Graphics g)
         {
             int useSamples;
             if (ApplyTimeThinning)

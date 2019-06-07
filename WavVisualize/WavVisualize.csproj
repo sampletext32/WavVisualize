@@ -59,11 +59,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnalogBandSpectrumDrawer.cs" />
-    <Compile Include="DigitalBandSpectrumDrawer.cs" />
-    <Compile Include="AsIsSpectrumDrawer.cs" />
-    <Compile Include="BandBasedSpectrumDrawer.cs" />
+    <Compile Include="SpectrumDrawer\DigitalBandSpectrumDrawer.cs" />
+    <Compile Include="SpectrumDrawer\AsIsSpectrumDrawer.cs" />
+    <Compile Include="SpectrumDrawer\BandBasedSpectrumDrawer.cs" />
     <Compile Include="Utils\EasingProvider.cs" />
-    <Compile Include="SpectrumDrawer.cs" />
+    <Compile Include="SpectrumDrawer\SpectrumDrawer.cs" />
     <Compile Include="Utils\TimeProvider.cs" />
     <Compile Include="VolumeDrawer\AnalogVolumeDrawer.cs" />
     <Compile Include="VolumeDrawer\DigitalVolumeDrawer.cs" />

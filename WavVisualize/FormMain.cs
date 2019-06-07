@@ -32,10 +32,7 @@ namespace WavVisualize
         //текущая отображаемая громкость
         public float CurrentVolumeL;
         public float CurrentVolumeR;
-
-        //текущий массив спектра
-        public float[] CurrentSpectrum;
-
+        
         //создавать ли волну последовательно
         public readonly bool CreateWaveformSequentially = true;
 
@@ -123,24 +120,22 @@ namespace WavVisualize
         private void SetVolumeDrawer()
         {
             _volumeDrawer = new DigitalVolumeDrawer(0, VolumeBandWidth * 2, 0, pictureBoxSpectrum.Height,
-                Color.LawnGreen, Color.OrangeRed, 50, 2);
+                Color.LawnGreen, Color.OrangeRed, 70, 1);
         }
 
         private void SetSpectrumDrawer()
         {
-            CurrentSpectrum = new float[SpectrumUseSamples];
-
-            //_spectrumDrawer = new AsIsSpectrumDrawer(SpectrumUseSamples, 10f,
-            //    VolumeBandWidth * 2 + DistanceBetweenVolumeAndSpectrum, pictureBoxSpectrum.Width, 0,
-            //    pictureBoxSpectrum.Height, Color.OrangeRed);
+           _spectrumDrawer = new AsIsSpectrumDrawer(SpectrumUseSamples, 10f,
+               VolumeBandWidth * 2 + DistanceBetweenVolumeAndSpectrum, pictureBoxSpectrum.Width, 0,
+               pictureBoxSpectrum.Height, Color.OrangeRed);
 
             //_spectrumDrawer = new DigitalBandSpectrumDrawer(SpectrumUseSamples, 10f,
             //    VolumeBandWidth * 2 + DistanceBetweenVolumeAndSpectrum, pictureBoxSpectrum.Width,
-            //    0, pictureBoxSpectrum.Height, Color.OrangeRed, TotalSpectrumBands, DistanceBetweenBands, 50, 2);
+            //    0, pictureBoxSpectrum.Height, Color.OrangeRed, TotalSpectrumBands, DistanceBetweenBands, 70, 1);
 
-            _spectrumDrawer = new AnalogBandSpectrumDrawer(SpectrumUseSamples, 10f,
-                VolumeBandWidth * 2 + DistanceBetweenVolumeAndSpectrum, pictureBoxSpectrum.Width,
-                0, pictureBoxSpectrum.Height, Color.OrangeRed, TotalSpectrumBands, DistanceBetweenBands);
+            //_spectrumDrawer = new AnalogBandSpectrumDrawer(SpectrumUseSamples, 10f,
+            //    VolumeBandWidth * 2 + DistanceBetweenVolumeAndSpectrum, pictureBoxSpectrum.Width,
+            //    0, pictureBoxSpectrum.Height, Color.OrangeRed, TotalSpectrumBands, DistanceBetweenBands);
 
             _spectrumDrawer.SetTrimmingFrequency(TrimFrequency);
             _spectrumDrawer.SetApplyTimeThinning(ApplyTimeThinning);
@@ -241,7 +236,7 @@ namespace WavVisualize
                     //рисуем спектр
                     float[] spectrum = _currentWavFileData.GetSpectrumForPosition(normalized, _fftProvider);
                     _spectrumDrawer.LoadSpectrum(spectrum, 1 - EasingCoef);
-                    _spectrumDrawer.InnerDraw(e.Graphics);
+                    _spectrumDrawer.Draw(e.Graphics);
                 }
             }
         }
@@ -367,9 +362,6 @@ namespace WavVisualize
         private void numericUpDownPow2Spectrum_ValueChanged(object sender, EventArgs e)
         {
             SpectrumUseSamples = FastPowLog2Provider.FastPow2((int) numericUpDownPow2Spectrum.Value);
-
-            //создаём массив спектра заново, т.к. во время отрисовки массив не должен меняться
-            CurrentSpectrum = new float[SpectrumUseSamples];
 
             SetFFTProvider();
             SetSpectrumDrawer();
