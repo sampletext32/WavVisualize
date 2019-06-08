@@ -58,6 +58,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BasicSpectrumDiagram.cs" />
+    <Compile Include="IterationableSpectrumDiagram.cs" />
+    <Compile Include="ParallelSpectrumDiagram.cs" />
     <Compile Include="SpectrumDrawer\AnalogBandSpectrumDrawer.cs" />
     <Compile Include="WaveformProviders\BasicWaveformProvider.cs" />
     <Compile Include="SpectrumDiagram.cs" />

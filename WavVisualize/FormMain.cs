@@ -149,8 +149,8 @@ namespace WavVisualize
         public void SetSpectrumDiagram()
         {
             _spectrumDiagram?.Cancel();
-            _spectrumDiagram = new SpectrumDiagram(SpectrumUseSamples, 0, pictureBoxSpectrumDiagram.Width, 0,
-                pictureBoxSpectrumDiagram.Height, _currentWavFileData);
+            _spectrumDiagram = new IterationableSpectrumDiagram(SpectrumUseSamples, 0, pictureBoxSpectrumDiagram.Width, 0,
+                pictureBoxSpectrumDiagram.Height, _currentWavFileData, 10);
             _spectrumDiagram.SetTrimmingFrequency(TrimFrequency);
             _spectrumDiagram.SetApplyTimeThinning(ApplyTimeThinning);
             _spectrumDiagram.Recreate();
