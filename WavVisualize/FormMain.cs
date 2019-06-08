@@ -105,8 +105,8 @@ namespace WavVisualize
         {
             _waveformProvider?.Cancel();
 
-            _waveformProvider = new ParallelWaveformProvider(0, pictureBoxWaveform.Width, 0, pictureBoxWaveform.Height,
-                Color.LawnGreen, Color.OrangeRed, _currentWavFileData, 0.8f, Environment.ProcessorCount / 2);
+            _waveformProvider = new BasicWithIterationablePrerunWaveformProvider(0, pictureBoxWaveform.Width, 0, pictureBoxWaveform.Height,
+                Color.LawnGreen, Color.OrangeRed, _currentWavFileData, 0.8f, 20);
 
             _waveformProvider.Recreate();
         }
@@ -150,7 +150,7 @@ namespace WavVisualize
         {
             _spectrumDiagram?.Cancel();
             _spectrumDiagram = new IterationableSpectrumDiagram(SpectrumUseSamples, 0, pictureBoxSpectrumDiagram.Width, 0,
-                pictureBoxSpectrumDiagram.Height, _currentWavFileData, 10);
+                pictureBoxSpectrumDiagram.Height, _currentWavFileData, pictureBoxSpectrumDiagram.Width / 50);
             _spectrumDiagram.SetTrimmingFrequency(TrimFrequency);
             _spectrumDiagram.SetApplyTimeThinning(ApplyTimeThinning);
             _spectrumDiagram.Recreate();
@@ -179,7 +179,7 @@ namespace WavVisualize
             //рисуем каретку текущей позиции шириной 20
             e.Graphics.FillRectangle(Brushes.DarkGray,
                 _playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width - 10,
-                pictureBoxWaveform.Height - 5, 20, 10);
+                pictureBoxWaveform.Height - 5, 20, 5);
         }
 
 
@@ -264,6 +264,16 @@ namespace WavVisualize
         private void pictureBoxSpectrumDiagram_Paint(object sender, PaintEventArgs e)
         {
             _spectrumDiagram?.Draw(e.Graphics);
+
+            //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
+            e.Graphics.FillRectangle(Brushes.Black, _playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width,
+                0,
+                1,
+                pictureBoxSpectrumDiagram.Height);
+
+            //рисуем каретку текущей позиции шириной 20
+            e.Graphics.FillRectangle(Brushes.DarkGray,
+                _playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width - 10, 0, 20, 2);
         }
 
         private void FormMain_Load(object sender, EventArgs e)

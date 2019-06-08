@@ -60,6 +60,8 @@
   <ItemGroup>
     <Compile Include="BasicSpectrumDiagram.cs" />
     <Compile Include="IterationableSpectrumDiagram.cs" />
+    <Compile Include="IterationableWaveformProvider.cs" />
+    <Compile Include="BasicWithIterationablePrerunWaveformProvider.cs" />
     <Compile Include="ParallelSpectrumDiagram.cs" />
     <Compile Include="SpectrumDrawer\AnalogBandSpectrumDrawer.cs" />
     <Compile Include="WaveformProviders\BasicWaveformProvider.cs" />

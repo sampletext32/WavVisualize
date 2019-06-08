@@ -30,6 +30,12 @@ namespace WavVisualize
                 useSamples /= 2;
             }
 
+            int frequencyHeight = 1;
+            if (useSamples < Height)
+            {
+                frequencyHeight = (int)Math.Ceiling(Height / useSamples);
+            }
+
             Task.Run(() =>
             {
                 Graphics g = Graphics.FromImage(Diagram);
@@ -55,58 +61,26 @@ namespace WavVisualize
                         lock (FftProvider)
                         {
                             spectrum = FileData.GetSpectrumForPosition(realPosition, FftProvider);
-                        }
-                        for (int j = 0; j < (int) Height; j++)
-                        {
-                            Brush b = GetBrush(heightPixels[j]);
-                            lock (g)
+
+                            for (int j = 0; j < useSamples; j++)
                             {
-                                g.FillRectangle(b, i, j, 1, 1);
+                                int yPosition = (int) (Height - (int) ((float) j / useSamples * Height));
+                                heightPixels[yPosition] = 100f * spectrum[j] * Log10Normalizing(j);
                             }
 
-                            b.Dispose();
-                        }
+                            for (int j = 0; j < (int) Height; j++)
+                            {
+                                Brush b = GetBrush(heightPixels[j]);
+                                lock (g)
+                                {
+                                    g.FillRectangle(b, i, j, 1, frequencyHeight);
+                                }
 
-                        for (int j = 0; j < useSamples; j++)
-                        {
-                            int yPosition = (int) (Height - (int) ((float) j / useSamples * Height));
-                            heightPixels[yPosition] = 100f * spectrum[j] * Log10Normalizing(j);
+                                b.Dispose();
+                            }
                         }
                     }
                 });
-
-                //float[] heightPixels = new float[(int)Height + 1];
-                //for (int k = 0; k < Iterations; k++)
-                //{
-                //    int lastX = 0;
-                //    for (int i = k; i < Width; i += Iterations)
-                //    {
-                //        if (Canceled)
-                //        {
-                //            break;
-                //        }
-                //
-                //        float realPosition = Math.Min((float) i / Width,
-                //            (float) (FileData.SamplesCount - SpectrumSamples) / FileData.SamplesCount);
-                //
-                //        float[] spectrum = FileData.GetSpectrumForPosition(realPosition, FftProvider);
-                //
-                //        for (int j = 0; j < (int) Height; j++)
-                //        {
-                //            Brush b = GetBrush(heightPixels[j]);
-                //            g.FillRectangle(b, i, j, 1, 1);
-                //            b.Dispose();
-                //        }
-                //
-                //        for (int j = 0; j < useSamples; j++)
-                //        {
-                //            int yPosition = (int) (Height - (int) ((float) j / useSamples * Height));
-                //            heightPixels[yPosition] = 100f * spectrum[j] * Log10Normalizing(j);
-                //        }
-                //    }
-                //}
-
-
                 g.Dispose();
             });
         }
