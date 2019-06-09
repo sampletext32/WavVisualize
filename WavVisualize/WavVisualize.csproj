@@ -58,14 +58,15 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BasicSpectrumDiagram.cs" />
-    <Compile Include="IterationableSpectrumDiagram.cs" />
-    <Compile Include="IterationableWaveformProvider.cs" />
-    <Compile Include="BasicWithIterationablePrerunWaveformProvider.cs" />
-    <Compile Include="ParallelSpectrumDiagram.cs" />
+    <Compile Include="DataContainers\Rectangle.cs" />
+    <Compile Include="SpectrumDiagram\BasicSpectrumDiagram.cs" />
+    <Compile Include="SpectrumDiagram\IterationableSpectrumDiagram.cs" />
+    <Compile Include="WaveformProviders\IterationableWaveformProvider.cs" />
+    <Compile Include="WaveformProviders\BasicWithIterationablePrerunWaveformProvider.cs" />
+    <Compile Include="SpectrumDiagram\ParallelSpectrumDiagram.cs" />
     <Compile Include="SpectrumDrawer\AnalogBandSpectrumDrawer.cs" />
     <Compile Include="WaveformProviders\BasicWaveformProvider.cs" />
-    <Compile Include="SpectrumDiagram.cs" />
+    <Compile Include="SpectrumDiagram\SpectrumDiagram.cs" />
     <Compile Include="SpectrumDrawer\DigitalBandSpectrumDrawer.cs" />
     <Compile Include="SpectrumDrawer\AsIsSpectrumDrawer.cs" />
     <Compile Include="SpectrumDrawer\BandBasedSpectrumDrawer.cs" />

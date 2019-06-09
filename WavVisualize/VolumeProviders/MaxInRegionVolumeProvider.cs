@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace WavVisualize
+﻿namespace WavVisualize
 {
-    class MaxInRegionVolumeProvider : VolumeProvider
+    public class MaxInRegionVolumeProvider : VolumeProvider
     {
         protected override void Algorithm(int start)
         {

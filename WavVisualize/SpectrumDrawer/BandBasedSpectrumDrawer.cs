@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 
 namespace WavVisualize
 {
-    abstract class BandBasedSpectrumDrawer : SpectrumDrawer
+    public abstract class BandBasedSpectrumDrawer : SpectrumDrawer
     {
         protected int BandsCount;
         protected float BandWidth;
@@ -16,15 +11,15 @@ namespace WavVisualize
         public BandBasedSpectrumDrawer(
             int spectrumSamples,
             float constantHeightMultiplier,
-            float left, float right, float top, float bottom,
+            Rectangle displayRectangle,
             Color color,
             int bandsCount, float distanceBetweenBands) :
-            base(spectrumSamples, constantHeightMultiplier, left, right, top, bottom, color)
+            base(spectrumSamples, constantHeightMultiplier, displayRectangle, color)
         {
             BandsCount = bandsCount;
             DistanceBetweenBands = distanceBetweenBands;
             
-            BandWidth = (Width - (BandsCount - 1) * DistanceBetweenBands) / BandsCount;
+            BandWidth = (DisplayRectangle.Width - (BandsCount - 1) * DistanceBetweenBands) / BandsCount;
         }
 
         protected override void InnerDraw(Graphics g, int useLength)
@@ -43,7 +38,7 @@ namespace WavVisualize
                     maxInLastBand = 0f;
                 }
 
-                float analogValue = SpectrumValues[i] * Log10Normalizing(i) * Height * ConstantHeightMultiplier;
+                float analogValue = SpectrumValues[i] * Log10Normalizing(i) * DisplayRectangle.Height * ConstantHeightMultiplier;
                 if (analogValue > maxInLastBand)
                 {
                     maxInLastBand = analogValue; //пересохраняем частоту

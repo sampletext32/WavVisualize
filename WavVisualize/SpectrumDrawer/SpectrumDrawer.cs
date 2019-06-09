@@ -1,25 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace WavVisualize
 {
-    abstract class SpectrumDrawer
+    public abstract class SpectrumDrawer
     {
         protected int SpectrumSamples;
         protected float[] SpectrumValues;
 
-        protected float Left;
-        protected float Right;
-        protected float Top;
-        protected float Bottom;
-
-        protected float Width;
-        protected float Height;
-
+        protected Rectangle DisplayRectangle;
         protected Brush Brush;
 
         protected float ConstantHeightMultiplier;
@@ -67,20 +56,13 @@ namespace WavVisualize
 
         protected abstract void InnerDraw(Graphics g, int useLength);
 
-        protected SpectrumDrawer(int spectrumSamples, float constantHeightMultiplier, float left, float right,
-            float top, float bottom, Color color)
+        protected SpectrumDrawer(int spectrumSamples, float constantHeightMultiplier, Rectangle displayRectangle,
+            Color color)
         {
             SpectrumSamples = spectrumSamples;
             ConstantHeightMultiplier = constantHeightMultiplier;
             SpectrumValues = new float[SpectrumSamples];
-            Left = left;
-            Right = right;
-            Top = top;
-            Bottom = bottom;
-
-            Width = right - left;
-            Height = bottom - top;
-
+            DisplayRectangle = displayRectangle;
             Brush = new SolidBrush(color);
         }
 

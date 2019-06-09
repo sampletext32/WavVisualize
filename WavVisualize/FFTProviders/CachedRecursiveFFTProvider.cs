@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace WavVisualize
 {
-    class CachedRecursiveFFTProvider : FFTProvider
+    public class CachedRecursiveFFTProvider : FFTProvider
     {
         private Complex[][] _cacheLevels;
 
-        public void InitAllCache()
+        private void InitAllCache()
         {
             int base2 = FastPowLog2Provider.FastLog2(Samples);
             _cacheLevels = new Complex[base2 + 1][];

@@ -1,26 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace WavVisualize
 {
-    class ParallelSpectrumDiagram : SpectrumDiagram
+    public class ParallelSpectrumDiagram : SpectrumDiagram
     {
-        public ParallelSpectrumDiagram(int spectrumSamples, float left, float right, float top, float bottom, WavFileData fileData) : base(spectrumSamples, left, right, top, bottom, fileData)
+        public ParallelSpectrumDiagram(int spectrumSamples, Rectangle displayRectangle, WavFileData fileData) : base(
+            spectrumSamples, displayRectangle, fileData)
         {
         }
 
         public override void Draw(Graphics g)
         {
-            g.DrawImage(Diagram, Left, Top, Width, Height);
+            g.DrawImage(Diagram, DisplayRectangle.Left, DisplayRectangle.Top, DisplayRectangle.Width,
+                DisplayRectangle.Height);
         }
 
         public override void Recreate()
         {
-            int useSamples = (int)(SpectrumSamples / 2 * TrimmingFrequency / 20000f);
+            int useSamples = (int) (SpectrumSamples / 2 * TrimmingFrequency / 20000f);
             if (ApplyTimeThinning)
             {
                 useSamples /= 2;
@@ -29,17 +28,17 @@ namespace WavVisualize
             Task.Run(() =>
             {
                 Graphics g = Graphics.FromImage(Diagram);
-                Parallel.For(0, (int)Width, (i, loopState) =>
+                Parallel.For(0, (int) DisplayRectangle.Width, (i, loopState) =>
                 {
-                    float[] heightPixels = new float[(int)Height + 1];
+                    float[] heightPixels = new float[(int) DisplayRectangle.Height + 1];
                     if (Canceled)
                     {
                         loopState.Break();
                         return;
                     }
 
-                    float realPosition = Math.Min((float)i / Width,
-                        (float)(FileData.SamplesCount - SpectrumSamples) / FileData.SamplesCount);
+                    float realPosition = Math.Min((float) i / DisplayRectangle.Width,
+                        (float) (FileData.SamplesCount - SpectrumSamples) / FileData.SamplesCount);
 
                     float[] spectrum;
                     lock (FftProvider)
@@ -49,11 +48,12 @@ namespace WavVisualize
 
                     for (int j = 0; j < useSamples; j++)
                     {
-                        int yPosition = (int)(Height - (int)((float)j / useSamples * Height));
+                        int yPosition = (int) (DisplayRectangle.Height -
+                                               (int) ((float) j / useSamples * DisplayRectangle.Height));
                         heightPixels[yPosition] = 100f * spectrum[j] * Log10Normalizing(j);
                     }
 
-                    for (int j = 0; j < (int)Height; j++)
+                    for (int j = 0; j < (int) DisplayRectangle.Height; j++)
                     {
                         lock (g)
                         {
@@ -63,7 +63,6 @@ namespace WavVisualize
 
                             b.Dispose();
                         }
-
                     }
                 });
 

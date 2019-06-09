@@ -1,24 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 
 namespace WavVisualize
 {
-    class AnalogBandSpectrumDrawer : BandBasedSpectrumDrawer
+    public class AnalogBandSpectrumDrawer : BandBasedSpectrumDrawer
     {
-        
-
         protected override void DrawBand(Graphics g, int band, float value)
         {
-            g.FillRectangle(Brush, Left + band * (BandWidth + DistanceBetweenBands),
-                Bottom - value,
+            g.FillRectangle(Brush, DisplayRectangle.Left + band * (BandWidth + DistanceBetweenBands),
+                DisplayRectangle.Bottom - value,
                 BandWidth, value);
         }
 
-        public AnalogBandSpectrumDrawer(int spectrumSamples, float constantHeightMultiplier, float left, float right, float top, float bottom, Color color, int bandsCount, float distanceBetweenBands) : base(spectrumSamples, constantHeightMultiplier, left, right, top, bottom, color, bandsCount, distanceBetweenBands)
+        public AnalogBandSpectrumDrawer(int spectrumSamples, float constantHeightMultiplier, Rectangle displayRectangle,
+            Color color, int bandsCount, float distanceBetweenBands) : base(spectrumSamples, constantHeightMultiplier,
+            displayRectangle, color, bandsCount, distanceBetweenBands)
         {
         }
     }

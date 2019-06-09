@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace WavVisualize
 {
@@ -12,13 +8,7 @@ namespace WavVisualize
         protected int SpectrumSamples;
         protected float[] SpectrumValues;
 
-        protected float Left;
-        protected float Right;
-        protected float Top;
-        protected float Bottom;
-
-        protected float Width;
-        protected float Height;
+        protected Rectangle DisplayRectangle;
 
         protected FFTProvider FftProvider;
         protected WavFileData FileData;
@@ -58,7 +48,7 @@ namespace WavVisualize
                 intensity = 0;
             }
 
-            return new SolidBrush(Color.FromArgb((int) (10  + intensity * (255 - 10)), Color.OrangeRed));
+            return new SolidBrush(Color.FromArgb((int) (10 + intensity * (255 - 10)), Color.OrangeRed));
         }
 
         public abstract void Draw(Graphics g);
@@ -75,20 +65,12 @@ namespace WavVisualize
             Canceled = true;
         }
 
-        public SpectrumDiagram(int spectrumSamples, float left, float right,
-            float top, float bottom, WavFileData fileData)
+        public SpectrumDiagram(int spectrumSamples, Rectangle displayRectangle, WavFileData fileData)
         {
             SpectrumSamples = spectrumSamples;
             SpectrumValues = new float[SpectrumSamples];
-            Left = left;
-            Right = right;
-            Top = top;
-            Bottom = bottom;
-
-            Width = right - left;
-            Height = bottom - top;
-
-            Diagram = new Bitmap((int) Width, (int) Height);
+            DisplayRectangle = displayRectangle;
+            Diagram = new Bitmap((int) displayRectangle.Width, (int) displayRectangle.Height);
 
             FftProvider = new CorrectCooleyTukeyInPlaceFFTProvider(SpectrumSamples, ApplyTimeThinning);
             FileData = fileData;

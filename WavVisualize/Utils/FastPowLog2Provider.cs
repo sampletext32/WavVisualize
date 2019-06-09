@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace WavVisualize
+﻿namespace WavVisualize
 {
-    class FastPowLog2Provider
+    public class FastPowLog2Provider
     {
         public static int FastLog2(int n)
         {

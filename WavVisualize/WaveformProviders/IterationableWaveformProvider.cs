@@ -1,25 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
+﻿using System.Drawing;
 using System.Threading.Tasks;
 
 namespace WavVisualize
 {
-    class IterationableWaveformProvider : WaveformProvider
+    public class IterationableWaveformProvider : WaveformProvider
     {
         protected Bitmap CacheBitmap;
         protected Brush LeftBrush;
         protected Brush RightBrush;
         protected int Iterations;
 
-        public IterationableWaveformProvider(float left, float right, float top, float bottom, Color colorL,
-            Color colorR, WavFileData fileData, float verticalScale, int iterations) : base(left, right, top, bottom,
+        public IterationableWaveformProvider(Rectangle displayRectangle, Color colorL,
+            Color colorR, WavFileData fileData, float verticalScale, int iterations) : base(displayRectangle,
             colorL, colorR,
             fileData, verticalScale)
         {
-            CacheBitmap = new Bitmap((int)Width, (int)Height);
+            CacheBitmap = new Bitmap((int)displayRectangle.Width, (int)displayRectangle.Height);
             LeftBrush = new SolidBrush(LeftColor);
             RightBrush = new SolidBrush(RightColor);
 
@@ -28,7 +24,7 @@ namespace WavVisualize
 
         public override void Draw(Graphics g)
         {
-            g.DrawImage(CacheBitmap, 0, 0, Width, Height);
+            g.DrawImage(CacheBitmap, 0, 0, DisplayRectangle.Width, DisplayRectangle.Height);
         }
 
         public override void Recreate()
@@ -47,18 +43,18 @@ namespace WavVisualize
                             return;
                         }
 
-                        int xPosition = (int) (i / (float) FileData.SamplesCount * Width);
+                        int xPosition = (int) (i / (float) FileData.SamplesCount * DisplayRectangle.Width);
 
                         int valueL =
-                            (int) (FileData.LeftChannel[i] * (Height / 2) * VerticalScale);
+                            (int) (FileData.LeftChannel[i] * (DisplayRectangle.Height / 2) * VerticalScale);
                         int valueR =
-                            (int) (FileData.RightChannel[i] * (Height / 2) * VerticalScale);
+                            (int) (FileData.RightChannel[i] * (DisplayRectangle.Height / 2) * VerticalScale);
 
                         lock (g)
                         {
-                            g.FillRectangle(LeftBrush, xPosition, Height / 2 - valueL, 1, valueL);
+                            g.FillRectangle(LeftBrush, xPosition, DisplayRectangle.Height / 2 - valueL, 1, valueL);
 
-                            g.FillRectangle(RightBrush, xPosition, Height / 2, 1, valueR);
+                            g.FillRectangle(RightBrush, xPosition, DisplayRectangle.Height / 2, 1, valueR);
                         }
                     }
                 });
@@ -80,18 +76,18 @@ namespace WavVisualize
                             return;
                         }
 
-                        int xPosition = (int)(k / (float)FileData.SamplesCount * Width);
+                        int xPosition = (int)(k / (float)FileData.SamplesCount * DisplayRectangle.Width);
 
                         int valueL =
-                            (int)(FileData.LeftChannel[k] * (Height / 2) * VerticalScale);
+                            (int)(FileData.LeftChannel[k] * (DisplayRectangle.Height / 2) * VerticalScale);
                         int valueR =
-                            (int)(FileData.RightChannel[k] * (Height / 2) * VerticalScale);
+                            (int)(FileData.RightChannel[k] * (DisplayRectangle.Height / 2) * VerticalScale);
 
                         lock (g)
                         {
-                            g.FillRectangle(LeftBrush, xPosition, Height / 2 - valueL, 1, valueL);
+                            g.FillRectangle(LeftBrush, xPosition, DisplayRectangle.Height / 2 - valueL, 1, valueL);
 
-                            g.FillRectangle(RightBrush, xPosition, Height / 2, 1, valueR);
+                            g.FillRectangle(RightBrush, xPosition, DisplayRectangle.Height / 2, 1, valueR);
                         }
                     });
                 }

@@ -1,23 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 
 namespace WavVisualize
 {
     public class AnalogVolumeDrawer : VolumeDrawer
     {
-        public AnalogVolumeDrawer(float left, float right, float top, float bottom, Color colorL, Color colorR) : base(
-            left, right, top, bottom, colorL, colorR)
+        public AnalogVolumeDrawer(Rectangle displayRectangle, Color colorL, Color colorR) : base(displayRectangle, colorL, colorR)
         {
         }
 
         public override void Draw(Graphics g)
         {
-            g.FillRectangle(LeftBrush, Left, Bottom - NormalizedVolumeL * Height, Width / 2, NormalizedVolumeL * Height);
-            g.FillRectangle(RightBrush, Left + Width / 2, Bottom - NormalizedVolumeR * Height, Width / 2, NormalizedVolumeR * Height);
+            g.FillRectangle(LeftBrush, DisplayRectangle.Left, DisplayRectangle.Bottom - NormalizedVolumeL * DisplayRectangle.Height, DisplayRectangle.Width / 2, NormalizedVolumeL * DisplayRectangle.Height);
+            g.FillRectangle(RightBrush, DisplayRectangle.Left + DisplayRectangle.Width / 2, DisplayRectangle.Bottom - NormalizedVolumeR * DisplayRectangle.Height, DisplayRectangle.Width / 2, NormalizedVolumeR * DisplayRectangle.Height);
         }
     }
 }

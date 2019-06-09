@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace WavVisualize
@@ -17,19 +13,19 @@ namespace WavVisualize
 
         protected int PieceWidth;
 
-        public ParallelWaveformProvider(float left, float right, float top, float bottom, Color colorL, Color colorR,
-            WavFileData fileData, float verticalScale, int threads) : base(left, right, top, bottom, colorL, colorR,
+        public ParallelWaveformProvider(Rectangle displayRectangle, Color colorL, Color colorR,
+            WavFileData fileData, float verticalScale, int threads) : base(displayRectangle, colorL, colorR,
             fileData, verticalScale)
         {
             Threads = threads;
             Bitmaps = new Bitmap[threads];
-            PieceWidth = (int) Math.Ceiling(Width / threads);
+            PieceWidth = (int) Math.Ceiling(displayRectangle.Width / threads);
 
             LeftBrushes = new Brush[threads];
             RightBrushes = new Brush[threads];
             for (int i = 0; i < threads; i++)
             {
-                Bitmaps[i] = new Bitmap(PieceWidth, (int) Height);
+                Bitmaps[i] = new Bitmap(PieceWidth, (int) displayRectangle.Height);
                 LeftBrushes[i] = new SolidBrush(LeftColor);
                 RightBrushes[i] = new SolidBrush(RightColor);
             }
@@ -57,21 +53,19 @@ namespace WavVisualize
                             //(высота пополам (высота одной громкости) * масштабирование)
                             int valueL =
                                 (int) (FileData.LeftChannel[t * FileData.SamplesCount / Threads + k] *
-                                       (Height / 2) * VerticalScale);
+                                       (DisplayRectangle.Height / 2) * VerticalScale);
                             int valueR =
                                 (int) (FileData.RightChannel[t * FileData.SamplesCount / Threads + k] *
-                                       (Height / 2) * VerticalScale);
+                                       (DisplayRectangle.Height / 2) * VerticalScale);
 
-                            g.FillRectangle(LeftBrushes[t], xPosition, Height / 2 - valueL, 1, valueL);
+                            g.FillRectangle(LeftBrushes[t], xPosition, DisplayRectangle.Height / 2 - valueL, 1, valueL);
 
-                            g.FillRectangle(RightBrushes[t], xPosition, Height / 2, 1, valueR);
+                            g.FillRectangle(RightBrushes[t], xPosition, DisplayRectangle.Height / 2, 1, valueR);
                         }
                     }
                 });
             }
         }
-
-        
 
         public override void Draw(Graphics g)
         {
@@ -80,9 +74,9 @@ namespace WavVisualize
                 //X = нормализованному номеру потока * ширина_поля
                 //Ширина = ширина_поля / количество_потоков
                 g.DrawImage(Bitmaps[i],
-                    (int) ((float) i / Threads * Width), 0,
-                    (int) Math.Ceiling((float) Width / Threads),
-                    Height);
+                    (int) ((float) i / Threads * DisplayRectangle.Width), 0,
+                    (int) Math.Ceiling((float) DisplayRectangle.Width / Threads),
+                    DisplayRectangle.Height);
             }
         }
     }

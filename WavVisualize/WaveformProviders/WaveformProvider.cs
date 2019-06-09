@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 
 namespace WavVisualize
 {
@@ -17,14 +11,8 @@ namespace WavVisualize
 
         protected float VerticalScale;
 
-        protected float Left;
-        protected float Right;
-        protected float Top;
-        protected float Bottom;
-
-        protected float Width;
-        protected float Height;
-
+        protected Rectangle DisplayRectangle;
+        
         public abstract void Draw(Graphics g);
         public abstract void Recreate();
 
@@ -35,16 +23,10 @@ namespace WavVisualize
             Canceled = true;
         }
 
-        public WaveformProvider(float left, float right, float top, float bottom, Color colorL, Color colorR,
+        public WaveformProvider(Rectangle displayRectangle, Color colorL, Color colorR,
             WavFileData fileData, float verticalScale)
         {
-            Left = left;
-            Right = right;
-            Top = top;
-            Bottom = bottom;
-
-            Width = right - left;
-            Height = bottom - top;
+            DisplayRectangle = displayRectangle;
 
             LeftColor = colorL;
             RightColor = colorR;

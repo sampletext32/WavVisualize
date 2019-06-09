@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace WavVisualize
 {
-    class ClassicRecursiveFFTProvider : FFTProvider
+    public class ClassicRecursiveFFTProvider : FFTProvider
     {
         public ClassicRecursiveFFTProvider(int samples, bool applyTimeThinning) : base(samples, applyTimeThinning)
         {
@@ -16,7 +12,7 @@ namespace WavVisualize
         {
             ValuesBuffer = FFT(ValuesBuffer, Samples);
         }
-        
+
         private static Complex w(int x, int n)
         {
             if (x % n == 0) return (Complex) 1;

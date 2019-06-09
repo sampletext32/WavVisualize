@@ -4,7 +4,6 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using NAudio.Wave;
-using WMPLib;
 
 
 namespace WavVisualize
@@ -30,7 +29,7 @@ namespace WavVisualize
         private SpectrumDiagram _spectrumDiagram;
 
         public int TrimFrequency = 20000;
-        
+
         //создавать ли волну последовательно
         public readonly bool CreateWaveformSequentially = true;
 
@@ -105,8 +104,9 @@ namespace WavVisualize
         {
             _waveformProvider?.Cancel();
 
-            _waveformProvider = new BasicWithIterationablePrerunWaveformProvider(0, pictureBoxWaveform.Width, 0, pictureBoxWaveform.Height,
-                Color.LawnGreen, Color.OrangeRed, _currentWavFileData, 0.8f, 20);
+            _waveformProvider = new BasicWithIterationablePrerunWaveformProvider(
+                Rectangle.FromPictureBox(pictureBoxWaveform), Color.LawnGreen, Color.OrangeRed, _currentWavFileData,
+                0.8f, 30);
 
             _waveformProvider.Recreate();
         }
@@ -118,14 +118,13 @@ namespace WavVisualize
 
         private void SetVolumeDrawer()
         {
-            _volumeDrawer = new DigitalVolumeDrawer(0, pictureBoxVolume.Width, 0, pictureBoxVolume.Height,
-                Color.LawnGreen, Color.OrangeRed, 50, 1);
+            _volumeDrawer = new DigitalVolumeDrawer(Rectangle.FromPictureBox(pictureBoxVolume), Color.LawnGreen,
+                Color.OrangeRed, 50, 1);
         }
 
         private void SetSpectrumDrawer()
         {
-            _spectrumDrawer = new AsIsSpectrumDrawer(SpectrumUseSamples, 10f, 0, pictureBoxRealtimeSpectrum.Width, 0,
-                pictureBoxRealtimeSpectrum.Height, Color.OrangeRed);
+            _spectrumDrawer = new AsIsSpectrumDrawer(SpectrumUseSamples, 10f, Rectangle.FromPictureBox(pictureBoxRealtimeSpectrum), Color.OrangeRed);
 
             //_spectrumDrawer = new DigitalBandSpectrumDrawer(SpectrumUseSamples, 10f,
             //    VolumeBandWidth * 2 + DistanceBetweenVolumeAndSpectrum, pictureBoxSpectrum.Width,
@@ -149,8 +148,7 @@ namespace WavVisualize
         public void SetSpectrumDiagram()
         {
             _spectrumDiagram?.Cancel();
-            _spectrumDiagram = new IterationableSpectrumDiagram(SpectrumUseSamples, 0, pictureBoxSpectrumDiagram.Width, 0,
-                pictureBoxSpectrumDiagram.Height, _currentWavFileData, pictureBoxSpectrumDiagram.Width / 50);
+            _spectrumDiagram = new IterationableSpectrumDiagram(SpectrumUseSamples, Rectangle.FromPictureBox(pictureBoxSpectrumDiagram), _currentWavFileData, 50);
             _spectrumDiagram.SetTrimmingFrequency(TrimFrequency);
             _spectrumDiagram.SetApplyTimeThinning(ApplyTimeThinning);
             _spectrumDiagram.Recreate();

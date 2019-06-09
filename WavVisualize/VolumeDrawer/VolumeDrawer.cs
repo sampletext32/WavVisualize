@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 
 namespace WavVisualize
 {
@@ -15,13 +10,7 @@ namespace WavVisualize
         protected Brush LeftBrush;
         protected Brush RightBrush;
 
-        protected float Left;
-        protected float Right;
-        protected float Top;
-        protected float Bottom;
-
-        protected float Width;
-        protected float Height;
+        protected Rectangle DisplayRectangle;
 
         public void LoadVolume(float volumeL, float volumeR, float easing)
         {
@@ -31,18 +20,11 @@ namespace WavVisualize
 
         public abstract void Draw(Graphics g);
 
-        public VolumeDrawer(float left, float right, float top, float bottom, Color colorL, Color colorR)
+        public VolumeDrawer(Rectangle displayRectangle, Color colorL, Color colorR)
         {
             NormalizedVolumeL = 0;
             NormalizedVolumeR = 0;
-
-            Left = left;
-            Right = right;
-            Top = top;
-            Bottom = bottom;
-
-            Width = right - left;
-            Height = bottom - top;
+            DisplayRectangle = displayRectangle;
 
             LeftBrush = new SolidBrush(colorL);
             RightBrush = new SolidBrush(colorR);

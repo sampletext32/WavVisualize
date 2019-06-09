@@ -1,26 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 
 namespace WavVisualize
 {
-    class DigitalVolumeDrawer : VolumeDrawer
+    public class DigitalVolumeDrawer : VolumeDrawer
     {
         private int _bandPieces;
         private float _bandPieceHeight;
         private float _distanceBetweenPieces;
 
-        public DigitalVolumeDrawer(float left, float right, float top, float bottom, Color colorL, Color colorR,
-            int bandPieces, float distanceBetweenPieces) : base(left, right, top, bottom, colorL, colorR)
+        public DigitalVolumeDrawer(Rectangle displayRectangle, Color colorL, Color colorR,
+            int bandPieces, float distanceBetweenPieces) : base(displayRectangle, colorL, colorR)
         {
             _bandPieces = bandPieces;
             _distanceBetweenPieces = distanceBetweenPieces;
 
             //высота одного блока = общей высоте минус общая высота всех расстояний между блоками
-            _bandPieceHeight = (Height - (bandPieces - 1) * distanceBetweenPieces) / _bandPieces;
+            _bandPieceHeight = (DisplayRectangle.Height - (bandPieces - 1) * distanceBetweenPieces) / _bandPieces;
         }
 
         public override void Draw(Graphics g)
@@ -33,14 +28,14 @@ namespace WavVisualize
             for (int i = 0; i < digitalPartsL; i++)
             {
                 g.FillRectangle(LeftBrush, 0,
-                    Bottom - i * (_bandPieceHeight + _distanceBetweenPieces) - _bandPieceHeight, Width / 2, _bandPieceHeight);
+                    DisplayRectangle.Bottom - i * (_bandPieceHeight + _distanceBetweenPieces) - _bandPieceHeight, DisplayRectangle.Width / 2, _bandPieceHeight);
             }
 
             //рисуем цифровые части правой громкости
             for (int i = 0; i < digitalPartsR; i++)
             {
-                g.FillRectangle(RightBrush, Width / 2,
-                    Bottom - i * (_bandPieceHeight + _distanceBetweenPieces) - _bandPieceHeight, Width / 2, _bandPieceHeight);
+                g.FillRectangle(RightBrush, DisplayRectangle.Width / 2,
+                    DisplayRectangle.Bottom - i * (_bandPieceHeight + _distanceBetweenPieces) - _bandPieceHeight, DisplayRectangle.Width / 2, _bandPieceHeight);
             }
         }
     }

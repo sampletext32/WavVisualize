@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace WavVisualize
 {
-    class CorrectCooleyTukeyInPlaceFFTProvider : FFTProvider
+    public class CorrectCooleyTukeyInPlaceFFTProvider : FFTProvider
     {
         public CorrectCooleyTukeyInPlaceFFTProvider(int samples, bool applyTimeThinning) : base(samples, applyTimeThinning)
         {
