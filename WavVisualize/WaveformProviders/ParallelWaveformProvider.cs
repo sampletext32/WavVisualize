@@ -53,14 +53,14 @@ namespace WavVisualize
                             //(высота пополам (высота одной громкости) * масштабирование)
                             int valueL =
                                 (int) (FileData.LeftChannel[t * FileData.SamplesCount / Threads + k] *
-                                       (DisplayRectangle.Height / 2) * VerticalScale);
+                                       (DisplayRectangle.CenterH) * VerticalScale);
                             int valueR =
                                 (int) (FileData.RightChannel[t * FileData.SamplesCount / Threads + k] *
-                                       (DisplayRectangle.Height / 2) * VerticalScale);
+                                       (DisplayRectangle.CenterH) * VerticalScale);
 
-                            g.FillRectangle(LeftBrushes[t], xPosition, DisplayRectangle.Height / 2 - valueL, 1, valueL);
+                            g.FillRectangle(LeftBrushes[t], xPosition, DisplayRectangle.CenterH - valueL, 1, valueL);
 
-                            g.FillRectangle(RightBrushes[t], xPosition, DisplayRectangle.Height / 2, 1, valueR);
+                            g.FillRectangle(RightBrushes[t], xPosition, DisplayRectangle.CenterH, 1, valueR);
                         }
                     }
                 });

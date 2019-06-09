@@ -18,7 +18,7 @@ namespace WavVisualize
         {
             BandsCount = bandsCount;
             DistanceBetweenBands = distanceBetweenBands;
-            
+
             BandWidth = (DisplayRectangle.Width - (BandsCount - 1) * DistanceBetweenBands) / BandsCount;
         }
 
@@ -38,7 +38,7 @@ namespace WavVisualize
                     maxInLastBand = 0f;
                 }
 
-                float analogValue = SpectrumValues[i] * Log10Normalizing(i) * DisplayRectangle.Height * ConstantHeightMultiplier;
+                float analogValue = DisplayRectangle.NormalizedHeight(SpectrumValues[i] * Log10Normalizing(i) * ConstantHeightMultiplier);
                 if (analogValue > maxInLastBand)
                 {
                     maxInLastBand = analogValue; //пересохраняем частоту

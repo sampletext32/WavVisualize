@@ -39,7 +39,7 @@ namespace WavVisualize
                         break;
                     }
 
-                    float realPosition = Math.Min((float) i / DisplayRectangle.Width,
+                    float realPosition = Math.Min(i / DisplayRectangle.Width,
                         (float) (FileData.SamplesCount - SpectrumSamples) / FileData.SamplesCount);
 
                     float[] spectrum = FileData.GetSpectrumForPosition(realPosition, FftProvider);
@@ -54,8 +54,8 @@ namespace WavVisualize
                     for (int j = 0; j < useSamples; j++)
                     {
                         int yPosition = (int) (DisplayRectangle.Height -
-                                               (int) ((float) j / useSamples * DisplayRectangle.Height));
-                        heightPixels[yPosition] = 100f * spectrum[j] * Log10Normalizing(j);
+                                               DisplayRectangle.NormalizedHeight((float) j / useSamples));
+                        heightPixels[yPosition] = 255f * spectrum[j] * Log10Normalizing(j);
                     }
                 }
 

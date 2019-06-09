@@ -9,6 +9,10 @@ namespace WavVisualize
         private float _top;
         private float _bottom;
 
+        public float Width { get; private set; }
+
+        public float Height { get; private set; }
+
         public float Left
         {
             get => _left;
@@ -49,9 +53,25 @@ namespace WavVisualize
             }
         }
 
-        public float Width { get; private set; }
+        public float NormalizedWidth(float v)
+        {
+            return Width * v;
+        }
 
-        public float Height { get; private set; }
+        public float NormalizedHeight(float v)
+        {
+            return Height * v;
+        }
+
+        public float CenterW
+        {
+            get { return NormalizedWidth(0.5f); }
+        }
+
+        public float CenterH
+        {
+            get { return NormalizedHeight(0.5f); }
+        }
 
         private void RecalculateWidthAndHeight()
         {

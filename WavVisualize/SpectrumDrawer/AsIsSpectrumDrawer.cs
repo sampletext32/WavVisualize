@@ -8,10 +8,10 @@ namespace WavVisualize
         {
             for (int i = 0; i < useLength; i++)
             {
-                float x = (float) i / useLength * DisplayRectangle.Width;
-                float value = SpectrumValues[i] * Log10Normalizing(i) * DisplayRectangle.Height *
-                              ConstantHeightMultiplier;
-                g.FillRectangle(Brush, DisplayRectangle.Left + x, DisplayRectangle.Bottom - value, 1, value);
+                float x = DisplayRectangle.NormalizedWidth((float) i / useLength);
+                float height =
+                    DisplayRectangle.NormalizedHeight(SpectrumValues[i] * Log10Normalizing(i) * ConstantHeightMultiplier);
+                g.FillRectangle(Brush, DisplayRectangle.Left + x, DisplayRectangle.Bottom - height, 1, height);
             }
         }
 

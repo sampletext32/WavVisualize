@@ -43,18 +43,18 @@ namespace WavVisualize
                             break;
                         }
 
-                        int xPosition = (int) (i / (float) FileData.SamplesCount * DisplayRectangle.Width);
+                        int xPosition = (int)DisplayRectangle.NormalizedWidth(i / (float)FileData.SamplesCount);
 
                         int valueL =
-                            (int) (FileData.LeftChannel[i] * (DisplayRectangle.Height / 2) * VerticalScale);
+                            (int) (FileData.LeftChannel[i] * (DisplayRectangle.CenterH) * VerticalScale);
                         int valueR =
-                            (int) (FileData.RightChannel[i] * (DisplayRectangle.Height / 2) * VerticalScale);
+                            (int) (FileData.RightChannel[i] * (DisplayRectangle.CenterH) * VerticalScale);
 
                         lock (g)
                         {
-                            g.FillRectangle(LeftBrush, xPosition, DisplayRectangle.Height / 2 - valueL, 1, valueL);
+                            g.FillRectangle(LeftBrush, xPosition, DisplayRectangle.CenterH - valueL, 1, valueL);
 
-                            g.FillRectangle(RightBrush, xPosition, DisplayRectangle.Height / 2, 1, valueR);
+                            g.FillRectangle(RightBrush, xPosition, DisplayRectangle.CenterH, 1, valueR);
                         }
                     }
                 }
@@ -62,16 +62,16 @@ namespace WavVisualize
                 for (int k = 0; k < FileData.SamplesCount; k++)
                 {
                     if (Canceled) break;
-                    int xPosition = (int) (k / (float) FileData.SamplesCount * DisplayRectangle.Width);
+                    int xPosition = (int)DisplayRectangle.NormalizedWidth(k / (float)FileData.SamplesCount);
 
                     int valueL =
-                        (int) (FileData.LeftChannel[k] * (DisplayRectangle.Height / 2) * VerticalScale);
+                        (int) (FileData.LeftChannel[k] * (DisplayRectangle.CenterH) * VerticalScale);
                     int valueR =
-                        (int) (FileData.RightChannel[k] * (DisplayRectangle.Height / 2) * VerticalScale);
+                        (int) (FileData.RightChannel[k] * (DisplayRectangle.CenterH) * VerticalScale);
 
-                    g.FillRectangle(LeftBrush, xPosition, DisplayRectangle.Height / 2 - valueL, 1, valueL);
+                    g.FillRectangle(LeftBrush, xPosition, DisplayRectangle.CenterH - valueL, 1, valueL);
 
-                    g.FillRectangle(RightBrush, xPosition, DisplayRectangle.Height / 2, 1, valueR);
+                    g.FillRectangle(RightBrush, xPosition, DisplayRectangle.CenterH, 1, valueR);
                 }
 
                 g.Dispose();
