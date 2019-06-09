@@ -59,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataContainers\Rectangle.cs" />
+    <Compile Include="FastLog10Provider.cs" />
     <Compile Include="SpectrumDiagram\BasicSpectrumDiagram.cs" />
     <Compile Include="SpectrumDiagram\IterationableSpectrumDiagram.cs" />
     <Compile Include="WaveformProviders\IterationableWaveformProvider.cs" />

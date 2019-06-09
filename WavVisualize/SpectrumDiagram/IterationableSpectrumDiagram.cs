@@ -64,7 +64,7 @@ namespace WavVisualize
                             {
                                 int yPosition = (int) (DisplayRectangle.Height -
                                                        DisplayRectangle.NormalizedHeight((float) j / useSamples));
-                                heightPixels[yPosition] = 255f * spectrum[j] * Log10Normalizing(j);
+                                heightPixels[yPosition] = 100f * spectrum[j] * FastLog10Provider.FastLog10(j);
                             }
 
                             for (int j = 0; j < (int) DisplayRectangle.Height; j++)

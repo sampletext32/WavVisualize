@@ -53,11 +53,6 @@ namespace WavVisualize
 
         public abstract void Draw(Graphics g);
 
-        protected float Log10Normalizing(int i)
-        {
-            return (float) Math.Log10(i);
-        }
-
         public abstract void Recreate();
 
         public void Cancel()

@@ -27,11 +27,6 @@ namespace WavVisualize
             ApplyTimeThinning = apply;
         }
 
-        protected float Log10Normalizing(int i)
-        {
-            return (float) Math.Log10(i);
-        }
-
         public void LoadSpectrum(float[] spectrum, float easing)
         {
             EasingProvider.Ease(SpectrumValues, spectrum, easing);
