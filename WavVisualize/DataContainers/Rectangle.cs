@@ -53,6 +53,44 @@ namespace WavVisualize
             }
         }
 
+        public void ScaleX(float value)
+        {
+            float width = Width;
+            SetWidth(width * value);
+        }
+
+        public void ScaleY(float value)
+        {
+            float height = Height;
+            SetHeight(height * value);
+        }
+
+        public void SetWidth(float width)
+        {
+            float centerX = CenterW;
+            Left = centerX - width / 2;
+            Right = centerX + width / 2;
+        }
+
+        public void SetHeight(float height)
+        {
+            float centerY = CenterH;
+            Top = centerY - height / 2;
+            Bottom = centerY + height / 2;
+        }
+
+        public void ShiftX(float delta)
+        {
+            Left += delta;
+            Right += delta;
+        }
+
+        public void ShiftY(float delta)
+        {
+            Top += delta;
+            Bottom += delta;
+        }
+
         public float NormalizedWidth(float v)
         {
             return Width * v;

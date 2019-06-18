@@ -58,6 +58,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataContainers\NestedRectangle.cs" />
     <Compile Include="DataContainers\Rectangle.cs" />
     <Compile Include="FastLog10Provider.cs" />
     <Compile Include="SpectrumDiagram\BasicSpectrumDiagram.cs" />

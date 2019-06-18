@@ -88,6 +88,8 @@ namespace WavVisualize
 
         public int Fps;
 
+        public float ScaleX = 1f;
+
         private void SetPlayerProvider()
         {
             _playerProvider = new PlayerProvider();
@@ -104,9 +106,17 @@ namespace WavVisualize
         {
             _waveformProvider?.Cancel();
 
+            var nestedRectangle = NestedRectangle.FromPictureBox(pictureBoxWaveform);
+            nestedRectangle.Outer.ScaleX(ScaleX);
+
+            nestedRectangle.SetInnerCenterAt(_playerProvider.GetNormalizedPosition());
+
             _waveformProvider = new BasicWithIterationablePrerunWaveformProvider(
-                Rectangle.FromPictureBox(pictureBoxWaveform), Color.LawnGreen, Color.OrangeRed, _currentWavFileData,
-                0.8f, 30);
+                nestedRectangle, Color.LawnGreen, Color.OrangeRed, _currentWavFileData,
+                0.8f, 5);
+
+            //_waveformProvider = new BasicWaveformProvider(nestedRectangle, Color.LawnGreen, Color.OrangeRed,
+            //    _currentWavFileData, 0.8f);
 
             _waveformProvider.Recreate();
         }
@@ -124,7 +134,8 @@ namespace WavVisualize
 
         private void SetSpectrumDrawer()
         {
-            _spectrumDrawer = new AsIsSpectrumDrawer(SpectrumUseSamples, 10f, Rectangle.FromPictureBox(pictureBoxRealtimeSpectrum), Color.OrangeRed);
+            _spectrumDrawer = new AsIsSpectrumDrawer(SpectrumUseSamples, 10f,
+                Rectangle.FromPictureBox(pictureBoxRealtimeSpectrum), Color.OrangeRed);
 
             //_spectrumDrawer = new DigitalBandSpectrumDrawer(SpectrumUseSamples, 10f,
             //    VolumeBandWidth * 2 + DistanceBetweenVolumeAndSpectrum, pictureBoxSpectrum.Width,
@@ -148,7 +159,9 @@ namespace WavVisualize
         public void SetSpectrumDiagram()
         {
             _spectrumDiagram?.Cancel();
-            _spectrumDiagram = new IterationableSpectrumDiagram(SpectrumUseSamples, Rectangle.FromPictureBox(pictureBoxSpectrumDiagram), _currentWavFileData, 50);
+            //_spectrumDiagram = new IterationableSpectrumDiagram(SpectrumUseSamples, Rectangle.FromPictureBox(pictureBoxSpectrumDiagram), _currentWavFileData, 50);
+            _spectrumDiagram = new BasicSpectrumDiagram(SpectrumUseSamples,
+                Rectangle.FromPictureBox(pictureBoxSpectrumDiagram), _currentWavFileData);
             _spectrumDiagram.SetTrimmingFrequency(TrimFrequency);
             _spectrumDiagram.SetApplyTimeThinning(ApplyTimeThinning);
             _spectrumDiagram.Recreate();
@@ -168,15 +181,25 @@ namespace WavVisualize
         {
             _waveformProvider?.Draw(e.Graphics);
 
+            ////рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
+            //e.Graphics.FillRectangle(Brushes.Black, _playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width,
+            //    0,
+            //    1,
+            //    pictureBoxWaveform.Height);
+            //
+            ////рисуем каретку текущей позиции шириной 20
+            //e.Graphics.FillRectangle(Brushes.DarkGray,
+            //    _playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width - 10,
+            //    pictureBoxWaveform.Height - 5, 20, 5);
+
             //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
-            e.Graphics.FillRectangle(Brushes.Black, _playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width,
+            e.Graphics.FillRectangle(Brushes.Black, pictureBoxWaveform.Width / 2,
                 0,
                 1,
                 pictureBoxWaveform.Height);
 
             //рисуем каретку текущей позиции шириной 20
-            e.Graphics.FillRectangle(Brushes.DarkGray,
-                _playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width - 10,
+            e.Graphics.FillRectangle(Brushes.DarkGray, pictureBoxWaveform.Width / 2 - 10,
                 pictureBoxWaveform.Height - 5, 20, 5);
         }
 
@@ -185,6 +208,12 @@ namespace WavVisualize
         private void timerUpdater_Tick(object sender, EventArgs e)
         {
             labelStatus.Text = _playerProvider.GetPlayState().ToString();
+
+            if (Fps % 2 == 0)
+            {
+                SetWaveformProvider();
+            }
+
             //кешируем позицию и длину трека (так чуть чуть быстрее, чем тягать dll WMP плеера)
             float currentPosition = _playerProvider.GetElapsedSeconds();
             float duration = _playerProvider.GetDurationSeconds();
@@ -347,7 +376,7 @@ namespace WavVisualize
 
 
                 //изменяем интервал обновления
-                timerUpdater.Interval = 1000 / UpdateRate;
+                timerUpdater.Interval = 1;
                 timerUpdater.Start(); //запускаем обновление
 
                 //по невероятной причине, из-за открытия диалогового окна, форма находится не в фокусе
@@ -452,6 +481,12 @@ namespace WavVisualize
             {
                 SetSpectrumDiagram();
             }
+        }
+
+        private void hScrollBarScale_Scroll(object sender, ScrollEventArgs e)
+        {
+            ScaleX = hScrollBarScale.Value / 100f;
+            SetWaveformProvider();
         }
     }
 }

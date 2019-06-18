@@ -43,19 +43,18 @@ namespace WavVisualize
                         (float) (FileData.SamplesCount - SpectrumSamples) / FileData.SamplesCount);
 
                     float[] spectrum = FileData.GetSpectrumForPosition(realPosition, FftProvider);
+                    for (int j = 0; j < useSamples; j++)
+                    {
+                        int yPosition = (int) (DisplayRectangle.Height -
+                                               DisplayRectangle.NormalizedHeight((float) j / useSamples));
+                        heightPixels[yPosition] = 100f * spectrum[j] * FastLog10Provider.FastLog10(j);
+                    }
 
                     for (int j = 0; j < (int) DisplayRectangle.Height; j++)
                     {
                         Brush b = GetBrush(heightPixels[j]);
                         g.FillRectangle(b, i, j, 1, 1);
                         b.Dispose();
-                    }
-
-                    for (int j = 0; j < useSamples; j++)
-                    {
-                        int yPosition = (int) (DisplayRectangle.Height -
-                                               DisplayRectangle.NormalizedHeight((float) j / useSamples));
-                        heightPixels[yPosition] = 100f * spectrum[j] * FastLog10Provider.FastLog10(j);
                     }
                 }
 

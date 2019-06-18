@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Threading.Tasks;
 
 namespace WavVisualize
@@ -10,13 +11,13 @@ namespace WavVisualize
         protected Brush RightBrush;
         protected int PrerunIterations;
 
-        public BasicWithIterationablePrerunWaveformProvider(Rectangle displayRectangle,
+        public BasicWithIterationablePrerunWaveformProvider(NestedRectangle displayRectangle,
             Color colorL,
             Color colorR, WavFileData fileData, float verticalScale, int prerunIterations) : base(displayRectangle,
             colorL, colorR,
             fileData, verticalScale)
         {
-            CacheBitmap = new Bitmap((int) displayRectangle.Width, (int) displayRectangle.Height);
+            CacheBitmap = new Bitmap((int) displayRectangle.Inner.Width, (int) displayRectangle.Inner.Height);
             LeftBrush = new SolidBrush(LeftColor);
             RightBrush = new SolidBrush(RightColor);
 
@@ -25,57 +26,112 @@ namespace WavVisualize
 
         public override void Draw(Graphics g)
         {
-            g.DrawImage(CacheBitmap, 0, 0, DisplayRectangle.Width, DisplayRectangle.Height);
+            g.DrawImage(CacheBitmap, 0, 0, DisplayRectangle.Inner.Width, DisplayRectangle.Inner.Height);
         }
 
         public override void Recreate()
         {
-            Task.Run(() =>
+            Graphics g = Graphics.FromImage(CacheBitmap);
+
+
+            int startSample = (int)Math.Max(DisplayRectangle.InnerLeftNormalized() * FileData.SamplesCount, 0);
+            int endSample = (int)Math.Min(DisplayRectangle.InnerRightNormalized() * FileData.SamplesCount, FileData.SamplesCount);
+            int deltaSamples = (int)((float)FileData.SampleRate / PrerunIterations * DisplayRectangle.Relation());
+            for (int k = 0; k < PrerunIterations; k++)
             {
-                Graphics g = Graphics.FromImage(CacheBitmap);
-
-                for (int k = 0; k < PrerunIterations; k++)
+                for (int currentSample = startSample + k;
+                    currentSample < endSample;
+                    currentSample += deltaSamples)
                 {
-                    for (int i = k; i < FileData.SamplesCount; i += FileData.SampleRate / PrerunIterations)
+                    if (Canceled)
                     {
-                        if (Canceled)
-                        {
-                            break;
-                        }
-
-                        int xPosition = (int)DisplayRectangle.NormalizedWidth(i / (float)FileData.SamplesCount);
-
-                        int valueL =
-                            (int) (FileData.LeftChannel[i] * (DisplayRectangle.CenterH) * VerticalScale);
-                        int valueR =
-                            (int) (FileData.RightChannel[i] * (DisplayRectangle.CenterH) * VerticalScale);
-
-                        lock (g)
-                        {
-                            g.FillRectangle(LeftBrush, xPosition, DisplayRectangle.CenterH - valueL, 1, valueL);
-
-                            g.FillRectangle(RightBrush, xPosition, DisplayRectangle.CenterH, 1, valueR);
-                        }
+                        break;
                     }
-                }
 
-                for (int k = 0; k < FileData.SamplesCount; k++)
-                {
-                    if (Canceled) break;
-                    int xPosition = (int)DisplayRectangle.NormalizedWidth(k / (float)FileData.SamplesCount);
+                    int xPosition =
+                        (int)(DisplayRectangle.Outer.NormalizedWidth(
+                                  currentSample / (float)FileData.SamplesCount) - DisplayRectangle.DeltaLeft());
 
                     int valueL =
-                        (int) (FileData.LeftChannel[k] * (DisplayRectangle.CenterH) * VerticalScale);
+                        (int)(FileData.LeftChannel[currentSample] * (DisplayRectangle.Inner.CenterH) * VerticalScale);
                     int valueR =
-                        (int) (FileData.RightChannel[k] * (DisplayRectangle.CenterH) * VerticalScale);
+                        (int)(FileData.RightChannel[currentSample] * (DisplayRectangle.Inner.CenterH) * VerticalScale);
 
-                    g.FillRectangle(LeftBrush, xPosition, DisplayRectangle.CenterH - valueL, 1, valueL);
+                    lock (g)
+                    {
+                        g.FillRectangle(LeftBrush, xPosition, DisplayRectangle.Inner.CenterH - valueL, 1, valueL);
 
-                    g.FillRectangle(RightBrush, xPosition, DisplayRectangle.CenterH, 1, valueR);
+                        g.FillRectangle(RightBrush, xPosition, DisplayRectangle.Inner.CenterH, 1, valueR);
+                    }
                 }
+            }
 
-                g.Dispose();
-            });
+            //Task.Run(() =>
+            //{
+            //    try
+            //    {
+
+            //        Graphics g = Graphics.FromImage(CacheBitmap);
+
+
+            //        int startSample = (int)Math.Max(DisplayRectangle.InnerLeftNormalized() * FileData.SamplesCount, 0);
+            //        int endSample = (int)Math.Min(DisplayRectangle.InnerRightNormalized() * FileData.SamplesCount, FileData.SamplesCount);
+            //        int deltaSamples = (int)((float)FileData.SampleRate / PrerunIterations * DisplayRectangle.Relation());
+            //        for (int k = 0; k < PrerunIterations; k++)
+            //        {
+            //            for (int currentSample = startSample + k;
+            //                currentSample < endSample;
+            //                currentSample += deltaSamples)
+            //            {
+            //                if (Canceled)
+            //                {
+            //                    break;
+            //                }
+
+            //                int xPosition =
+            //                    (int)(DisplayRectangle.Outer.NormalizedWidth(
+            //                              currentSample / (float)FileData.SamplesCount) - DisplayRectangle.DeltaLeft());
+
+            //                int valueL =
+            //                    (int)(FileData.LeftChannel[currentSample] * (DisplayRectangle.Inner.CenterH) * VerticalScale);
+            //                int valueR =
+            //                    (int)(FileData.RightChannel[currentSample] * (DisplayRectangle.Inner.CenterH) * VerticalScale);
+
+            //                lock (g)
+            //                {
+            //                    g.FillRectangle(LeftBrush, xPosition, DisplayRectangle.Inner.CenterH - valueL, 1, valueL);
+
+            //                    g.FillRectangle(RightBrush, xPosition, DisplayRectangle.Inner.CenterH, 1, valueR);
+            //                }
+            //            }
+            //        }
+
+            //        //for (int currentSample = startSample; currentSample < endSample; currentSample++)
+            //        //{
+            //        //    if (Canceled) break;
+            //        //    int xPosition =
+            //        //        (int)(DisplayRectangle.Outer.NormalizedWidth(
+            //        //                  currentSample / (float)FileData.SamplesCount) - DisplayRectangle.DeltaLeft());
+            //        //    //int inInnerxPosition = (int) (inOuterxPosition - DisplayRectangle.DeltaLeft());
+            //        //
+            //        //    int valueL =
+            //        //        (int)(FileData.LeftChannel[currentSample] * (DisplayRectangle.Inner.CenterH) *
+            //        //              VerticalScale);
+            //        //    int valueR =
+            //        //        (int)(FileData.RightChannel[currentSample] * (DisplayRectangle.Inner.CenterH) *
+            //        //              VerticalScale);
+            //        //
+            //        //    g.FillRectangle(LeftBrush, xPosition, DisplayRectangle.Inner.CenterH - valueL, 1, valueL);
+            //        //
+            //        //    g.FillRectangle(RightBrush, xPosition, DisplayRectangle.Inner.CenterH, 1, valueR);
+            //        //}
+
+            //        g.Dispose();
+            //    }
+            //    catch 
+            //    {
+            //    }
+            //});
         }
     }
 }

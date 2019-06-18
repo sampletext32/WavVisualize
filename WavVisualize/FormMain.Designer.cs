@@ -47,6 +47,7 @@
             this.labelMaxFrequency = new System.Windows.Forms.Label();
             this.pictureBoxSpectrumDiagram = new System.Windows.Forms.PictureBox();
             this.pictureBoxVolume = new System.Windows.Forms.PictureBox();
+            this.hScrollBarScale = new System.Windows.Forms.HScrollBar();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxWaveform)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxRealtimeSpectrum)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownEasing)).BeginInit();
@@ -247,11 +248,23 @@
             this.pictureBoxVolume.TabStop = false;
             this.pictureBoxVolume.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBoxVolume_Paint);
             // 
+            // hScrollBarScale
+            // 
+            this.hScrollBarScale.Location = new System.Drawing.Point(1320, 408);
+            this.hScrollBarScale.Maximum = 10000;
+            this.hScrollBarScale.Minimum = 100;
+            this.hScrollBarScale.Name = "hScrollBarScale";
+            this.hScrollBarScale.Size = new System.Drawing.Size(256, 21);
+            this.hScrollBarScale.TabIndex = 18;
+            this.hScrollBarScale.Value = 100;
+            this.hScrollBarScale.Scroll += new System.Windows.Forms.ScrollEventHandler(this.hScrollBarScale_Scroll);
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1585, 657);
+            this.Controls.Add(this.hScrollBarScale);
             this.Controls.Add(this.pictureBoxVolume);
             this.Controls.Add(this.pictureBoxSpectrumDiagram);
             this.Controls.Add(this.labelMaxFrequency);
@@ -308,6 +321,7 @@
         private System.Windows.Forms.Label labelMaxFrequency;
         private System.Windows.Forms.PictureBox pictureBoxSpectrumDiagram;
         private System.Windows.Forms.PictureBox pictureBoxVolume;
+        private System.Windows.Forms.HScrollBar hScrollBarScale;
     }
 }
 

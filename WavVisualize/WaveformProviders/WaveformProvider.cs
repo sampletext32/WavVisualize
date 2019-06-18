@@ -11,7 +11,7 @@ namespace WavVisualize
 
         protected float VerticalScale;
 
-        protected Rectangle DisplayRectangle;
+        protected NestedRectangle DisplayRectangle;
         
         public abstract void Draw(Graphics g);
         public abstract void Recreate();
@@ -23,7 +23,7 @@ namespace WavVisualize
             Canceled = true;
         }
 
-        public WaveformProvider(Rectangle displayRectangle, Color colorL, Color colorR,
+        public WaveformProvider(NestedRectangle displayRectangle, Color colorL, Color colorR,
             WavFileData fileData, float verticalScale)
         {
             DisplayRectangle = displayRectangle;
