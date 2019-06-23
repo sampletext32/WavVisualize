@@ -67,6 +67,11 @@ namespace WavVisualize
             }
         }
 
+        public override void Dispose()
+        {
+            
+        }
+
         public override void Draw(Graphics g)
         {
             for (int i = 0; i < Threads; i++) //пробегаем все картинки

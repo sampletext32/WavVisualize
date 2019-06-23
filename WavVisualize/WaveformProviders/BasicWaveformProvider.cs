@@ -55,5 +55,10 @@ namespace WavVisualize
                 }
             });
         }
+
+        public override void Dispose()
+        {
+            
+        }
     }
 }

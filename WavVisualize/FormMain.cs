@@ -105,6 +105,8 @@ namespace WavVisualize
         private void SetWaveformProvider()
         {
             _waveformProvider?.Cancel();
+            
+            _waveformProvider?.Dispose();
 
             var nestedRectangle = NestedRectangle.FromPictureBox(pictureBoxWaveform);
             nestedRectangle.Outer.ScaleX(ScaleX);
@@ -113,8 +115,8 @@ namespace WavVisualize
 
             _waveformProvider = new BasicWithIterationablePrerunWaveformProvider(
                 nestedRectangle, Color.LawnGreen, Color.OrangeRed, _currentWavFileData,
-                0.8f, 5);
-
+                0.8f, 10);
+            
             //_waveformProvider = new BasicWaveformProvider(nestedRectangle, Color.LawnGreen, Color.OrangeRed,
             //    _currentWavFileData, 0.8f);
 
@@ -209,7 +211,7 @@ namespace WavVisualize
         {
             labelStatus.Text = _playerProvider.GetPlayState().ToString();
 
-            if (Fps % 2 == 0)
+            //if (Fps % 2 == 0)
             {
                 SetWaveformProvider();
             }

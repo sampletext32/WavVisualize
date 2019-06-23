@@ -1,8 +1,9 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 
 namespace WavVisualize
 {
-    public abstract class WaveformProvider
+    public abstract class WaveformProvider : IDisposable
     {
         protected Color LeftColor;
         protected Color RightColor;
@@ -34,5 +35,7 @@ namespace WavVisualize
             FileData = fileData;
             VerticalScale = verticalScale;
         }
+
+        public abstract void Dispose();
     }
 }

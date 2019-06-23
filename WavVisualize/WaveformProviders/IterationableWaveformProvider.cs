@@ -62,6 +62,11 @@ namespace WavVisualize
             });
         }
 
+        public override void Dispose()
+        {
+            
+        }
+
         //private void RecreateV2()
         //{
         //    Task.Run(() =>

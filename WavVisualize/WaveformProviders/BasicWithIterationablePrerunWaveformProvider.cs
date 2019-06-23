@@ -6,7 +6,7 @@ namespace WavVisualize
 {
     public class BasicWithIterationablePrerunWaveformProvider : WaveformProvider
     {
-        protected Bitmap CacheBitmap;
+        protected DirectBitmap CacheBitmap;
         protected Brush LeftBrush;
         protected Brush RightBrush;
         protected int PrerunIterations;
@@ -17,7 +17,7 @@ namespace WavVisualize
             colorL, colorR,
             fileData, verticalScale)
         {
-            CacheBitmap = new Bitmap((int) displayRectangle.Inner.Width, (int) displayRectangle.Inner.Height);
+            CacheBitmap = new DirectBitmap((int) displayRectangle.Inner.Width, (int) displayRectangle.Inner.Height);
             LeftBrush = new SolidBrush(LeftColor);
             RightBrush = new SolidBrush(RightColor);
 
@@ -26,17 +26,19 @@ namespace WavVisualize
 
         public override void Draw(Graphics g)
         {
-            g.DrawImage(CacheBitmap, 0, 0, DisplayRectangle.Inner.Width, DisplayRectangle.Inner.Height);
+            g.DrawImage(CacheBitmap.Bitmap, 0, 0, DisplayRectangle.Inner.Width, DisplayRectangle.Inner.Height);
         }
 
         public override void Recreate()
         {
-            Graphics g = Graphics.FromImage(CacheBitmap);
+            Graphics g = Graphics.FromImage(CacheBitmap.Bitmap);
 
 
-            int startSample = (int)Math.Max(DisplayRectangle.InnerLeftNormalized() * FileData.SamplesCount, 0);
-            int endSample = (int)Math.Min(DisplayRectangle.InnerRightNormalized() * FileData.SamplesCount, FileData.SamplesCount);
-            int deltaSamples = (int)((float)FileData.SampleRate / PrerunIterations * DisplayRectangle.Relation());
+            int startSample = (int) Math.Max(DisplayRectangle.InnerLeftNormalized() * FileData.SamplesCount, 0);
+            int endSample = (int) Math.Min(DisplayRectangle.InnerRightNormalized() * FileData.SamplesCount,
+                FileData.SamplesCount);
+            int deltaSamples = (int) ((float) FileData.SampleRate / PrerunIterations * DisplayRectangle.Relation());
+            startSample += deltaSamples - startSample % deltaSamples;
             for (int k = 0; k < PrerunIterations; k++)
             {
                 for (int currentSample = startSample + k;
@@ -49,20 +51,17 @@ namespace WavVisualize
                     }
 
                     int xPosition =
-                        (int)(DisplayRectangle.Outer.NormalizedWidth(
-                                  currentSample / (float)FileData.SamplesCount) - DisplayRectangle.DeltaLeft());
+                        (int) (DisplayRectangle.Outer.NormalizedWidth(
+                                   currentSample / (float) FileData.SamplesCount) - DisplayRectangle.DeltaLeft());
 
                     int valueL =
-                        (int)(FileData.LeftChannel[currentSample] * (DisplayRectangle.Inner.CenterH) * VerticalScale);
+                        (int) (FileData.LeftChannel[currentSample] * (DisplayRectangle.Inner.CenterH) * VerticalScale);
                     int valueR =
-                        (int)(FileData.RightChannel[currentSample] * (DisplayRectangle.Inner.CenterH) * VerticalScale);
+                        (int) (FileData.RightChannel[currentSample] * (DisplayRectangle.Inner.CenterH) * VerticalScale);
 
-                    lock (g)
-                    {
-                        g.FillRectangle(LeftBrush, xPosition, DisplayRectangle.Inner.CenterH - valueL, 1, valueL);
+                    g.FillRectangle(LeftBrush, xPosition, DisplayRectangle.Inner.CenterH - valueL, 1, valueL);
 
-                        g.FillRectangle(RightBrush, xPosition, DisplayRectangle.Inner.CenterH, 1, valueR);
-                    }
+                    g.FillRectangle(RightBrush, xPosition, DisplayRectangle.Inner.CenterH, 1, valueR);
                 }
             }
 
@@ -132,6 +131,12 @@ namespace WavVisualize
             //    {
             //    }
             //});
+        }
+
+        public override void Dispose()
+        {
+            CacheBitmap.Dispose();
+
         }
     }
 }
