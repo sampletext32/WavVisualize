@@ -21,24 +21,45 @@ namespace WavVisualize
             Height = height;
             Bits = new int[width * height];
             BitsHandle = GCHandle.Alloc(Bits, GCHandleType.Pinned);
-            Bitmap = new Bitmap(width, height, width * 4, PixelFormat.Format32bppPArgb, BitsHandle.AddrOfPinnedObject());
+            Bitmap = new Bitmap(width, height, width * 4, PixelFormat.Format32bppPArgb,
+                BitsHandle.AddrOfPinnedObject());
         }
 
-        public void SetPixel(int x, int y, Color colour)
+        public void SetPixel(int x, int y, int colour)
         {
             int index = x + (y * Width);
-            int col = colour.ToArgb();
 
-            Bits[index] = col;
+            Bits[index] = colour;
         }
 
-        public Color GetPixel(int x, int y)
+        public int GetPixel(int x, int y)
         {
             int index = x + (y * Width);
             int col = Bits[index];
-            Color result = Color.FromArgb(col);
+            return col;
+        }
 
-            return result;
+        public void Clear()
+        {
+            int c = Color.White.ToArgb();
+            for (int x = 0; x < Width; x++)
+            {
+                for (int y = 0; y < Height; y++)
+                {
+                    SetPixel(x, y, c);
+                }
+            }
+        }
+
+        public void Copy(DirectBitmap b)
+        {
+            for (int x = 0; x < Width; x++)
+            {
+                for (int y = 0; y < Height; y++)
+                {
+                    SetPixel(x, y, b.GetPixel(x, y));
+                }
+            }
         }
 
         public void Dispose()

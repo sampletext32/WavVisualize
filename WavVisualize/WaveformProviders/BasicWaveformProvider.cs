@@ -6,7 +6,7 @@ namespace WavVisualize
 {
     public class BasicWaveformProvider : WaveformProvider
     {
-        protected Bitmap CacheBitmap;
+        protected DirectBitmap CacheBitmap;
         protected Brush LeftBrush;
         protected Brush RightBrush;
 
@@ -15,21 +15,22 @@ namespace WavVisualize
             WavFileData fileData, float verticalScale) : base(displayRectangle, colorL, colorR, fileData,
             verticalScale)
         {
-            CacheBitmap = new Bitmap((int) displayRectangle.Inner.Width, (int) displayRectangle.Inner.Height);
+            CacheBitmap = new DirectBitmap((int) displayRectangle.Inner.Width, (int) displayRectangle.Inner.Height);
             LeftBrush = new SolidBrush(LeftColor);
             RightBrush = new SolidBrush(RightColor);
         }
 
         public override void Draw(Graphics g)
         {
-            g.DrawImage(CacheBitmap, 0, 0, DisplayRectangle.Inner.Width, DisplayRectangle.Inner.Height);
+            g.DrawImage(CacheBitmap.Bitmap, 0, 0, DisplayRectangle.Inner.Width, DisplayRectangle.Inner.Height);
         }
 
         public override void Recreate()
         {
+            CacheBitmap.Clear();
             Task.Run(() =>
             {
-                using (Graphics g = Graphics.FromImage(CacheBitmap))
+                //using (Graphics g = Graphics.FromImage(CacheBitmap.Bitmap))
                 {
                     int startSample = (int) Math.Max(DisplayRectangle.InnerLeftNormalized() * FileData.SamplesCount, 0);
                     int endSample = (int) Math.Min(DisplayRectangle.InnerRightNormalized() * FileData.SamplesCount, FileData.SamplesCount);
@@ -48,9 +49,19 @@ namespace WavVisualize
                             (int) (FileData.RightChannel[currentSample] * (DisplayRectangle.Inner.CenterH) *
                                    VerticalScale);
 
-                        g.FillRectangle(LeftBrush, xPosition, DisplayRectangle.Inner.CenterH - valueL, 1, valueL);
+                        for (float y = DisplayRectangle.Inner.CenterH - valueL; y < DisplayRectangle.Inner.CenterH; y++)
+                        {
+                            CacheBitmap.SetPixel(xPosition, (int)y, LeftColor.ToArgb());
+                        }
 
-                        g.FillRectangle(RightBrush, xPosition, DisplayRectangle.Inner.CenterH, 1, valueR);
+                        for (float y = DisplayRectangle.Inner.CenterH; y < DisplayRectangle.Inner.CenterH + valueR; y++)
+                        {
+                            CacheBitmap.SetPixel(xPosition, (int)y, RightColor.ToArgb());
+                        }
+
+                        //g.FillRectangle(LeftBrush, xPosition, DisplayRectangle.Inner.CenterH - valueL, 1, valueL);
+                        //
+                        //g.FillRectangle(RightBrush, xPosition, DisplayRectangle.Inner.CenterH, 1, valueR);
                     }
                 }
             });
@@ -58,7 +69,7 @@ namespace WavVisualize
 
         public override void Dispose()
         {
-            
+            CacheBitmap.Dispose();
         }
     }
 }

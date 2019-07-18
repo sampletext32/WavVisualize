@@ -102,23 +102,25 @@ namespace WavVisualize
                     _currentWavFileData.SampleRate / UpdateRate);
         }
 
+        private NestedRectangle _waveformRectangle;
+
         private void SetWaveformProvider()
         {
             _waveformProvider?.Cancel();
-            
+
             _waveformProvider?.Dispose();
 
-            var nestedRectangle = NestedRectangle.FromPictureBox(pictureBoxWaveform);
-            nestedRectangle.Outer.ScaleX(ScaleX);
+            _waveformRectangle = NestedRectangle.FromPictureBox(pictureBoxWaveform);
+            _waveformRectangle.Outer.ScaleX(ScaleX);
 
-            nestedRectangle.SetInnerCenterAt(_playerProvider.GetNormalizedPosition());
+            _waveformRectangle.SetInnerCenterAt(_playerProvider.GetNormalizedPosition());
 
             _waveformProvider = new BasicWithIterationablePrerunWaveformProvider(
-                nestedRectangle, Color.LawnGreen, Color.OrangeRed, _currentWavFileData,
-                0.8f, 10);
-            
-            //_waveformProvider = new BasicWaveformProvider(nestedRectangle, Color.LawnGreen, Color.OrangeRed,
-            //    _currentWavFileData, 0.8f);
+                _waveformRectangle, Color.LawnGreen, Color.OrangeRed, _currentWavFileData,
+                0.8f, 40);
+
+            //_waveformProvider = new BasicWaveformProvider(_waveformRectangle, Color.LawnGreen, Color.OrangeRed,
+            //  _currentWavFileData, 0.8f);
 
             _waveformProvider.Recreate();
         }
@@ -140,8 +142,8 @@ namespace WavVisualize
                 Rectangle.FromPictureBox(pictureBoxRealtimeSpectrum), Color.OrangeRed);
 
             //_spectrumDrawer = new DigitalBandSpectrumDrawer(SpectrumUseSamples, 10f,
-            //    VolumeBandWidth * 2 + DistanceBetweenVolumeAndSpectrum, pictureBoxSpectrum.Width,
-            //    0, pictureBoxSpectrum.Height, Color.OrangeRed, TotalSpectrumBands, DistanceBetweenBands, 70, 1);
+            //    Rectangle.FromPictureBox(pictureBoxRealtimeSpectrum), Color.OrangeRed, TotalSpectrumBands,
+            //    DistanceBetweenBands, 70, 1);
 
             //_spectrumDrawer = new AnalogBandSpectrumDrawer(SpectrumUseSamples, 10f,
             //    VolumeBandWidth * 2 + DistanceBetweenVolumeAndSpectrum, pictureBoxSpectrum.Width,
@@ -213,10 +215,10 @@ namespace WavVisualize
 
             //if (Fps % 2 == 0)
             {
-                SetWaveformProvider();
+                _waveformRectangle.SetInnerCenterAt(_playerProvider.GetNormalizedPosition());
+                //_waveformProvider.Recreate();
             }
 
-            //кешируем позицию и длину трека (так чуть чуть быстрее, чем тягать dll WMP плеера)
             float currentPosition = _playerProvider.GetElapsedSeconds();
             float duration = _playerProvider.GetDurationSeconds();
 
@@ -336,6 +338,8 @@ namespace WavVisualize
                 labelStatus.Text = "Opening";
                 Application.DoEvents();
 
+                WavFileData _data = null;
+
                 await Task.Run(() =>
                 {
                     //открываем файл
@@ -359,12 +363,14 @@ namespace WavVisualize
                     Invoke(new Action(() => { labelStatus.Text = "Reading Wav"; }));
 
                     //читаем Wav файл
-                    _currentWavFileData = WavFileData.ReadWav(ms);
+                    _data = WavFileData.ReadWav(ms);
                 });
 
                 Invoke(new Action(() => { labelStatus.Text = "Playing"; }));
 
                 this.Text = opf.SafeFileName;
+
+                _currentWavFileData = _data;
 
                 SetWaveformProvider();
 
