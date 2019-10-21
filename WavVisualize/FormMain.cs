@@ -108,7 +108,7 @@ namespace WavVisualize
         {
             _waveformProvider?.Cancel();
 
-            _waveformProvider?.Dispose();
+            //_waveformProvider?.Dispose();
 
             _waveformRectangle = NestedRectangle.FromPictureBox(pictureBoxWaveform);
             _waveformRectangle.Outer.ScaleX(ScaleX);
