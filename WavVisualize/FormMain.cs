@@ -138,7 +138,7 @@ namespace WavVisualize
 
         private void SetSpectrumDrawer()
         {
-            _spectrumDrawer = new AsIsSpectrumDrawer(SpectrumUseSamples, 10f,
+            _spectrumDrawer = new TopLineSpectrumDrawer(SpectrumUseSamples, 10f,
                 Rectangle.FromPictureBox(pictureBoxRealtimeSpectrum), Color.OrangeRed);
 
             //_spectrumDrawer = new DigitalBandSpectrumDrawer(SpectrumUseSamples, 10f,

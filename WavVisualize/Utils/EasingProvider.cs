@@ -11,7 +11,19 @@
         {
             for (int i = 0; i < origin.Length; i++)
             {
-                origin[i] = Ease(origin[i], end[i], easing);
+                origin[i] = FallEase(origin[i], end[i], easing);
+            }
+        }
+
+        public static float FallEase(float start, float end, float easing)
+        {
+            if(end > start)
+            {
+                return end;
+            }
+            else
+            {
+                return Ease(start, end, easing);
             }
         }
     }

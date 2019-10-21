@@ -82,7 +82,7 @@ namespace WavVisualize
                             for (float y = DisplayRectangle.Inner.CenterH - valueL;
                                 y < DisplayRectangle.Inner.CenterH;
                                 y++)
-                            {
+                            {                                
                                 CacheBitmap.SetPixel(xPosition, (int) y, leftArgb);
                             }
 
