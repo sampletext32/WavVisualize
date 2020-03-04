@@ -115,12 +115,16 @@ namespace WavVisualize
 
             _waveformRectangle.SetInnerCenterAt(_playerProvider.GetNormalizedPosition());
 
-            _waveformProvider = new BasicWithIterationablePrerunWaveformProvider(
+            //_waveformProvider = new BasicWithIterationablePrerunWaveformProvider(
+            //    _waveformRectangle, Color.LawnGreen, Color.OrangeRed, _currentWavFileData,
+            //    0.9f, 40);
+
+            _waveformProvider = new IterationableWaveformProvider(
                 _waveformRectangle, Color.LawnGreen, Color.OrangeRed, _currentWavFileData,
-                0.8f, 40);
+                0.9f, 40);
 
             //_waveformProvider = new BasicWaveformProvider(_waveformRectangle, Color.LawnGreen, Color.OrangeRed,
-            //  _currentWavFileData, 0.8f);
+            //  _currentWavFileData, 0.9f);
 
             _waveformProvider.Recreate();
         }

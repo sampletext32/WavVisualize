@@ -30,33 +30,55 @@ namespace WavVisualize
             CacheBitmap.Clear();
             Task.Run(() =>
             {
+                float verticalHalf = DisplayRectangle.Inner.CenterH;
+                float verticalQuarter = verticalHalf / 2;
+                float verticalThreeQuarters = verticalHalf * 3f / 2f;
+
                 //using (Graphics g = Graphics.FromImage(CacheBitmap.Bitmap))
                 {
                     int startSample = (int) Math.Max(DisplayRectangle.InnerLeftNormalized() * FileData.SamplesCount, 0);
-                    int endSample = (int) Math.Min(DisplayRectangle.InnerRightNormalized() * FileData.SamplesCount, FileData.SamplesCount);
+                    int endSample = (int) Math.Min(DisplayRectangle.InnerRightNormalized() * FileData.SamplesCount,
+                        FileData.SamplesCount);
                     for (int currentSample = startSample; currentSample < endSample; currentSample++)
                     {
                         if (Canceled) break;
                         int xPosition =
                             (int) (DisplayRectangle.Outer.NormalizedWidth(
                                        currentSample / (float) FileData.SamplesCount) - DisplayRectangle.DeltaLeft());
-                        //int inInnerxPosition = (int) (inOuterxPosition - DisplayRectangle.DeltaLeft());
 
                         int valueL =
-                            (int) (FileData.LeftChannel[currentSample] * (DisplayRectangle.Inner.CenterH) *
-                                   VerticalScale);
+                            (int) (FileData.LeftChannel[currentSample] * verticalQuarter * VerticalScale);
                         int valueR =
-                            (int) (FileData.RightChannel[currentSample] * (DisplayRectangle.Inner.CenterH) *
-                                   VerticalScale);
+                            (int) (FileData.RightChannel[currentSample] * verticalQuarter * VerticalScale);
 
-                        for (float y = DisplayRectangle.Inner.CenterH - valueL; y < DisplayRectangle.Inner.CenterH; y++)
+                        if (valueL < 0)
                         {
-                            CacheBitmap.SetPixel(xPosition, (int)y, LeftColor.ToArgb());
+                            for (float y = verticalQuarter; y < verticalQuarter - valueL; y++)
+                            {
+                                CacheBitmap.SetPixel(xPosition, (int) y, LeftColor.ToArgb());
+                            }
+                        }
+                        else
+                        {
+                            for (float y = verticalQuarter - valueL; y < verticalQuarter; y++)
+                            {
+                                CacheBitmap.SetPixel(xPosition, (int) y, LeftColor.ToArgb());
+                            }
                         }
 
-                        for (float y = DisplayRectangle.Inner.CenterH; y < DisplayRectangle.Inner.CenterH + valueR; y++)
+                        if (valueR < 0)
                         {
-                            CacheBitmap.SetPixel(xPosition, (int)y, RightColor.ToArgb());
+                            for (float y = verticalThreeQuarters; y < verticalThreeQuarters - valueR; y++)
+                            {
+                                CacheBitmap.SetPixel(xPosition, (int)y, RightColor.ToArgb());
+                            }
+                        }
+                        else
+                        {
+                            for (float y = verticalThreeQuarters - valueR; y < verticalThreeQuarters; y++)
+                            {
+                                CacheBitmap.SetPixel(xPosition, (int)y, RightColor.ToArgb());
+                            }
                         }
 
                         //g.FillRectangle(LeftBrush, xPosition, DisplayRectangle.Inner.CenterH - valueL, 1, valueL);

@@ -18,8 +18,8 @@ namespace WavVisualize
             colorL, colorR,
             fileData, verticalScale)
         {
-            CacheBitmap = new DirectBitmap((int)displayRectangle.Inner.Width, (int)displayRectangle.Inner.Height);
-            ReadyBitmap = new DirectBitmap((int)displayRectangle.Inner.Width, (int)displayRectangle.Inner.Height);
+            CacheBitmap = new DirectBitmap((int) displayRectangle.Inner.Width, (int) displayRectangle.Inner.Height);
+            ReadyBitmap = new DirectBitmap((int) displayRectangle.Inner.Width, (int) displayRectangle.Inner.Height);
             LeftBrush = new SolidBrush(LeftColor);
             RightBrush = new SolidBrush(RightColor);
 
@@ -37,17 +37,20 @@ namespace WavVisualize
             var rightArgb = RightColor.ToArgb();
             Task.Run(() =>
             {
+                float verticalHalf = DisplayRectangle.Inner.CenterH;
+                float verticalQuarter = verticalHalf / 2;
+                float verticalThreeQuarters = verticalHalf * 3f / 2f;
                 while (!Canceled)
                 {
                     //Graphics g = Graphics.FromImage(CacheBitmap.Bitmap);
                     //g.Clear(Color.White);
                     CacheBitmap.Clear();
 
-                    int startSample = (int)Math.Max(DisplayRectangle.InnerLeftNormalized() * FileData.SamplesCount, 0);
-                    int endSample = (int)Math.Min(DisplayRectangle.InnerRightNormalized() * FileData.SamplesCount,
+                    int startSample = (int) Math.Max(DisplayRectangle.InnerLeftNormalized() * FileData.SamplesCount, 0);
+                    int endSample = (int) Math.Min(DisplayRectangle.InnerRightNormalized() * FileData.SamplesCount,
                         FileData.SamplesCount);
                     int deltaSamples =
-                        (int)((float)FileData.SampleRate / PrerunIterations * DisplayRectangle.Relation());
+                        (int) ((float) FileData.SampleRate / PrerunIterations * DisplayRectangle.Relation());
                     startSample += deltaSamples - startSample % deltaSamples;
                     for (int k = 0; k < PrerunIterations; k++)
                     {
@@ -64,49 +67,46 @@ namespace WavVisualize
                             }
 
                             int xPosition =
-                                (int)(DisplayRectangle.Outer.NormalizedWidth(
-                                           currentSample / (float)FileData.SamplesCount) -
+                                (int) (DisplayRectangle.Outer.NormalizedWidth(
+                                           currentSample / (float) FileData.SamplesCount) -
                                        DisplayRectangle.DeltaLeft());
-                            if (xPosition != lastX)
-                            {
-                                maxValL = 0;
-                                maxValR = 0;
-                            }
-
-                            lastX = xPosition;
 
                             int valueL =
-                                (int)(FileData.LeftChannel[currentSample] * (DisplayRectangle.Inner.CenterH) *
-                                       VerticalScale);
-
-                            if (valueL > maxValL)
-                            {
-                                for (float y = DisplayRectangle.Inner.CenterH - valueL;
-                                    y < DisplayRectangle.Inner.CenterH - maxValR;
-                                    y++)
-                                {
-                                    CacheBitmap.SetPixel(xPosition, (int)y, leftArgb);
-                                }
-                                maxValL = valueL;
-                            }
-
+                                (int) (FileData.LeftChannel[currentSample] * verticalQuarter * VerticalScale);
 
 
                             int valueR =
-                                (int)(FileData.RightChannel[currentSample] * (DisplayRectangle.Inner.CenterH) *
-                                       VerticalScale);
+                                (int) (FileData.RightChannel[currentSample] * verticalQuarter * VerticalScale);
 
-                            if (valueR > maxValR)
+                            if (valueL < 0)
                             {
-                                for (float y = DisplayRectangle.Inner.CenterH + maxValR;
-                                    y < DisplayRectangle.Inner.CenterH + valueR;
-                                    y++)
+                                for (float y = verticalQuarter; y < verticalQuarter - valueL; y++)
                                 {
-                                    CacheBitmap.SetPixel(xPosition, (int)y, rightArgb);
+                                    CacheBitmap.SetPixel(xPosition, (int) y, LeftColor.ToArgb());
                                 }
-                                maxValR = valueR;
+                            }
+                            else
+                            {
+                                for (float y = verticalQuarter - valueL; y < verticalQuarter; y++)
+                                {
+                                    CacheBitmap.SetPixel(xPosition, (int) y, LeftColor.ToArgb());
+                                }
                             }
 
+                            if (valueR < 0)
+                            {
+                                for (float y = verticalThreeQuarters; y < verticalThreeQuarters - valueR; y++)
+                                {
+                                    CacheBitmap.SetPixel(xPosition, (int) y, RightColor.ToArgb());
+                                }
+                            }
+                            else
+                            {
+                                for (float y = verticalThreeQuarters - valueR; y < verticalThreeQuarters; y++)
+                                {
+                                    CacheBitmap.SetPixel(xPosition, (int) y, RightColor.ToArgb());
+                                }
+                            }
 
 
                             //g.FillRectangle(LeftBrush, xPosition, DisplayRectangle.Inner.CenterH - valueL, 1, valueL);
@@ -114,6 +114,7 @@ namespace WavVisualize
                             //g.FillRectangle(RightBrush, xPosition, DisplayRectangle.Inner.CenterH, 1, valueR);
                         }
                     }
+
                     ReadyBitmap.Copy(CacheBitmap);
                     //Task.Delay(1);
                 }
@@ -121,8 +122,6 @@ namespace WavVisualize
 
                 CacheBitmap.Dispose();
                 ReadyBitmap.Dispose();
-
-
             });
 
             //Task.Run(() =>

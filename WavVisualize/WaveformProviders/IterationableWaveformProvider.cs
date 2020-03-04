@@ -5,7 +5,7 @@ namespace WavVisualize
 {
     public class IterationableWaveformProvider : WaveformProvider
     {
-        protected Bitmap CacheBitmap;
+        protected DirectBitmap CacheBitmap;
         protected Brush LeftBrush;
         protected Brush RightBrush;
         protected int Iterations;
@@ -15,7 +15,7 @@ namespace WavVisualize
             colorL, colorR,
             fileData, verticalScale)
         {
-            CacheBitmap = new Bitmap((int) displayRectangle.Inner.Width, (int) displayRectangle.Inner.Height);
+            CacheBitmap = new DirectBitmap((int) displayRectangle.Inner.Width, (int) displayRectangle.Inner.Height);
             LeftBrush = new SolidBrush(LeftColor);
             RightBrush = new SolidBrush(RightColor);
 
@@ -24,47 +24,76 @@ namespace WavVisualize
 
         public override void Draw(Graphics g)
         {
-            g.DrawImage(CacheBitmap, 0, 0, DisplayRectangle.Inner.Width, DisplayRectangle.Inner.Height);
+            g.DrawImage(CacheBitmap.Bitmap, 0, 0, DisplayRectangle.Inner.Width, DisplayRectangle.Inner.Height);
         }
 
         public override void Recreate()
         {
             Task.Run(() =>
             {
-                Graphics g = Graphics.FromImage(CacheBitmap);
-
-                Parallel.For(0, Iterations, (k, loopState) =>
+                using (Graphics g = Graphics.FromImage(CacheBitmap.Bitmap))
                 {
-                    for (int i = k; i < FileData.SamplesCount; i += Iterations)
+                    float verticalHalf = DisplayRectangle.Inner.CenterH;
+                    float verticalQuarter = verticalHalf / 2;
+                    float verticalThreeQuarters = verticalHalf * 3f / 2f;
+
+                    Parallel.For(0, Iterations, (k, loopState) =>
                     {
-                        if (Canceled)
+                        for (int i = k; i < FileData.SamplesCount; i += Iterations)
                         {
-                            loopState.Break();
-                            return;
+                            if (Canceled)
+                            {
+                                loopState.Break();
+                                return;
+                            }
+
+                            int xPosition =
+                                (int) DisplayRectangle.Outer.NormalizedWidth(i / (float) FileData.SamplesCount);
+
+                            int valueL =
+                                (int) (FileData.LeftChannel[i] * verticalQuarter * VerticalScale);
+
+
+                            int valueR =
+                                (int) (FileData.RightChannel[i] * verticalQuarter * VerticalScale);
+
+                            if (valueL < 0)
+                            {
+                                for (float y = verticalQuarter; y < verticalQuarter - valueL; y++)
+                                {
+                                    CacheBitmap.SetPixel(xPosition, (int) y, LeftColor.ToArgb());
+                                }
+                            }
+                            else
+                            {
+                                for (float y = verticalQuarter - valueL; y < verticalQuarter; y++)
+                                {
+                                    CacheBitmap.SetPixel(xPosition, (int) y, LeftColor.ToArgb());
+                                }
+                            }
+
+                            if (valueR < 0)
+                            {
+                                for (float y = verticalThreeQuarters; y < verticalThreeQuarters - valueR; y++)
+                                {
+                                    CacheBitmap.SetPixel(xPosition, (int) y, RightColor.ToArgb());
+                                }
+                            }
+                            else
+                            {
+                                for (float y = verticalThreeQuarters - valueR; y < verticalThreeQuarters; y++)
+                                {
+                                    CacheBitmap.SetPixel(xPosition, (int) y, RightColor.ToArgb());
+                                }
+                            }
                         }
-
-                        int xPosition = (int) DisplayRectangle.Outer.NormalizedWidth(i / (float) FileData.SamplesCount);
-
-                        int valueL =
-                            (int) (FileData.LeftChannel[i] * (DisplayRectangle.Inner.CenterH) * VerticalScale);
-                        int valueR =
-                            (int) (FileData.RightChannel[i] * (DisplayRectangle.Inner.CenterH) * VerticalScale);
-
-                        lock (g)
-                        {
-                            g.FillRectangle(LeftBrush, xPosition, DisplayRectangle.Inner.CenterH - valueL, 1, valueL);
-
-                            g.FillRectangle(RightBrush, xPosition, DisplayRectangle.Inner.CenterH, 1, valueR);
-                        }
-                    }
-                });
-                g.Dispose();
+                    });
+                }
             });
         }
 
         public override void Dispose()
         {
-            
         }
 
         //private void RecreateV2()
