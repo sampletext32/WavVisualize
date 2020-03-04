@@ -13,14 +13,14 @@ namespace WavVisualize
             ValuesBuffer = FFT(ValuesBuffer, Samples);
         }
 
-        private static Complex W(int x, int n)
+        protected virtual Complex W(int x, int n)
         {
             if (x % n == 0) return (Complex) 1;
             double arg = -2 * Math.PI * x / n;
             return new Complex(Math.Cos(arg), Math.Sin(arg)); //преобразование комплексного экспонентного вида в обычный
         }
 
-        private Complex[] FFT(Complex[] values, int length)
+        protected Complex[] FFT(Complex[] values, int length)
         {
             Complex[] x;
             if (length == 2)
