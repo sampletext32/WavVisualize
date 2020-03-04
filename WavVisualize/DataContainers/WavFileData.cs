@@ -3,26 +3,25 @@ using System.IO;
 
 namespace WavVisualize
 {
-    //Класс отвечающий за работу с Wav файлом
     public class WavFileData
     {
-        #region Параметры Wav файла
+        #region Wav Data Header
 
         //Done, using https://audiocoding.ru/articles/2008-05-22-wav-file-structure/
 
         //TODO: ENCAPSULATION FIX !IMPORTANT
 
         /*0  -  3*/ /* 4 */
-        public String chunkId; //содержит символы "RIFF"
+        public string chunkId; //содержит символы "RIFF"
 
         /*4  -  7*/ /* 4 */
         public int chunkSize; //размер оставшейся цепочки - размер файла минус 8 байт
 
         /*8  - 11*/ /* 4 */
-        public String format; //содержит символы "WAVE"
+        public string format; //содержит символы "WAVE"
 
         /*12 - 15*/ /* 4 */
-        public String subchunk1Id; //содержит символы "fmt "
+        public string subchunk1Id; //содержит символы "fmt "
 
         /*16 - 19*/ /* 4 */
         public int subchunk1Size; //16 для PCM - размер оставшейся подцепочки
@@ -47,17 +46,19 @@ namespace WavVisualize
         public short bitsPerSample; //количество бит в сэмпле или глубина кодирования
 
         /*36 - 39*/ /* 4 */
-        public String subchunk2Id; //содержит символы "data"
+        public string subchunk2Id; //содержит символы "data"
 
         /*40 - 43*/ /* 4 */
         public int subchunk2Size; //количество байт в области данных
 
         /*44 -inf*/ /* 0 */
-        byte[] data; //сами WAV данные
+        public byte[] data; //сами WAV данные
 
         #endregion
 
         #region Используемые для вычислений данные
+
+        public int samplesCount;
 
         public float[] RawSamples;
 
@@ -69,13 +70,13 @@ namespace WavVisualize
         //функция рассчитывает спектр для заданного количества сэмплов начиная с нормализованной позиции
         public float[] GetSpectrumForPosition(float position, FFTProvider fftProvider)
         {
-            int start = (int) (SamplesCount * position);
+            int start = (int) (RawSamples.Length / numChannels * position);
             fftProvider.Calculate(LeftChannel, start);
             float[] spectrum = fftProvider.Get();
             return spectrum;
         }
 
-        private float[] ExtractSamples(byte[] data)
+        private float[] ExtractSamples()
         {
             int length = data.Length;
             float[] samples;
@@ -171,7 +172,9 @@ namespace WavVisualize
                 subchunk2Size = reader.ReadInt32();
                 data = reader.ReadBytes((int) (ms.Length - ms.Position));
 
-                RawSamples = ExtractSamples(data);
+                RawSamples = ExtractSamples();
+
+                samplesCount = RawSamples.Length / numChannels;
 
                 switch (numChannels)
                 {
@@ -183,9 +186,9 @@ namespace WavVisualize
                     case 2:
                         //если записано СТЕРЕО
                         //создаём 2 массива на левый и правый канал с количеством сэмплов
-                        LeftChannel = new float[RawSamples.Length / numChannels];
-                        RightChannel = new float[RawSamples.Length / numChannels];
-                        for (int i = 0, s = 0; i < RawSamples.Length / numChannels; i++)
+                        LeftChannel = new float[samplesCount];
+                        RightChannel = new float[samplesCount];
+                        for (int i = 0, s = 0; i < samplesCount; i++)
                         {
                             //записываем сэмплы
                             LeftChannel[i] = RawSamples[s++];

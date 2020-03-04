@@ -99,7 +99,7 @@ namespace WavVisualize
         {
             _volumeProvider =
                 new MaxInRegionVolumeProvider(_currentWavFileData.LeftChannel, _currentWavFileData.RightChannel,
-                    _currentWavFileData.SampleRate / UpdateRate);
+                    _currentWavFileData.sampleRate / UpdateRate);
         }
 
         private NestedRectangle _waveformRectangle;
@@ -249,10 +249,10 @@ namespace WavVisualize
             {
                 float normalized = _playerProvider.GetNormalizedPosition();
                 //на каком сейчас сэмпле находимся
-                int currentSample = (int) (normalized * _currentWavFileData.SamplesCount);
+                int currentSample = (int) (normalized * _currentWavFileData.samplesCount);
 
                 //если начало участка меньше чем количество сэмплов - сэмплов на преобразование спектра (можно вместить ещё раз рассчитать спектр)
-                if (currentSample < _currentWavFileData.SamplesCount - SpectrumUseSamples && currentSample >= 0)
+                if (currentSample < _currentWavFileData.samplesCount - SpectrumUseSamples && currentSample >= 0)
                 {
                     //рисуем спектр
                     float[] spectrum = _currentWavFileData.GetSpectrumForPosition(normalized, _fftProvider);
@@ -268,14 +268,14 @@ namespace WavVisualize
             {
                 float normalized = _playerProvider.GetNormalizedPosition();
                 //на каком сейчас сэмпле находимся
-                int currentSample = (int) (normalized * _currentWavFileData.SamplesCount);
+                int currentSample = (int) (normalized * _currentWavFileData.samplesCount);
 
                 //длина участка сэмплов, на котором измеряем громкость
                 int regionLength =
-                    _currentWavFileData.SampleRate / UpdateRate; //_currentWavFileData.SampleRate / UpdateRate;
+                    _currentWavFileData.sampleRate / UpdateRate; //_currentWavFileData.SampleRate / UpdateRate;
 
                 //если начало участка меньше чем количество сэплов - длина участка (можно вместить ещё участок)
-                if (currentSample < _currentWavFileData.SamplesCount - regionLength && currentSample >= 0)
+                if (currentSample < _currentWavFileData.samplesCount - regionLength && currentSample >= 0)
                 {
                     _volumeProvider.Calculate(currentSample);
 
@@ -348,13 +348,13 @@ namespace WavVisualize
                 {
                     //открываем файл
                     var reader = new Mp3FileReader(filename);
-
-                    MemoryStream ms = new MemoryStream();
-
+                    
                     Invoke(new Action(() => { labelStatus.Text = "Converting To Wav"; }));
 
                     //создаём PCM поток
                     var waveStream = WaveFormatConversionStream.CreatePcmStream(reader);
+                    
+                    MemoryStream ms = new MemoryStream();
 
                     //переписываем MP3 в Wav файл в потоке
                     WaveFileWriter.WriteWavFileToStream(ms, waveStream);
@@ -367,7 +367,9 @@ namespace WavVisualize
                     Invoke(new Action(() => { labelStatus.Text = "Reading Wav"; }));
 
                     //читаем Wav файл
-                    _data = WavFileData.ReadWav(ms);
+                    _data = new WavFileData(ms.ToArray());
+
+                    ms.Dispose();
                 });
 
                 Invoke(new Action(() => { labelStatus.Text = "Playing"; }));
