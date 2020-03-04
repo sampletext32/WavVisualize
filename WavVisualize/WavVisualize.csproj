@@ -57,11 +57,11 @@
   <ItemGroup>
     <Compile Include="DataContainers\NestedRectangle.cs" />
     <Compile Include="DataContainers\Rectangle.cs" />
-    <Compile Include="DirectBitmap.cs" />
-    <Compile Include="FastLog10Provider.cs" />
+    <Compile Include="Utils\DirectBitmap.cs" />
+    <Compile Include="Utils\FastLog10Provider.cs" />
     <Compile Include="SpectrumDiagram\BasicSpectrumDiagram.cs" />
     <Compile Include="SpectrumDiagram\IterationableSpectrumDiagram.cs" />
-    <Compile Include="TopLineSpectrumDrawer.cs" />
+    <Compile Include="SpectrumDrawer\TopLineSpectrumDrawer.cs" />
     <Compile Include="WaveformProviders\IterationableWaveformProvider.cs" />
     <Compile Include="WaveformProviders\BasicWithIterationablePrerunWaveformProvider.cs" />
     <Compile Include="SpectrumDiagram\ParallelSpectrumDiagram.cs" />
