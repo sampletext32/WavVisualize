@@ -36,15 +36,15 @@ namespace WavVisualize
 
                 //using (Graphics g = Graphics.FromImage(CacheBitmap.Bitmap))
                 {
-                    int startSample = (int) Math.Max(DisplayRectangle.InnerLeftNormalized() * FileData.SamplesCount, 0);
-                    int endSample = (int) Math.Min(DisplayRectangle.InnerRightNormalized() * FileData.SamplesCount,
-                        FileData.SamplesCount);
+                    int startSample = (int) Math.Max(DisplayRectangle.InnerLeftNormalized() * FileData.samplesCount, 0);
+                    int endSample = (int) Math.Min(DisplayRectangle.InnerRightNormalized() * FileData.samplesCount,
+                        FileData.samplesCount);
                     for (int currentSample = startSample; currentSample < endSample; currentSample++)
                     {
                         if (Canceled) break;
                         int xPosition =
                             (int) (DisplayRectangle.Outer.NormalizedWidth(
-                                       currentSample / (float) FileData.SamplesCount) - DisplayRectangle.DeltaLeft());
+                                       currentSample / (float) FileData.samplesCount) - DisplayRectangle.DeltaLeft());
 
                         int valueL =
                             (int) (FileData.LeftChannel[currentSample] * verticalQuarter * VerticalScale);

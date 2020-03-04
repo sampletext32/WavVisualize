@@ -46,11 +46,11 @@ namespace WavVisualize
                     //g.Clear(Color.White);
                     CacheBitmap.Clear();
 
-                    int startSample = (int) Math.Max(DisplayRectangle.InnerLeftNormalized() * FileData.SamplesCount, 0);
-                    int endSample = (int) Math.Min(DisplayRectangle.InnerRightNormalized() * FileData.SamplesCount,
-                        FileData.SamplesCount);
+                    int startSample = (int) Math.Max(DisplayRectangle.InnerLeftNormalized() * FileData.samplesCount, 0);
+                    int endSample = (int) Math.Min(DisplayRectangle.InnerRightNormalized() * FileData.samplesCount,
+                        FileData.samplesCount);
                     int deltaSamples =
-                        (int) ((float) FileData.SampleRate / PrerunIterations * DisplayRectangle.Relation());
+                        (int) ((float) FileData.sampleRate / PrerunIterations * DisplayRectangle.Relation());
                     startSample += deltaSamples - startSample % deltaSamples;
                     for (int k = 0; k < PrerunIterations; k++)
                     {
@@ -68,7 +68,7 @@ namespace WavVisualize
 
                             int xPosition =
                                 (int) (DisplayRectangle.Outer.NormalizedWidth(
-                                           currentSample / (float) FileData.SamplesCount) -
+                                           currentSample / (float) FileData.samplesCount) -
                                        DisplayRectangle.DeltaLeft());
 
                             int valueL =
@@ -132,9 +132,9 @@ namespace WavVisualize
             //        Graphics g = Graphics.FromImage(CacheBitmap);
 
 
-            //        int startSample = (int)Math.Max(DisplayRectangle.InnerLeftNormalized() * FileData.SamplesCount, 0);
-            //        int endSample = (int)Math.Min(DisplayRectangle.InnerRightNormalized() * FileData.SamplesCount, FileData.SamplesCount);
-            //        int deltaSamples = (int)((float)FileData.SampleRate / PrerunIterations * DisplayRectangle.Relation());
+            //        int startSample = (int)Math.Max(DisplayRectangle.InnerLeftNormalized() * FileData.samplesCount, 0);
+            //        int endSample = (int)Math.Min(DisplayRectangle.InnerRightNormalized() * FileData.samplesCount, FileData.samplesCount);
+            //        int deltaSamples = (int)((float)FileData.sampleRate / PrerunIterations * DisplayRectangle.Relation());
             //        for (int k = 0; k < PrerunIterations; k++)
             //        {
             //            for (int currentSample = startSample + k;
@@ -148,7 +148,7 @@ namespace WavVisualize
 
             //                int xPosition =
             //                    (int)(DisplayRectangle.Outer.NormalizedWidth(
-            //                              currentSample / (float)FileData.SamplesCount) - DisplayRectangle.DeltaLeft());
+            //                              currentSample / (float)FileData.samplesCount) - DisplayRectangle.DeltaLeft());
 
             //                int valueL =
             //                    (int)(FileData.LeftChannel[currentSample] * (DisplayRectangle.Inner.CenterH) * VerticalScale);
@@ -169,7 +169,7 @@ namespace WavVisualize
             //        //    if (Canceled) break;
             //        //    int xPosition =
             //        //        (int)(DisplayRectangle.Outer.NormalizedWidth(
-            //        //                  currentSample / (float)FileData.SamplesCount) - DisplayRectangle.DeltaLeft());
+            //        //                  currentSample / (float)FileData.samplesCount) - DisplayRectangle.DeltaLeft());
             //        //    //int inInnerxPosition = (int) (inOuterxPosition - DisplayRectangle.DeltaLeft());
             //        //
             //        //    int valueL =

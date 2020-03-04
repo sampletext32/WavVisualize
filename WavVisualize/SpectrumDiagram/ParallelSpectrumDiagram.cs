@@ -38,7 +38,7 @@ namespace WavVisualize
                     }
 
                     float realPosition = Math.Min(i / DisplayRectangle.Width,
-                        (float) (FileData.SamplesCount - SpectrumSamples) / FileData.SamplesCount);
+                        (float) (FileData.samplesCount - SpectrumSamples) / FileData.samplesCount);
 
                     float[] spectrum;
                     lock (FftProvider)

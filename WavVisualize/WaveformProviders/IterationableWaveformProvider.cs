@@ -39,7 +39,7 @@ namespace WavVisualize
 
                     Parallel.For(0, Iterations, (k, loopState) =>
                     {
-                        for (int i = k; i < FileData.SamplesCount; i += Iterations)
+                        for (int i = k; i < FileData.samplesCount; i += Iterations)
                         {
                             if (Canceled)
                             {
@@ -48,7 +48,7 @@ namespace WavVisualize
                             }
 
                             int xPosition =
-                                (int) DisplayRectangle.Outer.NormalizedWidth(i / (float) FileData.SamplesCount);
+                                (int) DisplayRectangle.Outer.NormalizedWidth(i / (float) FileData.samplesCount);
 
                             int valueL =
                                 (int) (FileData.LeftChannel[i] * verticalQuarter * VerticalScale);
@@ -102,7 +102,7 @@ namespace WavVisualize
         //    {
         //        using (Graphics g = Graphics.FromImage(CacheBitmap))
         //        {
-        //            Parallel.For(0, FileData.SamplesCount, (k, loopState) =>
+        //            Parallel.For(0, FileData.samplesCount, (k, loopState) =>
         //            {
         //                if (Canceled)
         //                {
@@ -110,7 +110,7 @@ namespace WavVisualize
         //                    return;
         //                }
 
-        //                int xPosition = (int) DisplayRectangle.NormalizedWidth(k / (float) FileData.SamplesCount);
+        //                int xPosition = (int) DisplayRectangle.NormalizedWidth(k / (float) FileData.samplesCount);
 
         //                int valueL =
         //                    (int) (FileData.LeftChannel[k] * (DisplayRectangle.CenterH) * VerticalScale);

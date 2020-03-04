@@ -43,19 +43,19 @@ namespace WavVisualize
                     {
                         //проходим количество_сэмплов = всего_сэмплов / количество_потоков 
                         //Сдвигаемся на 1 + skip, таким образом, даже если пропуск = 0, мы обработаем весь массив
-                        for (int k = 0; k < FileData.SamplesCount / Threads; k++)
+                        for (int k = 0; k < FileData.samplesCount / Threads; k++)
                         {
                             if (Canceled) break;
-                            //Позиция по горизонтали = Нормализация_позиции_сэмпла_в_кусочке(i / (SamplesCount / threads)) * Ширину_кусочка 
-                            int xPosition = (int) (k / ((float) FileData.SamplesCount / Threads) * PieceWidth);
+                            //Позиция по горизонтали = Нормализация_позиции_сэмпла_в_кусочке(i / (samplesCount / threads)) * Ширину_кусочка 
+                            int xPosition = (int) (k / ((float) FileData.samplesCount / Threads) * PieceWidth);
 
                             //Значения PCM [номер_потока * сэмплов_на_поток + номер_текущего_сэмпла] * 
                             //(высота пополам (высота одной громкости) * масштабирование)
                             int valueL =
-                                (int) (FileData.LeftChannel[t * FileData.SamplesCount / Threads + k] *
+                                (int) (FileData.LeftChannel[t * FileData.samplesCount / Threads + k] *
                                        (DisplayRectangle.Inner.CenterH) * VerticalScale);
                             int valueR =
-                                (int) (FileData.RightChannel[t * FileData.SamplesCount / Threads + k] *
+                                (int) (FileData.RightChannel[t * FileData.samplesCount / Threads + k] *
                                        (DisplayRectangle.Inner.CenterH) * VerticalScale);
 
                             g.FillRectangle(LeftBrushes[t], xPosition, DisplayRectangle.Inner.CenterH - valueL, 1, valueL);

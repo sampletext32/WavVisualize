@@ -37,7 +37,7 @@ namespace WavVisualize
         public readonly int ThreadsForWaveformCreation = Environment.ProcessorCount / 2;
 
         //частота пропуска сэмплов при создании волны
-        public readonly int WaveformSkipSampleRate = 0;
+        public readonly int WaveformSkipsampleRate = 0;
 
         //сколько раз в секунду обновляется состояние плеера
         public int UpdateRate = 60;
@@ -272,7 +272,7 @@ namespace WavVisualize
 
                 //длина участка сэмплов, на котором измеряем громкость
                 int regionLength =
-                    _currentWavFileData.sampleRate / UpdateRate; //_currentWavFileData.SampleRate / UpdateRate;
+                    _currentWavFileData.sampleRate / UpdateRate; //_currentWavFileData.sampleRate / UpdateRate;
 
                 //если начало участка меньше чем количество сэплов - длина участка (можно вместить ещё участок)
                 if (currentSample < _currentWavFileData.samplesCount - regionLength && currentSample >= 0)
