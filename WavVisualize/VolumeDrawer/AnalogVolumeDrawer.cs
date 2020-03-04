@@ -11,12 +11,14 @@ namespace WavVisualize
 
         public override void Draw(Graphics g)
         {
-            g.FillRectangle(LeftBrush, DisplayRectangle.Left,
-                DisplayRectangle.Bottom - DisplayRectangle.NormalizedHeight(NormalizedVolumeL),
-                DisplayRectangle.CenterW, DisplayRectangle.NormalizedHeight(NormalizedVolumeL));
-            g.FillRectangle(RightBrush, DisplayRectangle.CenterW,
-                DisplayRectangle.Bottom - DisplayRectangle.NormalizedHeight(NormalizedVolumeR),
-                DisplayRectangle.CenterW, DisplayRectangle.NormalizedHeight(NormalizedVolumeR));
+            var heightL = DisplayRectangle.NormalizedHeight(NormalizedVolumeL);
+            var heightR = DisplayRectangle.NormalizedHeight(NormalizedVolumeR);
+
+            g.FillRectangle(LeftBrush, DisplayRectangle.Left, DisplayRectangle.Bottom - heightL,
+                DisplayRectangle.CenterW, heightL);
+
+            g.FillRectangle(RightBrush, DisplayRectangle.CenterW, DisplayRectangle.Bottom - heightR,
+                DisplayRectangle.CenterW, heightR);
         }
     }
 }
