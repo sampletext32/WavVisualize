@@ -13,7 +13,7 @@ namespace WavVisualize
             ValuesBuffer = FFT(ValuesBuffer, Samples);
         }
 
-        private static Complex w(int x, int n)
+        private static Complex W(int x, int n)
         {
             if (x % n == 0) return (Complex) 1;
             double arg = -2 * Math.PI * x / n;
@@ -22,12 +22,12 @@ namespace WavVisualize
 
         private Complex[] FFT(Complex[] values, int length)
         {
-            Complex[] X;
+            Complex[] x;
             if (length == 2)
             {
-                X = new Complex[2];
-                X[0] = values[0] + values[1];
-                X[1] = values[0] - values[1];
+                x = new Complex[2];
+                x[0] = values[0] + values[1];
+                x[1] = values[0] - values[1];
             }
             else
             {
@@ -39,35 +39,20 @@ namespace WavVisualize
                     x_odd[i] = values[2 * i + 1];
                 }
 
-                X = new Complex[length];
-                Complex[] X_even = new Complex[length / 2];
-                Complex[] X_odd = new Complex[length / 2];
+                x = new Complex[length];
 
-                //Создаём 2 задачи, т.к. вычисления могут выполняться параллельно
-                Action[] tasks =
-                {
-                    () => { X_even = FFT(x_even, length / 2); },
-                    () => { X_odd = FFT(x_odd, length / 2); }
-                };
-
-                //if (parallel)
-                //{
-                //    Parallel.ForEach(tasks, action => action.Invoke());
-                //}
-                //else
-                //{
-                //    
-                //}
-                Array.ForEach(tasks, action => action.Invoke());
+                Complex[] X_even = FFT(x_even, length / 2);
+                Complex[] X_odd = FFT(x_odd, length / 2);
+                
                 for (int i = 0; i < length / 2; i++)
                 {
-                    Complex rotationAbsMultipliedByValue = w(i, length) * X_odd[i];
-                    X[i] = X_even[i] + rotationAbsMultipliedByValue;
-                    X[i + length / 2] = X_even[i] - rotationAbsMultipliedByValue;
+                    Complex rotationAbsMultipliedByValue = W(i, length) * X_odd[i];
+                    x[i] = X_even[i] + rotationAbsMultipliedByValue;
+                    x[i + length / 2] = X_even[i] - rotationAbsMultipliedByValue;
                 }
             }
 
-            return X;
+            return x;
         }
     }
 }
