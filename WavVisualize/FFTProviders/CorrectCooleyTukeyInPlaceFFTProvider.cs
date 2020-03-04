@@ -16,7 +16,7 @@ namespace WavVisualize
         {
             int power = FastPowLog2Provider.FastLog2(Samples);
             
-            int mid = Samples >> 1;
+            int middle = Samples >> 1;
             int j = 0;
             for (int i = 0; i < Samples - 1; i++)
             {
@@ -27,7 +27,7 @@ namespace WavVisualize
                     ValuesBuffer[j] = tmp;
                 }
 
-                int k = mid;
+                int k = middle;
                 while (k <= j)
                 {
                     j -= k;
