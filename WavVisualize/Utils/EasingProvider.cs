@@ -21,10 +21,8 @@
             {
                 return end;
             }
-            else
-            {
-                return Ease(start, end, easing);
-            }
+
+            return Ease(start, end, easing);
         }
     }
 }
