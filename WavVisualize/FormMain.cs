@@ -172,6 +172,9 @@ namespace WavVisualize
             SetFFTProvider();
             SetVolumeDrawer();
             SetSpectrumDrawer();
+
+            FileLoader.OnBeginMp3Decompression += () => { SetLabelStatusText("Begin Mp3 Decompression");};
+            FileLoader.OnBeginWavWriting += () => { SetLabelStatusText("Begin Wav Writing");};
         }
 
         //перерисовка волны
@@ -336,42 +339,18 @@ namespace WavVisualize
         {
             OpenFileDialog opf = new OpenFileDialog();
             //opf.Filter = "Файлы WAV (*.wav)|*.wav";
-            opf.Filter = "Файлы MP3 (*.mp3)|*.mp3";
+            //opf.Filter = "Файлы MP3 (*.mp3)|*.mp3";
+            opf.Filter = "Файлы Audio (*.wav, *.mp3)|*.wav;*.mp3";
             if (opf.ShowDialog() == DialogResult.OK)
             {
                 string filename = opf.FileName;
 
-                labelStatus.Text = "Opening";
+                SetLabelStatusText("Opening");
 
-                WavFileData data = null;
+                byte[] fileData = FileLoader.LoadAny(filename);
 
-                await Task.Run(async () =>
-                {
-                    //открываем файл
-                    var reader = new Mp3FileReader(filename);
-
-                    SetLabelStatusText("Converting To Wav");
-
-                    //создаём PCM поток
-                    var waveStream = WaveFormatConversionStream.CreatePcmStream(reader);
-
-                    MemoryStream ms = new MemoryStream();
-
-                    //переписываем MP3 в Wav файл в потоке
-                    WaveFileWriter.WriteWavFileToStream(ms, waveStream);
-
-                    SetLabelStatusText("Writing Wav");
-
-                    //возвращаем поток в начало
-                    ms.Seek(0, SeekOrigin.Begin);
-
-                    SetLabelStatusText("Reading Wav");
-
-                    //читаем Wav файл
-                    data = await WavFileData.LoadWavFile(ms.ToArray());
-
-                    ms.Dispose();
-                });
+                //читаем Wav файл
+                var data = await WavFileData.LoadWavFile(fileData);
 
                 SetLabelStatusText("Playing");
 
