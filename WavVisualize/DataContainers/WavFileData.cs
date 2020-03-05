@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace WavVisualize
 {
@@ -145,6 +146,11 @@ namespace WavVisualize
             }
 
             return samples;
+        }
+
+        public static async Task<WavFileData> LoadWavFile(byte[] fileData)
+        {
+            return await Task<WavFileData>.Factory.StartNew(() => new WavFileData(fileData));
         }
 
         public WavFileData(byte[] fileData)

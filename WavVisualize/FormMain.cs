@@ -334,7 +334,7 @@ namespace WavVisualize
 
                 WavFileData _data = null;
 
-                await Task.Run(() =>
+                await Task.Run(async () =>
                 {
                     //открываем файл
                     var reader = new Mp3FileReader(filename);
@@ -357,7 +357,7 @@ namespace WavVisualize
                     Invoke(new Action(() => { labelStatus.Text = "Reading Wav"; }));
 
                     //читаем Wav файл
-                    _data = new WavFileData(ms.ToArray());
+                    _data = await WavFileData.LoadWavFile(ms.ToArray());
 
                     ms.Dispose();
                 });
