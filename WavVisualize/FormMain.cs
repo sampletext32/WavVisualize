@@ -84,6 +84,8 @@ namespace WavVisualize
 
         public float ScaleX = 1f;
 
+        private NestedRectangle _waveformRectangle;
+
         private void SetPlayerProvider()
         {
             _playerProvider = new WindowsMediaPlayerProvider();
@@ -95,9 +97,7 @@ namespace WavVisualize
                 new MaxInRegionVolumeProvider(_currentWavFileData.LeftChannel, _currentWavFileData.RightChannel,
                     _currentWavFileData.sampleRate / UpdateRate);
         }
-
-        private NestedRectangle _waveformRectangle;
-
+        
         private void SetWaveformProvider()
         {
             _waveformProvider?.Cancel();
