@@ -115,7 +115,7 @@ namespace WavVisualize
 
             _waveformProvider = new IterationableWaveformProvider(
                 _waveformRectangle, Color.LawnGreen, Color.OrangeRed, _currentWavFileData,
-                0.9f, 40, true);
+                0.9f, 40, false);
 
             //_waveformProvider = new BasicWaveformProvider(_waveformRectangle, Color.LawnGreen, Color.OrangeRed,
             //  _currentWavFileData, 0.9f);
@@ -180,7 +180,12 @@ namespace WavVisualize
         //перерисовка волны
         private void pictureBoxWaveform_Paint(object sender, PaintEventArgs e)
         {
-            _waveformProvider?.Draw(e.Graphics);
+            if (_waveformProvider == null)
+            {
+                return;
+            }
+
+            _waveformProvider.Draw(e.Graphics);
 
             int x;
 
