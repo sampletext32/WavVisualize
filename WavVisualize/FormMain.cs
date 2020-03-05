@@ -80,7 +80,7 @@ namespace WavVisualize
 
         public bool ApplyTimeThinning = true;
 
-        public int Fps;
+        public int FramesProcessed;
 
         public float ScaleX = 1f;
 
@@ -220,10 +220,9 @@ namespace WavVisualize
         {
             labelStatus.Text = _playerProvider.GetPlayState().ToString();
 
-            //if (Fps % 2 == 0)
+            if (_waveformProvider.IsWaveformScannable)
             {
                 _waveformRectangle.SetInnerCenterAt(_playerProvider.GetNormalizedPosition());
-                //_waveformProvider.Recreate();
             }
 
             float currentPosition = _playerProvider.GetElapsedSeconds();
@@ -241,7 +240,7 @@ namespace WavVisualize
             pictureBoxRealtimeSpectrum.Refresh();
             pictureBoxVolume.Refresh();
             pictureBoxSpectrumDiagram.Refresh();
-            Fps++;
+            FramesProcessed++;
         }
 
         //шаг отрисовки спектра
@@ -426,8 +425,8 @@ namespace WavVisualize
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            labelFPS.Text = "FPS: " + Fps;
-            Fps = 0;
+            labelFPS.Text = "FPS: " + FramesProcessed;
+            FramesProcessed = 0;
         }
 
         private async void buttonOpenFile_Click(object sender, EventArgs e)
