@@ -357,10 +357,10 @@ namespace WavVisualize
 
                     MemoryStream ms = new MemoryStream();
 
+                    SetLabelStatusText("Writing Wav");
+
                     //переписываем MP3 в Wav файл в потоке
                     WaveFileWriter.WriteWavFileToStream(ms, waveStream);
-
-                    SetLabelStatusText("Writing Wav");
 
                     //возвращаем поток в начало
                     ms.Seek(0, SeekOrigin.Begin);
