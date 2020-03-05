@@ -51,7 +51,7 @@
             {
                 for (int i = 0; i < Samples; i++)
                 {
-                    Frequencies[i] = (float) ValuesBuffer[i].Magnitude / Samples;
+                    Frequencies[i] = (float)ValuesBuffer[i].Magnitude / Samples;
                 }
             }
             else
@@ -77,10 +77,6 @@
             _applyTimeThinning = applyTimeThinning;
             Frequencies = new float[Samples];
             ValuesBuffer = new Complex[Samples];
-            for (int i = 0; i < Samples; i++)
-            {
-                ValuesBuffer[i] = new Complex();
-            }
         }
     }
 }
