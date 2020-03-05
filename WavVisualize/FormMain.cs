@@ -75,13 +75,7 @@ namespace WavVisualize
         //сколько сэмплов идёт на преобразование спектра (обязательно степень двойки)
         public int SpectrumUseSamples = 4096;
 
-        //частота пропуска частот при отрисовке спектра
-        public int DrawSpectrumSkipRate = 0;
-
-        //расстояние между громкостью и спектром
-        public float DistanceBetweenVolumeAndSpectrum = 20f;
-
-        //нажати ли сейчас мышь на волне
+        //нажата ли сейчас мышь на волне
         public bool PressedOnWaveform;
 
         public bool ApplyTimeThinning = true;
