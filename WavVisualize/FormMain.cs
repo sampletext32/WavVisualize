@@ -37,7 +37,7 @@ namespace WavVisualize
         public readonly int ThreadsForWaveformCreation = Environment.ProcessorCount / 2;
 
         //частота пропуска сэмплов при создании волны
-        public readonly int WaveformSkipsampleRate = 0;
+        public readonly int WaveformSkipSampleRate = 0;
 
         //сколько раз в секунду обновляется состояние плеера
         public int UpdateRate = 60;
