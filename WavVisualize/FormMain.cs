@@ -220,10 +220,9 @@ namespace WavVisualize
         {
             labelStatus.Text = _playerProvider.GetPlayState().ToString();
 
-            //if (Fps % 2 == 0)
+            if (_waveformProvider.IsWaveformScannable)
             {
                 _waveformRectangle.SetInnerCenterAt(_playerProvider.GetNormalizedPosition());
-                //_waveformProvider.Recreate();
             }
 
             float currentPosition = _playerProvider.GetElapsedSeconds();
