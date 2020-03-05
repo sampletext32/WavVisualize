@@ -9,6 +9,9 @@ namespace WavVisualize
         protected Color RightColor;
 
         protected WavFileData FileData;
+        
+        //сдвигается ли волна во времени
+        public bool IsWaveformScannable = false;
 
         protected float VerticalScale;
 
@@ -25,7 +28,7 @@ namespace WavVisualize
         }
 
         public WaveformProvider(NestedRectangle displayRectangle, Color colorL, Color colorR,
-            WavFileData fileData, float verticalScale)
+            WavFileData fileData, float verticalScale, bool isWaveformScannable)
         {
             DisplayRectangle = displayRectangle;
 
@@ -34,6 +37,7 @@ namespace WavVisualize
 
             FileData = fileData;
             VerticalScale = verticalScale;
+            IsWaveformScannable = isWaveformScannable;
         }
 
         public abstract void Dispose();

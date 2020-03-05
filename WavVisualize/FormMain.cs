@@ -115,7 +115,7 @@ namespace WavVisualize
 
             _waveformProvider = new IterationableWaveformProvider(
                 _waveformRectangle, Color.LawnGreen, Color.OrangeRed, _currentWavFileData,
-                0.9f, 40);
+                0.9f, 40, true);
 
             //_waveformProvider = new BasicWaveformProvider(_waveformRectangle, Color.LawnGreen, Color.OrangeRed,
             //  _currentWavFileData, 0.9f);
@@ -173,8 +173,8 @@ namespace WavVisualize
             SetVolumeDrawer();
             SetSpectrumDrawer();
 
-            FileLoader.OnBeginMp3Decompression += () => { SetLabelStatusText("Begin Mp3 Decompression");};
-            FileLoader.OnBeginWavWriting += () => { SetLabelStatusText("Begin Wav Writing");};
+            FileLoader.OnBeginMp3Decompression += () => { SetLabelStatusText("Begin Mp3 Decompression"); };
+            FileLoader.OnBeginWavWriting += () => { SetLabelStatusText("Begin Wav Writing"); };
         }
 
         //перерисовка волны
@@ -182,26 +182,31 @@ namespace WavVisualize
         {
             _waveformProvider?.Draw(e.Graphics);
 
-            //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
-            e.Graphics.FillRectangle(Brushes.Black, _playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width,
-                0,
-                1,
-                pictureBoxWaveform.Height);
+            int x;
+
+            if (_waveformProvider.IsWaveformScannable)
+            {
+                //рисуем вертикальную линию посередине волны
+                x = pictureBoxWaveform.Width / 2;
+            }
+            else
+            {
+                //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
+                x = (int) (_playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width);
+            }
+
+            e.Graphics.FillRectangle(Brushes.Black, x, 0, 1, pictureBoxWaveform.Height);
+
+            int caretWidth = 20;
+            int caretHeight = 5;
+
+            int caretStartX = Math.Max(x - caretWidth / 2, 0);
+            int caretEndX = Math.Min(x + caretWidth / 2, pictureBoxWaveform.Width);
+            int caretDrawWidth = caretEndX - caretStartX;
 
             //рисуем каретку текущей позиции шириной 20
-            e.Graphics.FillRectangle(Brushes.DarkGray,
-                _playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width - 10,
-                pictureBoxWaveform.Height - 5, 20, 5);
-
-            ////рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
-            //e.Graphics.FillRectangle(Brushes.Black, pictureBoxWaveform.Width / 2,
-            //    0,
-            //    1,
-            //    pictureBoxWaveform.Height);
-
-            ////рисуем каретку текущей позиции шириной 20
-            //e.Graphics.FillRectangle(Brushes.DarkGray, pictureBoxWaveform.Width / 2 - 10,
-            //    pictureBoxWaveform.Height - 5, 20, 5);
+            e.Graphics.FillRectangle(Brushes.DarkGray, caretStartX, pictureBoxWaveform.Height - caretHeight,
+                caretDrawWidth, caretHeight);
         }
 
 
@@ -224,8 +229,7 @@ namespace WavVisualize
 
             labelElapsed.Text =
                 $@"{currentTime.Item1:00} : {currentTime.Item2:00} : {currentTime.Item3:00} / {
-                        durationTime.Item1
-                    :00} : {durationTime.Item2:00} : {durationTime.Item3:00}";
+                    durationTime.Item1:00} : {durationTime.Item2:00} : {durationTime.Item3:00}";
 
             //вызываем перерисовку волны и спектра
             pictureBoxWaveform.Refresh();
@@ -274,17 +278,6 @@ namespace WavVisualize
 
                     _volumeDrawer.LoadVolume(_volumeProvider.GetL(), _volumeProvider.GetR(), (1 - EasingCoef));
                     _volumeDrawer.Draw(e.Graphics);
-
-                    ////рисуем линию громкости левого канала
-                    //e.Graphics.DrawLine(Pens.LawnGreen, 0,
-                    //    SpectrumBaselineY - CurrentVolumeL * SpectrumHeight, VolumeBandWidth,
-                    //    SpectrumBaselineY - CurrentVolumeL * SpectrumHeight);
-                    //
-                    ////рисуем линию громкости правого канала
-                    //e.Graphics.DrawLine(Pens.OrangeRed, VolumeBandWidth,
-                    //    SpectrumBaselineY - CurrentVolumeR * SpectrumHeight,
-                    //    VolumeBandWidth + VolumeBandWidth,
-                    //    SpectrumBaselineY - CurrentVolumeR * SpectrumHeight);
                 }
             }
         }
@@ -338,47 +331,44 @@ namespace WavVisualize
         async Task OpenFile()
         {
             OpenFileDialog opf = new OpenFileDialog();
-            //opf.Filter = "Файлы WAV (*.wav)|*.wav";
-            //opf.Filter = "Файлы MP3 (*.mp3)|*.mp3";
             opf.Filter = "Файлы Audio (*.wav, *.mp3)|*.wav;*.mp3";
-            if (opf.ShowDialog() == DialogResult.OK)
+            if (opf.ShowDialog() != DialogResult.OK)
             {
-                string filename = opf.FileName;
-
-                SetLabelStatusText("Opening");
-
-                byte[] fileData = FileLoader.LoadAny(filename);
-
-                //читаем Wav файл
-                var data = await WavFileData.LoadWavFile(fileData);
-
-                SetLabelStatusText("Playing");
-
-                this.Text = opf.SafeFileName;
-
-                _currentWavFileData = data;
-
-                SetWaveformProvider();
-
-                SetVolumeProvider();
-
-                //создаём новый медиафайл
-                _playerProvider.SetFile(filename);
-
-                //SetSpectrumDrawer();
-                SetSpectrumDiagram();
-
-                //изменяем интервал обновления
-                timerUpdater.Interval = 1;
-                timerUpdater.Start(); //запускаем обновление
-
-                //по невероятной причине, из-за открытия диалогового окна, форма находится не в фокусе
-                //поэтому выводим форму на первый план
-                this.BringToFront();
+                return;
             }
-            else //если файл не выбран, закрыть приложение
-            {
-            }
+
+            string filename = opf.FileName;
+
+            SetLabelStatusText("Opening");
+
+            byte[] fileData = FileLoader.LoadAny(filename);
+
+            //читаем Wav файл
+            var wavFileData = await WavFileData.LoadWavFile(fileData);
+
+            SetLabelStatusText("Playing");
+
+            this.Text = opf.SafeFileName;
+
+            _currentWavFileData = wavFileData;
+
+            SetWaveformProvider();
+
+            SetVolumeProvider();
+
+            //создаём новый медиафайл
+            _playerProvider.SetFile(filename);
+
+            //SetSpectrumDrawer();
+            SetSpectrumDiagram();
+
+            //изменяем интервал обновления
+            timerUpdater.Interval = 1;
+            timerUpdater.Start(); //запускаем обновление
+
+            //по невероятной причине, из-за открытия диалогового окна, форма находится не в фокусе
+            //поэтому выводим форму на первый план
+            this.BringToFront();
         }
 
         //нажатие на волну
@@ -466,7 +456,7 @@ namespace WavVisualize
 
         private void checkBoxApplyTimeThinning_CheckedChanged(object sender, EventArgs e)
         {
-            ApplyTimeThinning = !ApplyTimeThinning;
+            ApplyTimeThinning = checkBoxApplyTimeThinning.Checked;
             //здесь не пересоздаём массив спектра, т.к. он уже имеет нужный размер
             SetFFTProvider();
             SetSpectrumDrawer();

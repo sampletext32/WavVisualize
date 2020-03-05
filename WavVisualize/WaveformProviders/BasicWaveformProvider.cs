@@ -12,8 +12,9 @@ namespace WavVisualize
 
 
         public BasicWaveformProvider(NestedRectangle displayRectangle, Color colorL, Color colorR,
-            WavFileData fileData, float verticalScale) : base(displayRectangle, colorL, colorR, fileData,
-            verticalScale)
+            WavFileData fileData, float verticalScale, bool isWaveformScannable) : base(displayRectangle, colorL,
+            colorR, fileData,
+            verticalScale, isWaveformScannable)
         {
             CacheBitmap = new DirectBitmap((int) displayRectangle.Inner.Width, (int) displayRectangle.Inner.Height);
             LeftBrush = new SolidBrush(LeftColor);
@@ -70,14 +71,14 @@ namespace WavVisualize
                         {
                             for (float y = verticalThreeQuarters; y < verticalThreeQuarters - valueR; y++)
                             {
-                                CacheBitmap.SetPixel(xPosition, (int)y, RightColor.ToArgb());
+                                CacheBitmap.SetPixel(xPosition, (int) y, RightColor.ToArgb());
                             }
                         }
                         else
                         {
                             for (float y = verticalThreeQuarters - valueR; y < verticalThreeQuarters; y++)
                             {
-                                CacheBitmap.SetPixel(xPosition, (int)y, RightColor.ToArgb());
+                                CacheBitmap.SetPixel(xPosition, (int) y, RightColor.ToArgb());
                             }
                         }
 

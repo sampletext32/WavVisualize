@@ -11,9 +11,10 @@ namespace WavVisualize
         protected int Iterations;
 
         public IterationableWaveformProvider(NestedRectangle displayRectangle, Color colorL,
-            Color colorR, WavFileData fileData, float verticalScale, int iterations) : base(displayRectangle,
+            Color colorR, WavFileData fileData, float verticalScale, int iterations, bool isWaveformScannable) : base(
+            displayRectangle,
             colorL, colorR,
-            fileData, verticalScale)
+            fileData, verticalScale, isWaveformScannable)
         {
             CacheBitmap = new DirectBitmap((int) displayRectangle.Inner.Width, (int) displayRectangle.Inner.Height);
             LeftBrush = new SolidBrush(LeftColor);

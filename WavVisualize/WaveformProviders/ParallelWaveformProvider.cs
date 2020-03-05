@@ -14,8 +14,9 @@ namespace WavVisualize
         protected int PieceWidth;
 
         public ParallelWaveformProvider(NestedRectangle displayRectangle, Color colorL, Color colorR,
-            WavFileData fileData, float verticalScale, int threads) : base(displayRectangle, colorL, colorR,
-            fileData, verticalScale)
+            WavFileData fileData, float verticalScale, int threads, bool isWaveformScannable) : base(displayRectangle,
+            colorL, colorR,
+            fileData, verticalScale, isWaveformScannable)
         {
             Threads = threads;
             Bitmaps = new Bitmap[threads];
@@ -58,7 +59,8 @@ namespace WavVisualize
                                 (int) (FileData.RightChannel[t * FileData.samplesCount / Threads + k] *
                                        (DisplayRectangle.Inner.CenterH) * VerticalScale);
 
-                            g.FillRectangle(LeftBrushes[t], xPosition, DisplayRectangle.Inner.CenterH - valueL, 1, valueL);
+                            g.FillRectangle(LeftBrushes[t], xPosition, DisplayRectangle.Inner.CenterH - valueL, 1,
+                                valueL);
 
                             g.FillRectangle(RightBrushes[t], xPosition, DisplayRectangle.Inner.CenterH, 1, valueR);
                         }
@@ -69,7 +71,6 @@ namespace WavVisualize
 
         public override void Dispose()
         {
-            
         }
 
         public override void Draw(Graphics g)

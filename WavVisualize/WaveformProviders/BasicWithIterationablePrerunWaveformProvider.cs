@@ -14,9 +14,10 @@ namespace WavVisualize
 
         public BasicWithIterationablePrerunWaveformProvider(NestedRectangle displayRectangle,
             Color colorL,
-            Color colorR, WavFileData fileData, float verticalScale, int prerunIterations) : base(displayRectangle,
-            colorL, colorR,
-            fileData, verticalScale)
+            Color colorR, WavFileData fileData, float verticalScale, int prerunIterations, bool isWaveformScannable) :
+            base(displayRectangle,
+                colorL, colorR,
+                fileData, verticalScale, isWaveformScannable)
         {
             CacheBitmap = new DirectBitmap((int) displayRectangle.Inner.Width, (int) displayRectangle.Inner.Height);
             ReadyBitmap = new DirectBitmap((int) displayRectangle.Inner.Width, (int) displayRectangle.Inner.Height);
