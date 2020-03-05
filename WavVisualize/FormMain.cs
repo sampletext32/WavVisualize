@@ -177,6 +177,22 @@ namespace WavVisualize
             FileLoader.OnBeginWavWriting += () => { SetLabelStatusText("Begin Wav Writing"); };
         }
 
+        private void DrawCaret(Graphics g, int x, int height, bool top = false)
+        {
+            g.FillRectangle(Brushes.Black, x, 0, 1, pictureBoxWaveform.Height);
+
+            int caretWidth = 20;
+            int caretHeight = 5;
+
+            int caretStartX = Math.Max(x - caretWidth / 2, 0);
+            int caretEndX = Math.Min(x + caretWidth / 2, pictureBoxWaveform.Width);
+            int caretDrawWidth = caretEndX - caretStartX;
+
+            //рисуем каретку текущей позиции шириной 20
+            g.FillRectangle(Brushes.DarkGray, caretStartX, pictureBoxWaveform.Height - caretHeight,
+                caretDrawWidth, caretHeight);
+        }
+
         //перерисовка волны
         private void pictureBoxWaveform_Paint(object sender, PaintEventArgs e)
         {
@@ -200,18 +216,7 @@ namespace WavVisualize
                 x = (int) (_playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width);
             }
 
-            e.Graphics.FillRectangle(Brushes.Black, x, 0, 1, pictureBoxWaveform.Height);
-
-            int caretWidth = 20;
-            int caretHeight = 5;
-
-            int caretStartX = Math.Max(x - caretWidth / 2, 0);
-            int caretEndX = Math.Min(x + caretWidth / 2, pictureBoxWaveform.Width);
-            int caretDrawWidth = caretEndX - caretStartX;
-
-            //рисуем каретку текущей позиции шириной 20
-            e.Graphics.FillRectangle(Brushes.DarkGray, caretStartX, pictureBoxWaveform.Height - caretHeight,
-                caretDrawWidth, caretHeight);
+            DrawCaret(e.Graphics, x, pictureBoxWaveform.Height, false);
         }
 
 
@@ -288,17 +293,27 @@ namespace WavVisualize
 
         private void pictureBoxSpectrumDiagram_Paint(object sender, PaintEventArgs e)
         {
+            if (_waveformProvider == null)
+            {
+                return;//TODO: Fix By Implementing PlayerState
+            }
+
             _spectrumDiagram?.Draw(e.Graphics);
 
-            //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
-            e.Graphics.FillRectangle(Brushes.Black, _playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width,
-                0,
-                1,
-                pictureBoxSpectrumDiagram.Height);
+            int x;
 
-            //рисуем каретку текущей позиции шириной 20
-            e.Graphics.FillRectangle(Brushes.DarkGray,
-                _playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width - 10, 0, 20, 2);
+            if (_waveformProvider.IsWaveformScannable)
+            {
+                //рисуем вертикальную линию посередине волны
+                x = pictureBoxWaveform.Width / 2;
+            }
+            else
+            {
+                //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
+                x = (int) (_playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width);
+            }
+
+            DrawCaret(e.Graphics, x, pictureBoxSpectrumDiagram.Height, true);
         }
 
         private void FormMain_Load(object sender, EventArgs e)
