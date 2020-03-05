@@ -82,14 +82,15 @@ namespace WavVisualize
             int length = data.Length;
             float[] samples;
             //TODO: Increase performance by excluding every step POW calculation
+            //TODO: Maybe Add BitShifting Is Faster Than Division
             switch (bitsPerSample)
             {
                 case 8:
                     samples = new float[length];
                     for (int i = 0; i < samples.Length; i++)
                     {
-                        int sample = (int) (data[i * 1 + 0] & 0xff);
-                        samples[i] = (float) (sample / Math.Pow(2, 8));
+                        int sample = (int) (data[i * 1 + 0] & 0xff) - 128;//Apply byte shift to negatives
+                        samples[i] = (float) (sample / Math.Pow(2, 8 - 1));
                     }
 
                     break;
@@ -99,7 +100,7 @@ namespace WavVisualize
                     {
                         short sample = (short) (
                             ((data[i * 2 + 0] & 0xff) << 0) | ((data[i * 2 + 1] & 0xff) << 8));
-                        samples[i] = (float) (sample / Math.Pow(2, 16));
+                        samples[i] = (float) (sample / Math.Pow(2, 16 - 1));
                     }
 
                     break;
@@ -111,9 +112,9 @@ namespace WavVisualize
                         int sample
                             = (((data[i * 3 + 0] & 0xff) << 0) | ((data[i * 3 + 1] & 0xff) << 8) |
                                ((data[i * 3 + 2] & 0xff) << 16)) << 8;
+                        //Делим на 2^32 - максимальное число в 32 битном числе, а не 24.
                         samples[i] =
-                            (float) (sample / Math.Pow(2,
-                                         32)); //Делим на 2^32 - максимальное число в 32 битном числе, а не 24.
+                            (float) (sample / Math.Pow(2, 32 - 1)); 
                     }
 
                     break;
@@ -124,7 +125,7 @@ namespace WavVisualize
                         int sample
                             = ((data[i * 4 + 0] & 0xff) << 0) | ((data[i * 4 + 1] & 0xff) << 8) |
                               ((data[i * 4 + 2] & 0xff) << 16) | ((data[i * 4 + 3] & 0xff) << 24);
-                        samples[i] = (float) (sample / Math.Pow(2, 32));
+                        samples[i] = (float) (sample / Math.Pow(2, 32 - 1));
                     }
 
                     break;
@@ -137,7 +138,7 @@ namespace WavVisualize
                             ((long) (data[i * 8 + 2] & 0xff) << 16) | ((long) (data[i * 8 + 3] & 0xff) << 24) |
                             ((long) (data[i * 8 + 4] & 0xff) << 32) | ((long) (data[i * 8 + 5] & 0xff) << 40) |
                             ((long) (data[i * 8 + 6] & 0xff) << 48) | ((long) (data[i * 8 + 7] & 0xff) << 56);
-                        samples[i] = (float) (sample / Math.Pow(2, 64));
+                        samples[i] = (float) (sample / Math.Pow(2, 64 - 1));
                     }
 
                     break;
