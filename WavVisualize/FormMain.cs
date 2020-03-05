@@ -97,7 +97,7 @@ namespace WavVisualize
                 new MaxInRegionVolumeProvider(_currentWavFileData.LeftChannel, _currentWavFileData.RightChannel,
                     _currentWavFileData.sampleRate / UpdateRate);
         }
-        
+
         private void SetWaveformProvider()
         {
             _waveformProvider?.Cancel();
@@ -320,6 +320,18 @@ namespace WavVisualize
             labelMaxFrequency.Text = "Max Frequency: " + TrimFrequency;
         }
 
+        private void SetLabelStatusText(string text)
+        {
+            if (labelStatus.InvokeRequired)
+            {
+                Invoke(new Action(() => { labelStatus.Text = text; }));
+            }
+            else
+            {
+                labelStatus.Text = text;
+            }
+        }
+
         async Task OpenFile()
         {
             OpenFileDialog opf = new OpenFileDialog();
@@ -330,43 +342,42 @@ namespace WavVisualize
                 string filename = opf.FileName;
 
                 labelStatus.Text = "Opening";
-                Application.DoEvents();
 
-                WavFileData _data = null;
+                WavFileData data = null;
 
                 await Task.Run(async () =>
                 {
                     //открываем файл
                     var reader = new Mp3FileReader(filename);
-                    
-                    Invoke(new Action(() => { labelStatus.Text = "Converting To Wav"; }));
+
+                    SetLabelStatusText("Converting To Wav");
 
                     //создаём PCM поток
                     var waveStream = WaveFormatConversionStream.CreatePcmStream(reader);
-                    
+
                     MemoryStream ms = new MemoryStream();
 
                     //переписываем MP3 в Wav файл в потоке
                     WaveFileWriter.WriteWavFileToStream(ms, waveStream);
 
-                    Invoke(new Action(() => { labelStatus.Text = "Writing Wav"; }));
+                    SetLabelStatusText("Writing Wav");
 
                     //возвращаем поток в начало
                     ms.Seek(0, SeekOrigin.Begin);
 
-                    Invoke(new Action(() => { labelStatus.Text = "Reading Wav"; }));
+                    SetLabelStatusText("Reading Wav");
 
                     //читаем Wav файл
-                    _data = await WavFileData.LoadWavFile(ms.ToArray());
+                    data = await WavFileData.LoadWavFile(ms.ToArray());
 
                     ms.Dispose();
                 });
 
-                Invoke(new Action(() => { labelStatus.Text = "Playing"; }));
+                SetLabelStatusText("Playing");
 
                 this.Text = opf.SafeFileName;
 
-                _currentWavFileData = _data;
+                _currentWavFileData = data;
 
                 SetWaveformProvider();
 
@@ -377,7 +388,6 @@ namespace WavVisualize
 
                 //SetSpectrumDrawer();
                 SetSpectrumDiagram();
-
 
                 //изменяем интервал обновления
                 timerUpdater.Interval = 1;
