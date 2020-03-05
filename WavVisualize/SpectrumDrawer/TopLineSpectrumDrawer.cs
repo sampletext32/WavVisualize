@@ -9,13 +9,13 @@ namespace WavVisualize
 {
     class TopLineSpectrumDrawer : SpectrumDrawer
     {
-        private Color color_;
-        private Pen pen_;
+        private Color _color;
+        private Pen _pen;
         public TopLineSpectrumDrawer(int spectrumSamples, float constantHeightMultiplier, Rectangle displayRectangle,
                Color color) : base(spectrumSamples, constantHeightMultiplier, displayRectangle, color)
         {
-            color_ = color;
-            pen_ = new Pen(color, 3);
+            _color = color;
+            _pen = new Pen(color, 3);
         }
 
         protected override void InnerDraw(Graphics g, int useLength)
@@ -27,10 +27,11 @@ namespace WavVisualize
                 float x = DisplayRectangle.NormalizedWidth((float)i / useLength);
                 float height =
                     DisplayRectangle.NormalizedHeight(SpectrumValues[i] * FastLog10Provider.FastLog10(i) * ConstantHeightMultiplier);
-                g.DrawLine(pen_, lastX, lastY, x, DisplayRectangle.Bottom - height);
+                var y = DisplayRectangle.Bottom - height;
+                g.DrawLine(_pen, lastX, lastY, x, y);
 
                 lastX = x;
-                lastY = DisplayRectangle.Bottom - height;
+                lastY = y;
             }
         }
     }
