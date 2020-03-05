@@ -89,7 +89,7 @@ namespace WavVisualize
                     samples = new float[length];
                     for (int i = 0; i < samples.Length; i++)
                     {
-                        int sample = (int) (data[i * 1 + 0] & 0xff);
+                        int sample = (int) (data[i * 1 + 0] & 0xff) - 128;//Apply byte shift to negatives
                         samples[i] = (float) (sample / Math.Pow(2, 8 - 1));
                     }
 
