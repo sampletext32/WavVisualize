@@ -58,7 +58,6 @@
     <Compile Include="DataContainers\NestedRectangle.cs" />
     <Compile Include="DataContainers\Rectangle.cs" />
     <Compile Include="FileLoader.cs" />
-    <Compile Include="Settings.cs" />
     <Compile Include="Utils\DirectBitmap.cs" />
     <Compile Include="Utils\FastLog10Provider.cs" />
     <Compile Include="SpectrumDiagram\BasicSpectrumDiagram.cs" />

@@ -341,7 +341,7 @@ namespace WavVisualize
 
             SetLabelStatusText("Opening");
 
-            byte[] fileData = FileLoader.LoadAny(filename);
+            byte[] fileData = await FileLoader.LoadAny(filename);
 
             //читаем Wav файл
             var wavFileData = await WavFileData.LoadWavFile(fileData);

@@ -9,7 +9,8 @@ namespace WavVisualize
     {
         public static event Action OnBeginMp3Decompression;
         public static event Action OnBeginWavWriting;
-        public static byte[] LoadAndDecompressMp3(byte[] fileBytes)
+
+        public static async Task<byte[]> LoadAndDecompressMp3(byte[] fileBytes)
         {
             using (MemoryStream mp3MemoryStream = new MemoryStream(fileBytes))
             {
@@ -26,18 +27,18 @@ namespace WavVisualize
                 OnBeginWavWriting?.Invoke();
 
                 //переписываем MP3 в Wav файл в потоке
-                WaveFileWriter.WriteWavFileToStream(ms, waveStream);
+                await Task.Run(() => WaveFileWriter.WriteWavFileToStream(ms, waveStream));
 
                 return ms.ToArray();
             }
         }
 
-        public static byte[] LoadAny(string filepath)
+        public static async Task<byte[]> LoadAny(string filepath)
         {
             byte[] fileBytes = File.ReadAllBytes(filepath);
             if (filepath.EndsWith(".mp3"))
             {
-                return LoadAndDecompressMp3(fileBytes);
+                return await LoadAndDecompressMp3(fileBytes);
             }
             else if (filepath.EndsWith(".wav"))
             {
