@@ -3,9 +3,9 @@ using WMPLib;
 
 namespace WavVisualize
 {
-    public class PlayerProvider
+    public class WindowsMediaPlayerProvider
     {
-        private WindowsMediaPlayer _wmp;
+        private WindowsMediaPlayer _player;
 
         private PlayState _playState;
 
@@ -42,7 +42,7 @@ namespace WavVisualize
         {
             if (_playState != PlayState.NonInitialized)
             {
-                return (float) _wmp.controls.currentPosition;
+                return (float) _player.controls.currentPosition;
             }
 
             return 0f;
@@ -52,7 +52,7 @@ namespace WavVisualize
         {
             if (_playState != PlayState.NonInitialized)
             {
-                return (float) _wmp.currentMedia.duration;
+                return (float) _player.currentMedia.duration;
             }
 
             return 0f;
@@ -62,45 +62,38 @@ namespace WavVisualize
         {
             if (_playState != PlayState.NonInitialized)
             {
-                _wmp.controls.currentPosition = position * _wmp.currentMedia.duration;
+                _player.controls.currentPosition = position * _player.currentMedia.duration;
             }
         }
 
         public void SetFile(string filename)
         {
-            _wmp.currentMedia = _wmp.newMedia(filename);
+            _player.currentMedia = _player.newMedia(filename);
         }
 
         public void Play()
         {
-            _wmp.controls.play();
+            _player.controls.play();
             _playState = PlayState.Playing;
         }
 
         public void Pause()
         {
-            _wmp.controls.pause();
+            _player.controls.pause();
             _playState = PlayState.Paused;
         }
 
-        public PlayerProvider()
+        public WindowsMediaPlayerProvider()
         {
             _playState = PlayState.NonInitialized;
-            _wmp = new WindowsMediaPlayer();
-            _wmp.PlayStateChange += _wmp_PlayStateChange;
-            _wmp.settings.autoStart = false;
+            _player = new WindowsMediaPlayer();
+            _player.PlayStateChange += PlayerPlayStateChange;
+            _player.settings.autoStart = false;
         }
 
-        private void _wmp_PlayStateChange(int NewState)
+        private void PlayerPlayStateChange(int newState)
         {
-            if (_wmp.playState == WMPPlayState.wmppsPlaying)
-            {
-                _playState = PlayState.Playing;
-            }
-            else
-            {
-                _playState = PlayState.Paused;
-            }
+            _playState = _player.playState == WMPPlayState.wmppsPlaying ? PlayState.Playing : PlayState.Paused;
         }
     }
 }

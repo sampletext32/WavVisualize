@@ -91,7 +91,7 @@
       <DependentUpon>FormMain.cs</DependentUpon>
     </Compile>
     <Compile Include="VolumeProviders\MaxInRegionVolumeProvider.cs" />
-    <Compile Include="PlayerProviders\PlayerProvider.cs" />
+    <Compile Include="PlayerProviders\WindowsMediaPlayerProvider.cs" />
     <Compile Include="PlayerProviders\PlayState.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

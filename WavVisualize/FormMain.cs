@@ -11,7 +11,7 @@ namespace WavVisualize
     public partial class FormMain : Form
     {
         //плеер
-        private PlayerProvider _playerProvider;
+        private WindowsMediaPlayerProvider _playerProvider;
 
         //текущий открытый Wav файл
         private WavFileData _currentWavFileData;
@@ -92,7 +92,7 @@ namespace WavVisualize
 
         private void SetPlayerProvider()
         {
-            _playerProvider = new PlayerProvider();
+            _playerProvider = new WindowsMediaPlayerProvider();
         }
 
         private void SetVolumeProvider()
@@ -189,26 +189,26 @@ namespace WavVisualize
         {
             _waveformProvider?.Draw(e.Graphics);
 
-            ////рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
-            //e.Graphics.FillRectangle(Brushes.Black, _playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width,
-            //    0,
-            //    1,
-            //    pictureBoxWaveform.Height);
-            //
-            ////рисуем каретку текущей позиции шириной 20
-            //e.Graphics.FillRectangle(Brushes.DarkGray,
-            //    _playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width - 10,
-            //    pictureBoxWaveform.Height - 5, 20, 5);
-
             //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
-            e.Graphics.FillRectangle(Brushes.Black, pictureBoxWaveform.Width / 2,
+            e.Graphics.FillRectangle(Brushes.Black, _playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width,
                 0,
                 1,
                 pictureBoxWaveform.Height);
 
             //рисуем каретку текущей позиции шириной 20
-            e.Graphics.FillRectangle(Brushes.DarkGray, pictureBoxWaveform.Width / 2 - 10,
+            e.Graphics.FillRectangle(Brushes.DarkGray,
+                _playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width - 10,
                 pictureBoxWaveform.Height - 5, 20, 5);
+
+            ////рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
+            //e.Graphics.FillRectangle(Brushes.Black, pictureBoxWaveform.Width / 2,
+            //    0,
+            //    1,
+            //    pictureBoxWaveform.Height);
+
+            ////рисуем каретку текущей позиции шириной 20
+            //e.Graphics.FillRectangle(Brushes.DarkGray, pictureBoxWaveform.Width / 2 - 10,
+            //    pictureBoxWaveform.Height - 5, 20, 5);
         }
 
 
