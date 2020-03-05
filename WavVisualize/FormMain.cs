@@ -149,10 +149,6 @@ namespace WavVisualize
             //    Rectangle.FromPictureBox(pictureBoxRealtimeSpectrum), Color.OrangeRed, TotalSpectrumBands,
             //    DistanceBetweenBands, 70, 1);
 
-            //_spectrumDrawer = new AnalogBandSpectrumDrawer(SpectrumUseSamples, 10f,
-            //    VolumeBandWidth * 2 + DistanceBetweenVolumeAndSpectrum, pictureBoxSpectrum.Width,
-            //    0, pictureBoxSpectrum.Height, Color.OrangeRed, TotalSpectrumBands, DistanceBetweenBands);
-
             _spectrumDrawer.SetTrimmingFrequency(TrimFrequency);
             _spectrumDrawer.SetApplyTimeThinning(ApplyTimeThinning);
 
