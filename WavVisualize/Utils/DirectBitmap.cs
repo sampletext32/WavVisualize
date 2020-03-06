@@ -8,6 +8,9 @@ namespace WavVisualize
     public class DirectBitmap : IDisposable
     {
         public Bitmap Bitmap;
+
+        public Graphics Graphics;
+
         public int[] Bits;
         public bool Disposed;
         public int Height;
@@ -22,6 +25,8 @@ namespace WavVisualize
             BitsHandle = GCHandle.Alloc(Bits, GCHandleType.Pinned);
             Bitmap = new Bitmap(width, height, width * 4, PixelFormat.Format32bppPArgb,
                 BitsHandle.AddrOfPinnedObject());
+
+            Graphics = Graphics.FromImage(Bitmap);
         }
 
         public void SetPixel(int x, int y, int colour)
@@ -65,6 +70,7 @@ namespace WavVisualize
         {
             if (Disposed) return;
             Disposed = true;
+            Graphics.Dispose();
             Bitmap.Dispose();
             BitsHandle.Free();
             GC.SuppressFinalize(this);
