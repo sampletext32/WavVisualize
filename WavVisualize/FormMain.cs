@@ -176,7 +176,7 @@ namespace WavVisualize
 
         private void DrawCaret(Graphics g, int x, int height, bool top = false)
         {
-            g.FillRectangle(Brushes.Black, x, 0, 1, pictureBoxWaveform.Height);
+            g.FillRectangle(Brushes.Black, x, 0, 1, height);
 
             int caretWidth = 20;
             int caretHeight = 5;
@@ -184,10 +184,18 @@ namespace WavVisualize
             int caretStartX = Math.Max(x - caretWidth / 2, 0);
             int caretEndX = Math.Min(x + caretWidth / 2, pictureBoxWaveform.Width);
             int caretDrawWidth = caretEndX - caretStartX;
+            int caretY;
 
-            //рисуем каретку текущей позиции шириной 20
-            g.FillRectangle(Brushes.DarkGray, caretStartX, pictureBoxWaveform.Height - caretHeight,
-                caretDrawWidth, caretHeight);
+            if (top)
+            {
+                caretY = 0;
+            }
+            else
+            {
+                caretY = height - caretHeight;
+            }
+
+            g.FillRectangle(Brushes.DarkGray, caretStartX, caretY, caretDrawWidth, caretHeight);
         }
 
         //перерисовка волны
@@ -292,7 +300,7 @@ namespace WavVisualize
         {
             if (_waveformProvider == null)
             {
-                return;//TODO: Fix By Implementing PlayerState
+                return; //TODO: Fix By Implementing PlayerState
             }
 
             _spectrumDiagram?.Draw(e.Graphics);
