@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 
 namespace WavVisualize
 {
-    public class IterationableSpectrumDiagram : SpectrumDiagram
+    public class IterationableSpectrumDiagramDrawer : SpectrumDiagramDrawer
     {
         protected int Iterations;
 
-        public IterationableSpectrumDiagram(int spectrumSamples, Rectangle displayRectangle,
+        public IterationableSpectrumDiagramDrawer(int spectrumSamples, Rectangle displayRectangle,
             WavFileData fileData, int iterations) : base(spectrumSamples, displayRectangle, fileData)
         {
             Iterations = iterations;

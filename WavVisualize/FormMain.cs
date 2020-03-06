@@ -23,7 +23,7 @@ namespace WavVisualize
 
         private SpectrumDrawer _spectrumDrawer;
 
-        private SpectrumDiagram _spectrumDiagram;
+        private SpectrumDiagramDrawer _spectrumDiagramDrawer;
 
         public int TrimFrequency = 20000;
 
@@ -151,15 +151,15 @@ namespace WavVisualize
             }
         }
 
-        public void SetSpectrumDiagram()
+        public void SetSpectrumDiagramDrawer()
         {
-            _spectrumDiagram?.Cancel();
-            //_spectrumDiagram = new IterationableSpectrumDiagram(SpectrumUseSamples, Rectangle.FromPictureBox(pictureBoxSpectrumDiagram), _currentWavFileData, 50);
-            _spectrumDiagram = new BasicSpectrumDiagram(SpectrumUseSamples,
+            _spectrumDiagramDrawer?.Cancel();
+            //_spectrumDiagramDrawer = new IterationableSpectrumDiagramDrawer(SpectrumUseSamples, Rectangle.FromPictureBox(pictureBoxSpectrumDiagram), _currentWavFileData, 50);
+            _spectrumDiagramDrawer = new BasicSpectrumDiagramDrawer(SpectrumUseSamples,
                 Rectangle.FromPictureBox(pictureBoxSpectrumDiagram), _currentWavFileData);
-            _spectrumDiagram.SetTrimmingFrequency(TrimFrequency);
-            _spectrumDiagram.SetApplyTimeThinning(ApplyTimeThinning);
-            _spectrumDiagram.Recreate();
+            _spectrumDiagramDrawer.SetTrimmingFrequency(TrimFrequency);
+            _spectrumDiagramDrawer.SetApplyTimeThinning(ApplyTimeThinning);
+            _spectrumDiagramDrawer.Recreate();
         }
 
         public FormMain()
@@ -298,12 +298,16 @@ namespace WavVisualize
 
         private void pictureBoxSpectrumDiagram_Paint(object sender, PaintEventArgs e)
         {
+<<<<<<< HEAD
             if (_waveformProvider == null)
             {
                 return; //TODO: Fix By Implementing PlayerState
             }
 
             _spectrumDiagram?.Draw(e.Graphics);
+=======
+            _spectrumDiagramDrawer?.Draw(e.Graphics);
+>>>>>>> master
 
             int x;
 
@@ -384,7 +388,7 @@ namespace WavVisualize
             _playerProvider.SetFile(filename);
 
             //SetSpectrumDrawer();
-            SetSpectrumDiagram();
+            SetSpectrumDiagramDrawer();
 
             //изменяем интервал обновления
             timerUpdater.Interval = 1;
@@ -439,7 +443,7 @@ namespace WavVisualize
 
             if (_currentWavFileData != null)
             {
-                SetSpectrumDiagram();
+                SetSpectrumDiagramDrawer();
             }
         }
 
@@ -460,7 +464,7 @@ namespace WavVisualize
             SetSpectrumDrawer();
             if (_currentWavFileData != null)
             {
-                SetSpectrumDiagram();
+                SetSpectrumDiagramDrawer();
             }
 
             labelMaxFrequency.Text = "Max Frequency: " + TrimFrequency;
@@ -486,7 +490,7 @@ namespace WavVisualize
             SetSpectrumDrawer();
             if (_currentWavFileData != null)
             {
-                SetSpectrumDiagram();
+                SetSpectrumDiagramDrawer();
             }
         }
 

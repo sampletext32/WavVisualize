@@ -1,9 +1,8 @@
-﻿using System;
-using System.Drawing;
+﻿using System.Drawing;
 
 namespace WavVisualize
 {
-    public abstract class SpectrumDiagram
+    public abstract class SpectrumDiagramDrawer
     {
         protected int SpectrumSamples;
         protected float[] SpectrumValues;
@@ -52,7 +51,7 @@ namespace WavVisualize
             Canceled = true;
         }
 
-        public SpectrumDiagram(int spectrumSamples, Rectangle displayRectangle, WavFileData fileData)
+        public SpectrumDiagramDrawer(int spectrumSamples, Rectangle displayRectangle, WavFileData fileData)
         {
             SpectrumSamples = spectrumSamples;
             SpectrumValues = new float[SpectrumSamples];
@@ -64,7 +63,7 @@ namespace WavVisualize
             FileData = fileData;
         }
 
-        ~SpectrumDiagram()
+        ~SpectrumDiagramDrawer()
         {
             Diagram.Dispose();
         }
