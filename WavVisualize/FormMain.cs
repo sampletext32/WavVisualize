@@ -352,7 +352,7 @@ namespace WavVisualize
             }
         }
 
-        async Task OpenFile()
+        async void OpenFile()
         {
             OpenFileDialog opf = new OpenFileDialog();
             opf.Filter = "Файлы Audio (*.wav, *.mp3)|*.wav;*.mp3";
@@ -449,9 +449,9 @@ namespace WavVisualize
             FramesProcessed = 0;
         }
 
-        private async void buttonOpenFile_Click(object sender, EventArgs e)
+        private void buttonOpenFile_Click(object sender, EventArgs e)
         {
-            await OpenFile();
+            OpenFile();
         }
 
         private void trackBarTrimFrequency_Scroll(object sender, EventArgs e)
