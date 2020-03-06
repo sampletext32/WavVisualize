@@ -18,7 +18,7 @@ namespace WavVisualize
 
         private SpectrumDrawer _spectrumDrawer;
 
-        private SpectrumDiagram _spectrumDiagram;
+        private SpectrumDiagramDrawer _spectrumDiagramDrawer;
         
         private Settings _settings;
 
