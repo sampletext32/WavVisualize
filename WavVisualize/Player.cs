@@ -27,7 +27,7 @@ namespace WavVisualize
 
         }
 
-        public void OnDraw(Graphics waveformGraphics, Graphics spectrumDiagramGraphics, Graphics volumeGraphics, Graphics spectrumGraphics)
+        public void OnDraw(DirectBitmap waveformBitmap, DirectBitmap spectrumDiagramBitmap, DirectBitmap volumeBitmap, DirectBitmap spectrumBitmap)
         {
             //Draw Waveform
             //Draw Spectrum Diagram
