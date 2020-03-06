@@ -13,7 +13,7 @@ namespace WavVisualize
 
         public override void Draw(Graphics g)
         {
-            g.DrawImage(Diagram, DisplayRectangle.Left, DisplayRectangle.Top, DisplayRectangle.Width,
+            g.DrawImage(Diagram.Bitmap, DisplayRectangle.Left, DisplayRectangle.Top, DisplayRectangle.Width,
                 DisplayRectangle.Height);
         }
 
@@ -27,8 +27,6 @@ namespace WavVisualize
 
             Task.Run(() =>
             {
-                Graphics g = Graphics.FromImage(Diagram);
-
                 float[] heightPixels = new float[(int) DisplayRectangle.Height + 1];
 
                 int lastX = 0;
@@ -52,13 +50,9 @@ namespace WavVisualize
 
                     for (int j = 0; j < (int) DisplayRectangle.Height; j++)
                     {
-                        Brush b = GetBrush(heightPixels[j]);
-                        g.FillRectangle(b, i, j, 1, 1);
-                        b.Dispose();
+                        Diagram.SetPixel(i, j, IntensityToArgb(heightPixels[j]));
                     }
                 }
-
-                g.Dispose();
             });
         }
     }
