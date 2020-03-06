@@ -107,7 +107,7 @@ namespace WavVisualize
             SetSpectrumDrawer();
 
             FileLoader.OnBeginMp3Decompression += () => { SetLabelStatusText("Begin Mp3 Decompression"); };
-            FileLoader.OnBeginWavWriting += () => { SetLabelStatusText("Begin Wav Writing"); };
+            FileLoader.OnBeginWavWriting += () => { SetLabelStatusText("Wav Writing"); };
         }
 
         private void SetPlayerProvider()
