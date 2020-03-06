@@ -58,13 +58,16 @@
     <Compile Include="DataContainers\NestedRectangle.cs" />
     <Compile Include="DataContainers\Rectangle.cs" />
     <Compile Include="Player.cs" />
+    <Compile Include="PlayerSettings.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="SpectrumSettings.cs" />
     <Compile Include="Utils\FileLoader.cs" />
     <Compile Include="Utils\DirectBitmap.cs" />
     <Compile Include="Utils\FastLog10Provider.cs" />
     <Compile Include="SpectrumDiagram\BasicSpectrumDiagram.cs" />
     <Compile Include="SpectrumDiagram\IterationableSpectrumDiagram.cs" />
     <Compile Include="SpectrumDrawer\TopLineSpectrumDrawer.cs" />
+    <Compile Include="VolumeSettings.cs" />
     <Compile Include="WaveformProviders\IterationableWaveformProvider.cs" />
     <Compile Include="WaveformProviders\BasicWithIterationablePrerunWaveformProvider.cs" />
     <Compile Include="SpectrumDiagram\ParallelSpectrumDiagram.cs" />
@@ -102,6 +105,7 @@
     <Compile Include="WaveformProviders\ParallelWaveformProvider.cs" />
     <Compile Include="WaveformProviders\WaveformProvider.cs" />
     <Compile Include="DataContainers\WavFileData.cs" />
+    <Compile Include="WaveformSettings.cs" />
     <EmbeddedResource Include="FormMain.resx">
       <DependentUpon>FormMain.cs</DependentUpon>
     </EmbeddedResource>

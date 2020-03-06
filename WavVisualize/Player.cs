@@ -18,7 +18,7 @@
 
         private SpectrumDiagram _spectrumDiagram;
         
-        Settings _settings;
+        private Settings _settings;
 
         public Player(Settings settings)
         {
