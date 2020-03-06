@@ -13,7 +13,8 @@ namespace WavVisualize
         protected FFTProvider FftProvider;
         protected WavFileData FileData;
 
-        protected Bitmap Diagram;
+        protected DirectBitmap Diagram;
+        protected Color Color;
 
         protected int TrimmingFrequency;
         protected bool ApplyTimeThinning;
@@ -31,24 +32,15 @@ namespace WavVisualize
             FftProvider = new CorrectCooleyTukeyInPlaceFFTProvider(SpectrumSamples, ApplyTimeThinning);
         }
 
-        protected Brush GetBrush(float intensity)
+        protected int IntensityToArgb(float intensity)
         {
-            if (intensity > 1)
-            {
-                intensity = 1;
-            }
-
-            if (intensity < 0)
-            {
-                intensity = 0;
-            }
-
-            if (float.IsNaN(intensity))
-            {
-                intensity = 0;
-            }
-
-            return new SolidBrush(Color.FromArgb((int) (10 + intensity * (255 - 10)), Color.OrangeRed));
+            int lowEnd = 10;
+            int alpha = (int) (lowEnd + intensity * (byte.MaxValue - lowEnd));
+            int red = Color.R;
+            int green = Color.G;
+            int blue = Color.B;
+            int argb = (int) ((uint) (red << 16 | green << 8 | blue | alpha << 24));
+            return argb;
         }
 
         public abstract void Draw(Graphics g);
@@ -65,10 +57,16 @@ namespace WavVisualize
             SpectrumSamples = spectrumSamples;
             SpectrumValues = new float[SpectrumSamples];
             DisplayRectangle = displayRectangle;
-            Diagram = new Bitmap((int) displayRectangle.Width, (int) displayRectangle.Height);
+            Diagram = new DirectBitmap((int) displayRectangle.Width, (int) displayRectangle.Height);
+            Color = Color.OrangeRed;
 
             FftProvider = new CorrectCooleyTukeyInPlaceFFTProvider(SpectrumSamples, ApplyTimeThinning);
             FileData = fileData;
+        }
+
+        ~SpectrumDiagram()
+        {
+            Diagram.Dispose();
         }
     }
 }
