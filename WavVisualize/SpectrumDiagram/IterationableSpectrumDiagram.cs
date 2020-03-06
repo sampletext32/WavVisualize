@@ -16,7 +16,7 @@ namespace WavVisualize
 
         public override void Draw(Graphics g)
         {
-            g.DrawImage(Diagram, DisplayRectangle.Left, DisplayRectangle.Top, DisplayRectangle.Width,
+            g.DrawImage(Diagram.Bitmap, DisplayRectangle.Left, DisplayRectangle.Top, DisplayRectangle.Width,
                 DisplayRectangle.Height);
         }
 
@@ -36,9 +36,6 @@ namespace WavVisualize
 
             Task.Run(() =>
             {
-                Graphics g = Graphics.FromImage(Diagram);
-
-
                 Parallel.For(0, Iterations, (k, loopState) =>
                 {
                     float[] heightPixels = new float[(int) DisplayRectangle.Height + 1];
@@ -59,28 +56,26 @@ namespace WavVisualize
                         lock (FftProvider)
                         {
                             spectrum = FileData.GetSpectrumForPosition(realPosition, FftProvider);
+                        }
 
-                            for (int j = 0; j < useSamples; j++)
+                        for (int j = 0; j < useSamples; j++)
+                        {
+                            int yPosition = (int) (DisplayRectangle.Height -
+                                                   DisplayRectangle.NormalizedHeight((float) j / useSamples));
+                            heightPixels[yPosition] = 100f * spectrum[j] * FastLog10Provider.FastLog10(j);
+                        }
+
+                        for (int j = 0; j < (int) DisplayRectangle.Height; j++)
+                        {
+                            int argb = IntensityToArgb(heightPixels[j]);
+
+                            for (int m = 0; m < frequencyHeight; m++)
                             {
-                                int yPosition = (int) (DisplayRectangle.Height -
-                                                       DisplayRectangle.NormalizedHeight((float) j / useSamples));
-                                heightPixels[yPosition] = 100f * spectrum[j] * FastLog10Provider.FastLog10(j);
-                            }
-
-                            for (int j = 0; j < (int) DisplayRectangle.Height; j++)
-                            {
-                                Brush b = GetBrush(heightPixels[j]);
-                                lock (g)
-                                {
-                                    g.FillRectangle(b, i, j, 1, frequencyHeight);
-                                }
-
-                                b.Dispose();
+                                Diagram.SetPixel(i, j + m, argb);
                             }
                         }
                     }
                 });
-                g.Dispose();
             });
         }
     }
