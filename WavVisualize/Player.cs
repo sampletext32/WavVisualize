@@ -18,11 +18,11 @@
 
         private SpectrumDiagram _spectrumDiagram;
         
-        //Settings _settings;
+        Settings _settings;
 
-        public Player(/* Settings settings */)
+        public Player(Settings settings)
         {
-
+            _settings = settings;
         }
     }
 }
