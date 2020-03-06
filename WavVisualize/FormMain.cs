@@ -83,6 +83,29 @@ namespace WavVisualize
 
         private NestedRectangle _waveformRectangle;
 
+        private DirectBitmap _waveformBitmap;
+        private DirectBitmap _spectrumDiagramBitmap;
+        private DirectBitmap _volumeBitmap;
+        private DirectBitmap _spectrumBitmap;
+        
+        public FormMain()
+        {
+            InitializeComponent();
+
+            _waveformBitmap = new DirectBitmap(pictureBoxWaveform.Width, pictureBoxWaveform.Height);
+            _spectrumDiagramBitmap = new DirectBitmap(pictureBoxSpectrumDiagram.Width, pictureBoxSpectrumDiagram.Height);
+            _volumeBitmap = new DirectBitmap(pictureBoxVolume.Width, pictureBoxVolume.Height);
+            _spectrumBitmap = new DirectBitmap(pictureBoxRealtimeSpectrum.Width, pictureBoxRealtimeSpectrum.Height);
+
+            SetPlayerProvider();
+            SetFFTProvider();
+            SetVolumeDrawer();
+            SetSpectrumDrawer();
+
+            FileLoader.OnBeginMp3Decompression += () => { SetLabelStatusText("Begin Mp3 Decompression"); };
+            FileLoader.OnBeginWavWriting += () => { SetLabelStatusText("Begin Wav Writing"); };
+        }
+
         private void SetPlayerProvider()
         {
             _playerProvider = new WindowsMediaPlayerProvider();
@@ -160,18 +183,6 @@ namespace WavVisualize
             _spectrumDiagramDrawer.SetTrimmingFrequency(TrimFrequency);
             _spectrumDiagramDrawer.SetApplyTimeThinning(ApplyTimeThinning);
             _spectrumDiagramDrawer.Recreate();
-        }
-
-        public FormMain()
-        {
-            InitializeComponent();
-            SetPlayerProvider();
-            SetFFTProvider();
-            SetVolumeDrawer();
-            SetSpectrumDrawer();
-
-            FileLoader.OnBeginMp3Decompression += () => { SetLabelStatusText("Begin Mp3 Decompression"); };
-            FileLoader.OnBeginWavWriting += () => { SetLabelStatusText("Begin Wav Writing"); };
         }
 
         private void DrawCaret(Graphics g, int x, int height, bool top = false)
