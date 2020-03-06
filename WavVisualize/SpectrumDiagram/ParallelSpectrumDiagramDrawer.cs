@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 
 namespace WavVisualize
 {
-    public class ParallelSpectrumDiagram : SpectrumDiagram
+    public class ParallelSpectrumDiagramDrawer : SpectrumDiagramDrawer
     {
-        public ParallelSpectrumDiagram(int spectrumSamples, Rectangle displayRectangle, WavFileData fileData) : base(
+        public ParallelSpectrumDiagramDrawer(int spectrumSamples, Rectangle displayRectangle, WavFileData fileData) : base(
             spectrumSamples, displayRectangle, fileData)
         {
         }
