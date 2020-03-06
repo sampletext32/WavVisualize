@@ -83,6 +83,8 @@ namespace WavVisualize
 
         private NestedRectangle _waveformRectangle;
 
+        private Player _player;
+
         private DirectBitmap _waveformBitmap;
         private DirectBitmap _spectrumDiagramBitmap;
         private DirectBitmap _volumeBitmap;
@@ -91,6 +93,8 @@ namespace WavVisualize
         public FormMain()
         {
             InitializeComponent();
+
+            _player = new Player(Settings.Default);
 
             _waveformBitmap = new DirectBitmap(pictureBoxWaveform.Width, pictureBoxWaveform.Height);
             _spectrumDiagramBitmap = new DirectBitmap(pictureBoxSpectrumDiagram.Width, pictureBoxSpectrumDiagram.Height);
