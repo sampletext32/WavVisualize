@@ -86,6 +86,8 @@ namespace WavVisualize
 
         private Dictionary<string, object> _waveformParameters;
 
+        private DirectBitmap _waveformBitmap;
+
         private void SetPlayerProvider()
         {
             _playerProvider = new WindowsMediaPlayerProvider();
@@ -100,6 +102,21 @@ namespace WavVisualize
 
         private void SetWaveformProvider()
         {
+            _waveformParameters = new Dictionary<string, object>();
+
+            _waveformParameters["mode"] = 0;
+            _waveformParameters["directBitmap"] = _waveformBitmap;
+            _waveformParameters["leftColor"] = 0x007cfc00; //LawnGreen
+            _waveformParameters["rightColor"] = 0x00ff4500; //OrangeRed
+            _waveformParameters["leftChannel"] = _currentWavFileData.LeftChannel;
+            _waveformParameters["rightChannel"] = _currentWavFileData.RightChannel;
+            _waveformParameters["samplesCount"] = _currentWavFileData.samplesCount;
+            _waveformParameters["verticalScale"] = 0.9f;
+            _waveformParameters["directBitmap"] = _waveformBitmap;
+
+            new TrueWaveformProvider().RecreateAsync(_waveformParameters);
+            return;
+
             _waveformProvider?.Cancel();
 
             //_waveformProvider?.Dispose();
@@ -168,16 +185,8 @@ namespace WavVisualize
         public FormMain()
         {
             InitializeComponent();
-            _waveformParameters = new Dictionary<string, object>();
 
-            _waveformParameters["mode"] = "0";
-            _waveformParameters["leftColor"] = "";
-            _waveformParameters["rightColor"] = "";
-            _waveformParameters["leftChannel"] = "";
-            _waveformParameters["rightChannel"] = "";
-            _waveformParameters["samplesCount"] = "";
-            _waveformParameters["verticalScale"] = "";
-            _waveformParameters["directBitmap"] = "";
+            _waveformBitmap = new DirectBitmap(pictureBoxWaveform.Width, pictureBoxWaveform.Height);
 
             SetPlayerProvider();
             SetFFTProvider();
@@ -215,16 +224,18 @@ namespace WavVisualize
         //перерисовка волны
         private void pictureBoxWaveform_Paint(object sender, PaintEventArgs e)
         {
-            if (_waveformProvider == null)
-            {
-                return;
-            }
+            //if (_waveformProvider == null)
+            //{
+            //    return;
+            //}
+            //
+            //_waveformProvider.Draw(e.Graphics);
 
-            _waveformProvider.Draw(e.Graphics);
+            e.Graphics.DrawImageUnscaled(_waveformBitmap.Bitmap, 0, 0);
 
             int x;
 
-            if (_waveformProvider.IsWaveformScannable)
+            if (false && _waveformProvider.IsWaveformScannable)
             {
                 //рисуем вертикальную линию посередине волны
                 x = pictureBoxWaveform.Width / 2;
@@ -244,10 +255,10 @@ namespace WavVisualize
         {
             labelStatus.Text = _playerProvider.GetPlayState().ToString();
 
-            if (_waveformProvider.IsWaveformScannable)
-            {
-                _waveformRectangle.SetInnerCenterAt(_playerProvider.GetNormalizedPosition());
-            }
+            //if (_waveformProvider.IsWaveformScannable)
+            //{
+            //    _waveformRectangle.SetInnerCenterAt(_playerProvider.GetNormalizedPosition());
+            //}
 
             float currentPosition = _playerProvider.GetElapsedSeconds();
             float duration = _playerProvider.GetDurationSeconds();
@@ -316,6 +327,7 @@ namespace WavVisualize
             {
                 return; //TODO: Fix By Implementing PlayerState
             }
+
             _spectrumDiagramDrawer.Draw(e.Graphics);
 
             int x;
