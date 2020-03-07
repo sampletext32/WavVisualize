@@ -324,16 +324,9 @@ namespace WavVisualize
 
         private void pictureBoxSpectrumDiagram_Paint(object sender, PaintEventArgs e)
         {
-            if (_waveformProvider == null)
-            {
-                return; //TODO: Fix By Implementing PlayerState
-            }
-
-            _spectrumDiagramDrawer.Draw(e.Graphics);
-
             int x;
 
-            if (_waveformProvider.IsWaveformScannable)
+            if (false && _waveformProvider.IsWaveformScannable)
             {
                 //рисуем вертикальную линию посередине волны
                 x = pictureBoxWaveform.Width / 2;
@@ -343,6 +336,8 @@ namespace WavVisualize
                 //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
                 x = (int) (_playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width);
             }
+
+            _spectrumDiagramDrawer?.Draw(e.Graphics);
 
             DrawCaret(e.Graphics, x, pictureBoxSpectrumDiagram.Height, true);
         }
