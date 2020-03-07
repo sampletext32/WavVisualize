@@ -106,15 +106,14 @@ namespace WavVisualize
 
             _waveformParameters["mode"] = 0;
             _waveformParameters["directBitmap"] = _waveformBitmap;
-            _waveformParameters["leftColor"] = 0x007cfc00; //LawnGreen
-            _waveformParameters["rightColor"] = 0x00ff4500; //OrangeRed
+            _waveformParameters["leftColor"] = (int)(0x7cfc00 | (0xFF << 24)); //LawnGreen
+            _waveformParameters["rightColor"] = (int)(0xff4500 | (0xFF << 24)); //OrangeRed
             _waveformParameters["leftChannel"] = _currentWavFileData.LeftChannel;
             _waveformParameters["rightChannel"] = _currentWavFileData.RightChannel;
             _waveformParameters["samplesCount"] = _currentWavFileData.samplesCount;
             _waveformParameters["verticalScale"] = 0.9f;
-            _waveformParameters["directBitmap"] = _waveformBitmap;
 
-            new TrueWaveformProvider().Recreate(_waveformParameters);
+            new TrueWaveformProvider().RecreateAsync(_waveformParameters);
             return;
 
             _waveformProvider?.Cancel();
