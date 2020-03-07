@@ -114,7 +114,7 @@ namespace WavVisualize
             _waveformParameters["verticalScale"] = 0.9f;
             _waveformParameters["directBitmap"] = _waveformBitmap;
 
-            new TrueWaveformProvider().RecreateAsync(_waveformParameters);
+            new TrueWaveformProvider().Recreate(_waveformParameters);
             return;
 
             _waveformProvider?.Cancel();
