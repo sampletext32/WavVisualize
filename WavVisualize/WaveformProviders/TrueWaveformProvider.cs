@@ -55,56 +55,53 @@ namespace WavVisualize
             }
         }
 
-        private static Action<int, int, float[], float[], int, int, int, float, DirectBitmap>
-            directWaveformMapping =
-                (leftColor, rightColor,
-                    leftChannel, rightChannel,
-                    samplesCount,
-                    startSample, endSample, verticalScale,
-                    directBitmap) =>
-                {
-                    float verticalHalf = directBitmap.Height / 2f;
-                    float verticalQuarter = verticalHalf / 2;
-                    float verticalThreeQuarters = verticalHalf * 3f / 2f;
+        private static void DirectWaveformMapping(int leftColor, int rightColor,
+            float[] leftChannel, float[] rightChannel,
+            int samplesCount,
+            int startSample, int endSample, float verticalScale,
+            DirectBitmap directBitmap)
+        {
+            float verticalHalf = directBitmap.Height / 2f;
+            float verticalQuarter = verticalHalf / 2;
+            float verticalThreeQuarters = verticalHalf * 3f / 2f;
 
-                    float maxVerticalSize = verticalQuarter * verticalScale;
+            float maxVerticalSize = verticalQuarter * verticalScale;
 
-                    for (int currentSample = startSample; currentSample < endSample; currentSample++)
-                    {
-                        int xPosition =
-                            (int) (currentSample / (float) samplesCount * directBitmap.Width);
-
-                        int valueL =
-                            (int) (leftChannel[currentSample] * maxVerticalSize);
-                        int valueR =
-                            (int) (rightChannel[currentSample] * maxVerticalSize);
-
-                        WriteSample(directBitmap, leftColor, rightColor, valueL, valueR, xPosition, verticalQuarter,
-                            verticalThreeQuarters);
-                    }
-                };
-
-        private Action<int, int, float[], float[], int, int, int, float, DirectBitmap, int> parallelWaveformMapping =
-            (leftColor, rightColor,
-                leftChannel, rightChannel,
-                samplesCount,
-                startSample, endSample, verticalScale,
-                directBitmap, degreeOfParallelism) =>
+            for (int currentSample = startSample; currentSample < endSample; currentSample++)
             {
-                CancellationToken cancellationToken = new CancellationToken();
-                //Needs To Call Basic Algorithm From N Points
-                for (int i = 0; i < degreeOfParallelism; i++)
+                int xPosition =
+                    (int) (currentSample / (float) samplesCount * directBitmap.Width);
+
+                int valueL =
+                    (int) (leftChannel[currentSample] * maxVerticalSize);
+                int valueR =
+                    (int) (rightChannel[currentSample] * maxVerticalSize);
+
+                WriteSample(directBitmap, leftColor, rightColor, valueL, valueR, xPosition, verticalQuarter,
+                    verticalThreeQuarters);
+            }
+        }
+
+        private static void ParallelWaveformMapping(int leftColor, int rightColor,
+            float[] leftChannel, float[] rightChannel,
+            int samplesCount,
+            int startSample, int endSample, float verticalScale,
+            DirectBitmap directBitmap, int degreeOfParallelism)
+        {
+            CancellationToken cancellationToken = new CancellationToken();
+            //Needs To Call Basic Algorithm From N Points
+            for (int i = 0; i < degreeOfParallelism; i++)
+            {
+                Task.Factory.StartNew((k) =>
                 {
-                    Task.Factory.StartNew((k) =>
-                    {
-                        int portion = (int) k;
-                        directWaveformMapping(leftColor, rightColor, leftChannel, rightChannel,
-                            samplesCount, portion * samplesCount / degreeOfParallelism,
-                            (portion + 1) * samplesCount / degreeOfParallelism - 1, verticalScale,
-                            directBitmap);
-                    }, i, cancellationToken);
-                }
-            };
+                    int portion = (int) k;
+                    DirectWaveformMapping(leftColor, rightColor, leftChannel, rightChannel,
+                        samplesCount, startSample + portion * (endSample - startSample) / degreeOfParallelism,
+                        startSample + portion * (endSample - startSample) / degreeOfParallelism - 1, verticalScale,
+                        directBitmap);
+                }, i, cancellationToken);
+            }
+        }
 
         public void Recreate(Dictionary<string, object> parameters)
         {
@@ -132,7 +129,7 @@ namespace WavVisualize
             switch (mode)
             {
                 case RecreationMode.Sequential:
-                    directWaveformMapping(leftColor, rightColor, leftChannel, rightChannel,
+                    DirectWaveformMapping(leftColor, rightColor, leftChannel, rightChannel,
                         samplesCount, 0, samplesCount, verticalScale, directBitmap);
                     break;
                 case RecreationMode.Parallel:
@@ -143,7 +140,7 @@ namespace WavVisualize
 
                     int degreeOfParallelism = (int) parameters["degreeOfParallelism"];
 
-                    parallelWaveformMapping(leftColor, rightColor, leftChannel, rightChannel,
+                    ParallelWaveformMapping(leftColor, rightColor, leftChannel, rightChannel,
                         samplesCount, 0, samplesCount, verticalScale, directBitmap, degreeOfParallelism);
                     break;
                 default:
