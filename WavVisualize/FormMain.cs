@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -83,6 +84,8 @@ namespace WavVisualize
 
         private NestedRectangle _waveformRectangle;
 
+        private Dictionary<string, object> _waveformParameters;
+
         private void SetPlayerProvider()
         {
             _playerProvider = new WindowsMediaPlayerProvider();
@@ -165,6 +168,17 @@ namespace WavVisualize
         public FormMain()
         {
             InitializeComponent();
+            _waveformParameters = new Dictionary<string, object>();
+
+            _waveformParameters["mode"] = "0";
+            _waveformParameters["leftColor"] = "";
+            _waveformParameters["rightColor"] = "";
+            _waveformParameters["leftChannel"] = "";
+            _waveformParameters["rightChannel"] = "";
+            _waveformParameters["samplesCount"] = "";
+            _waveformParameters["verticalScale"] = "";
+            _waveformParameters["directBitmap"] = "";
+
             SetPlayerProvider();
             SetFFTProvider();
             SetVolumeDrawer();
