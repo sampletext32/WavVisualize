@@ -174,7 +174,7 @@ namespace WavVisualize
             FileLoader.OnBeginMp3Decompression += () => { SetLabelStatusText("Begin Mp3 Decompression"); };
             FileLoader.OnBeginWavWriting += () => { SetLabelStatusText("Begin Wav Writing"); };
 
-            System.Windows.Forms.Application.Idle += OnApplicationIdle;
+            Application.Idle += OnApplicationIdle;
         }
 
         private void OnApplicationIdle(object sender, EventArgs e)
