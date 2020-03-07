@@ -104,6 +104,8 @@ namespace WavVisualize
         {
             _waveformParameters = new Dictionary<string, object>();
 
+            _waveformBitmap.Clear();
+
             _waveformParameters["mode"] = 0;
             _waveformParameters["directBitmap"] = _waveformBitmap;
             _waveformParameters["leftColor"] = (int)(0x7cfc00 | (0xFF << 24)); //LawnGreen
