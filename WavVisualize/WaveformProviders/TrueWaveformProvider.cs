@@ -12,12 +12,12 @@ namespace WavVisualize
             /// <summary>
             /// Very Basic And StraightForward, Single For Loop
             /// </summary>
-            Sequential,
+            Sequential = 0,
 
             /// <summary>
             /// Very Basic But Draws From N Different Points
             /// </summary>
-            Parallel
+            Parallel = 1
         }
 
         private static void WriteSample(DirectBitmap bitmap, int leftColor, int rightColor, int leftSample,
