@@ -91,6 +91,8 @@ namespace WavVisualize
         private void SetPlayerProvider()
         {
             _playerProvider = new WindowsMediaPlayerProvider();
+            _playerProvider.OnPlayEnd += () => { timerUpdater.Stop();};
+            _playerProvider.OnPlayStart += () => { timerUpdater.Start();};
         }
 
         private void SetVolumeProvider()
@@ -406,11 +408,7 @@ namespace WavVisualize
 
             //SetSpectrumDrawer();
             SetSpectrumDiagramDrawer();
-
-            //изменяем интервал обновления
-            timerUpdater.Interval = 1;
-            timerUpdater.Start(); //запускаем обновление
-
+            
             //по невероятной причине, из-за открытия диалогового окна, форма находится не в фокусе
             //поэтому выводим форму на первый план
             this.BringToFront();

@@ -9,6 +9,9 @@ namespace WavVisualize
 
         private PlayState _playState;
 
+        public event Action OnPlayEnd;
+        public event Action OnPlayStart;
+
         public PlayState GetPlayState()
         {
             return _playState;
@@ -32,6 +35,7 @@ namespace WavVisualize
                 {
                     return 0f;
                 }
+
                 return GetElapsedSeconds() / GetDurationSeconds();
             }
 
@@ -94,6 +98,18 @@ namespace WavVisualize
         private void PlayerPlayStateChange(int newState)
         {
             _playState = _player.playState == WMPPlayState.wmppsPlaying ? PlayState.Playing : PlayState.Paused;
+            if (_player.playState == WMPPlayState.wmppsStopped)
+            {
+                OnPlayEnd?.Invoke();
+            }
+            else if (_player.playState == WMPPlayState.wmppsPaused)
+            {
+                OnPlayEnd?.Invoke();
+            }
+            else if (_player.playState == WMPPlayState.wmppsPlaying)
+            {
+                OnPlayStart?.Invoke();
+            }
         }
     }
 }

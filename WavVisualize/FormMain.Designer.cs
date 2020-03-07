@@ -72,7 +72,7 @@
             // 
             // timerUpdater
             // 
-            this.timerUpdater.Interval = 16;
+            this.timerUpdater.Interval = 1;
             this.timerUpdater.Tick += new System.EventHandler(this.timerUpdater_Tick);
             // 
             // pictureBoxRealtimeSpectrum
