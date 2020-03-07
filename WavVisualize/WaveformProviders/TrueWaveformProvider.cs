@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -105,10 +106,29 @@ namespace WavVisualize
                 }
             };
 
-        public void Recreate(RecreationMode mode, int leftColor, int rightColor, float[] leftChannel,
-            float[] rightChannel, int samplesCount,
-            float verticalScale, DirectBitmap directBitmap)
+        public void Recreate(Dictionary<string, object> parameters)
         {
+            if (!parameters.ContainsKey("leftColor") ||
+                !parameters.ContainsKey("rightColor") ||
+                !parameters.ContainsKey("leftChannel") ||
+                !parameters.ContainsKey("rightChannel") ||
+                !parameters.ContainsKey("samplesCount") ||
+                !parameters.ContainsKey("verticalScale") ||
+                !parameters.ContainsKey("directBitmap"))
+            {
+                throw new ArgumentException("One Of Required Parameters Missing");
+            }
+
+            RecreationMode mode = (RecreationMode) (int) parameters["mode"];
+
+            int leftColor = (int) parameters["leftColor"];
+            int rightColor = (int) parameters["rightColor"];
+            float[] leftChannel = (float[]) parameters["leftChannel"];
+            float[] rightChannel = (float[]) parameters["rightChannel"];
+            int samplesCount = (int) parameters["samplesCount"];
+            float verticalScale = (float) parameters["verticalScale"];
+            DirectBitmap directBitmap = (DirectBitmap) parameters["directBitmap"];
+
             switch (mode)
             {
                 case RecreationMode.Sequential:
@@ -116,20 +136,24 @@ namespace WavVisualize
                         samplesCount, 0, samplesCount, verticalScale, directBitmap);
                     break;
                 case RecreationMode.Parallel:
+                    if (!parameters.ContainsKey("degreeOfParallelism"))
+                    {
+                        throw new ArgumentException("degreeOfParallelism Missing For This Recreation Mode");
+                    }
+
+                    int degreeOfParallelism = (int) parameters["degreeOfParallelism"];
+
                     parallelWaveformMapping(leftColor, rightColor, leftChannel, rightChannel,
-                        samplesCount, 0, samplesCount, verticalScale, directBitmap, Environment.ProcessorCount - 1);
+                        samplesCount, 0, samplesCount, verticalScale, directBitmap, degreeOfParallelism);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
             }
         }
 
-        public void RecreateAsync(RecreationMode mode, int leftColor, int rightColor, float[] leftChannel,
-            float[] rightChannel, int samplesCount,
-            float verticalScale, DirectBitmap directBitmap)
+        public void RecreateAsync(Dictionary<string, object> parameters)
         {
-            Task.Run(() => Recreate(mode, leftColor, rightColor, leftChannel, rightChannel, samplesCount, verticalScale,
-                directBitmap));
+            Task.Run(() => Recreate(parameters));
         }
     }
 }
