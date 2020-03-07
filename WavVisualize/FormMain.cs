@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace WavVisualize
@@ -91,8 +90,8 @@ namespace WavVisualize
         private void SetPlayerProvider()
         {
             _playerProvider = new WindowsMediaPlayerProvider();
-            _playerProvider.OnPlayEnd += () => { timerUpdater.Stop();};
-            _playerProvider.OnPlayStart += () => { timerUpdater.Start();};
+            //_playerProvider.OnPlayEnd += () => { timerUpdater.Stop(); };
+            //_playerProvider.OnPlayStart += () => { timerUpdater.Start(); };
         }
 
         private void SetVolumeProvider()
@@ -198,6 +197,18 @@ namespace WavVisualize
 
             FileLoader.OnBeginMp3Decompression += () => { SetLabelStatusText("Begin Mp3 Decompression"); };
             FileLoader.OnBeginWavWriting += () => { SetLabelStatusText("Begin Wav Writing"); };
+
+            System.Windows.Forms.Application.Idle += OnApplicationIdle;
+        }
+
+        private void OnApplicationIdle(object sender, EventArgs e)
+        {
+            timerUpdater.Stop();
+            while (NativeMethods.AppIsIdle())
+            {
+                timerUpdater_Tick(null, null);
+            }
+            timerUpdater.Start();
         }
 
         private void DrawCaret(Graphics g, int x, int height, bool top = false)
@@ -258,10 +269,10 @@ namespace WavVisualize
         {
             labelStatus.Text = _playerProvider.GetPlayState().ToString();
 
-            //if (_waveformProvider.IsWaveformScannable)
-            //{
-            //    _waveformRectangle.SetInnerCenterAt(_playerProvider.GetNormalizedPosition());
-            //}
+            if (false && _waveformProvider.IsWaveformScannable)
+            {
+                _waveformRectangle.SetInnerCenterAt(_playerProvider.GetNormalizedPosition());
+            }
 
             float currentPosition = _playerProvider.GetElapsedSeconds();
             float duration = _playerProvider.GetDurationSeconds();
@@ -408,7 +419,7 @@ namespace WavVisualize
 
             //SetSpectrumDrawer();
             SetSpectrumDiagramDrawer();
-            
+
             //по невероятной причине, из-за открытия диалогового окна, форма находится не в фокусе
             //поэтому выводим форму на первый план
             this.BringToFront();
