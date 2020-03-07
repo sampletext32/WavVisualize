@@ -312,16 +312,11 @@ namespace WavVisualize
 
         private void pictureBoxSpectrumDiagram_Paint(object sender, PaintEventArgs e)
         {
-<<<<<<< HEAD
             if (_waveformProvider == null)
             {
                 return; //TODO: Fix By Implementing PlayerState
             }
-
-            _spectrumDiagram?.Draw(e.Graphics);
-=======
-            _spectrumDiagramDrawer?.Draw(e.Graphics);
->>>>>>> master
+            _spectrumDiagramDrawer.Draw(e.Graphics);
 
             int x;
 
