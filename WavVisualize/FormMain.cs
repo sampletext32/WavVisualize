@@ -100,6 +100,8 @@ namespace WavVisualize
 
         private void FormMain_Load(object sender, EventArgs e)
         {
+            _waveformBitmap = new DirectBitmap(pictureBoxWaveform.Width, pictureBoxWaveform.Height);
+
             SetPlayerProvider();
             SetFFTProvider();
             SetVolumeDrawer();
