@@ -19,12 +19,7 @@ namespace WavVisualize
             /// <para>Single For Loop Divided Into N Points</para>
             /// <para>Draws With Given degreeOfParallelism</para>
             /// </summary>
-            Parallel = 1,
-
-            /// <summary>
-            /// Draw All Samples With Given SkipRate
-            /// </summary>
-            TakeEveryN = 2,
+            Parallel = 1
         }
 
         private static void WriteSample(DirectBitmap bitmap, int leftColor, int rightColor, int leftSample,
@@ -63,33 +58,6 @@ namespace WavVisualize
         }
 
         private static void DirectWaveformMapping(int leftColor, int rightColor,
-            float[] leftChannel, float[] rightChannel,
-            int samplesCount,
-            int startSample, int endSample, float verticalScale,
-            DirectBitmap directBitmap)
-        {
-            float verticalHalf = directBitmap.Height / 2f;
-            float verticalQuarter = verticalHalf / 2;
-            float verticalThreeQuarters = verticalHalf * 3f / 2f;
-
-            float maxVerticalSize = verticalQuarter * verticalScale;
-
-            for (int currentSample = startSample; currentSample < endSample; currentSample++)
-            {
-                int xPosition =
-                    (int) (currentSample / (float) samplesCount * directBitmap.Width);
-
-                int valueL =
-                    (int) (leftChannel[currentSample] * maxVerticalSize);
-                int valueR =
-                    (int) (rightChannel[currentSample] * maxVerticalSize);
-
-                WriteSample(directBitmap, leftColor, rightColor, valueL, valueR, xPosition, verticalQuarter,
-                    verticalThreeQuarters);
-            }
-        }
-
-        private static void TakeEveryNWaveformMapping(int leftColor, int rightColor,
             float[] leftChannel, float[] rightChannel,
             int samplesCount,
             int startSample, int endSample, float verticalScale,
@@ -132,8 +100,7 @@ namespace WavVisualize
                     DirectWaveformMapping(leftColor, rightColor, leftChannel, rightChannel,
                         samplesCount, startSample + portion * (endSample - startSample) / degreeOfParallelism,
                         startSample + (portion + 1) * (endSample - startSample) / degreeOfParallelism - 1,
-                        verticalScale,
-                        directBitmap);
+                        verticalScale, directBitmap, 1);
                 }, i, cancellationToken);
             }
         }
@@ -146,7 +113,8 @@ namespace WavVisualize
                 !parameters.ContainsKey("rightChannel") ||
                 !parameters.ContainsKey("samplesCount") ||
                 !parameters.ContainsKey("verticalScale") ||
-                !parameters.ContainsKey("directBitmap"))
+                !parameters.ContainsKey("directBitmap") ||
+                !parameters.ContainsKey("takeRate"))
             {
                 throw new ArgumentException("One Of Required Parameters Missing");
             }
@@ -159,13 +127,14 @@ namespace WavVisualize
             float[] rightChannel = (float[]) parameters["rightChannel"];
             int samplesCount = (int) parameters["samplesCount"];
             float verticalScale = (float) parameters["verticalScale"];
-            DirectBitmap directBitmap = (DirectBitmap) parameters["directBitmap"];
+            DirectBitmap directBitmap = (DirectBitmap) parameters["directBitmap"]; 
+            int takeRate = (int)parameters["takeRate"];
 
             switch (mode)
             {
                 case RecreationMode.Sequential:
                     DirectWaveformMapping(leftColor, rightColor, leftChannel, rightChannel,
-                        samplesCount, 0, samplesCount, verticalScale, directBitmap);
+                        samplesCount, 0, samplesCount, verticalScale, directBitmap, takeRate);
                     break;
                 case RecreationMode.Parallel:
                     if (!parameters.ContainsKey("degreeOfParallelism"))
@@ -177,16 +146,6 @@ namespace WavVisualize
 
                     ParallelWaveformMapping(leftColor, rightColor, leftChannel, rightChannel,
                         samplesCount, 0, samplesCount, verticalScale, directBitmap, degreeOfParallelism);
-                    break;
-                case RecreationMode.TakeEveryN:
-                    if (!parameters.ContainsKey("takeRate"))
-                    {
-                        throw new ArgumentException("takeRate Missing For This Recreation Mode");
-                    }
-
-                    int takeRate = (int) parameters["takeRate"];
-                    TakeEveryNWaveformMapping(leftColor, rightColor, leftChannel, rightChannel,
-                        samplesCount, 0, samplesCount, verticalScale, directBitmap, takeRate);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
