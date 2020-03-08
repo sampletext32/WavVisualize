@@ -132,12 +132,7 @@ namespace WavVisualize
         private void timerUpdater_Tick(object sender, EventArgs e)
         {
             labelStatus.Text = _playerProvider.GetPlayState().ToString();
-
-            if (false && _waveformProvider.IsWaveformScannable)
-            {
-                _waveformRectangle.SetInnerCenterAt(_playerProvider.GetNormalizedPosition());
-            }
-
+            
             float currentPosition = _playerProvider.GetElapsedSeconds();
             float duration = _playerProvider.GetDurationSeconds();
 
@@ -361,27 +356,10 @@ namespace WavVisualize
         //перерисовка волны
         private void pictureBoxWaveform_Paint(object sender, PaintEventArgs e)
         {
-            //if (_waveformProvider == null)
-            //{
-            //    return;
-            //}
-            //
-            //_waveformProvider.Draw(e.Graphics);
-
             e.Graphics.DrawImageUnscaled(_waveformBitmap.Bitmap, 0, 0);
 
-            int x;
-
-            if (false && _waveformProvider.IsWaveformScannable)
-            {
-                //рисуем вертикальную линию посередине волны
-                x = pictureBoxWaveform.Width / 2;
-            }
-            else
-            {
-                //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
-                x = (int) (_playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width);
-            }
+            //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
+            var x = (int) (_playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width);
 
             DrawCaret(e.Graphics, x, pictureBoxWaveform.Height, false);
         }
@@ -431,18 +409,8 @@ namespace WavVisualize
 
         private void pictureBoxSpectrumDiagram_Paint(object sender, PaintEventArgs e)
         {
-            int x;
-
-            if (false && _waveformProvider.IsWaveformScannable)
-            {
-                //рисуем вертикальную линию посередине волны
-                x = pictureBoxWaveform.Width / 2;
-            }
-            else
-            {
-                //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
-                x = (int) (_playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width);
-            }
+            //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
+            var x = (int) (_playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width);
 
             _spectrumDiagramDrawer?.Draw(e.Graphics);
 
