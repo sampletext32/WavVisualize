@@ -88,7 +88,7 @@ namespace WavVisualize
             float[] leftChannel, float[] rightChannel,
             int samplesCount,
             int startSample, int endSample, float verticalScale,
-            DirectBitmap directBitmap, int degreeOfParallelism)
+            DirectBitmap directBitmap, int degreeOfParallelism, int takeRate)
         {
             CancellationToken cancellationToken = new CancellationToken();
             //Needs To Call Basic Algorithm From N Points
@@ -100,7 +100,7 @@ namespace WavVisualize
                     DirectWaveformMapping(leftColor, rightColor, leftChannel, rightChannel,
                         samplesCount, startSample + portion * (endSample - startSample) / degreeOfParallelism,
                         startSample + (portion + 1) * (endSample - startSample) / degreeOfParallelism - 1,
-                        verticalScale, directBitmap, 1);
+                        verticalScale, directBitmap, takeRate);
                 }, i, cancellationToken);
             }
         }
@@ -145,7 +145,7 @@ namespace WavVisualize
                     int degreeOfParallelism = (int) parameters["degreeOfParallelism"];
 
                     ParallelWaveformMapping(leftColor, rightColor, leftChannel, rightChannel,
-                        samplesCount, 0, samplesCount, verticalScale, directBitmap, degreeOfParallelism);
+                        samplesCount, 0, samplesCount, verticalScale, directBitmap, degreeOfParallelism, takeRate);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
