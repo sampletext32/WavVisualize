@@ -6,6 +6,8 @@ namespace WavVisualize
 {
     public partial class FormMain : Form
     {
+        #region Data
+
         //плеер
         private WindowsMediaPlayerProvider _playerProvider;
 
@@ -81,6 +83,81 @@ namespace WavVisualize
         public float ScaleX = 1f;
 
         private NestedRectangle _waveformRectangle;
+
+        #endregion
+
+        #region Form Load
+
+        public FormMain()
+        {
+            InitializeComponent();
+        }
+
+        private void FormMain_Load(object sender, EventArgs e)
+        {
+            SetPlayerProvider();
+            SetFFTProvider();
+            SetVolumeDrawer();
+            SetSpectrumDrawer();
+
+            FileLoader.OnBeginMp3Decompression += () => { SetLabelStatusText("Begin Mp3 Decompression"); };
+            FileLoader.OnBeginWavWriting += () => { SetLabelStatusText("Begin Wav Writing"); };
+
+            Application.Idle += OnApplicationIdle;
+
+            //выводим коэффициенты на форму
+            numericUpDownEasing.Value = (int)(EasingCoef * 10);
+
+            numericUpDownPow2Spectrum.Value = FastPowLog2Provider.FastLog2(SpectrumUseSamples);
+
+            trackBarTrimFrequency.Value = TrimFrequency;
+
+            checkBoxApplyTimeThinning.Checked = ApplyTimeThinning;
+
+            labelMaxFrequency.Text = "Max Frequency: " + TrimFrequency;
+        }
+
+        #endregion
+
+        #region Timers
+
+        //шаг обновления
+        private void timerUpdater_Tick(object sender, EventArgs e)
+        {
+            labelStatus.Text = _playerProvider.GetPlayState().ToString();
+
+            if (false && _waveformProvider.IsWaveformScannable)
+            {
+                _waveformRectangle.SetInnerCenterAt(_playerProvider.GetNormalizedPosition());
+            }
+
+            float currentPosition = _playerProvider.GetElapsedSeconds();
+            float duration = _playerProvider.GetDurationSeconds();
+
+            Tuple<int, int, int> currentTime = TimeProvider.SecondsAsTime(currentPosition);
+            Tuple<int, int, int> durationTime = TimeProvider.SecondsAsTime(duration);
+
+            labelElapsed.Text =
+                $@"{currentTime.Item1:00} : {currentTime.Item2:00} : {currentTime.Item3:00} / {
+                    durationTime.Item1:00} : {durationTime.Item2:00} : {durationTime.Item3:00}";
+
+            //вызываем перерисовку волны и спектра
+            pictureBoxWaveform.Refresh();
+            pictureBoxRealtimeSpectrum.Refresh();
+            pictureBoxVolume.Refresh();
+            pictureBoxSpectrumDiagram.Refresh();
+            FramesProcessed++;
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            labelFPS.Text = "FPS: " + FramesProcessed;
+            FramesProcessed = 0;
+        }
+
+        #endregion
+
+        #region Core Setups
 
         private void SetPlayerProvider()
         {
@@ -163,18 +240,59 @@ namespace WavVisualize
             _spectrumDiagramDrawer.Recreate();
         }
 
-        public FormMain()
+        #endregion
+
+        #region Helper Methods
+
+        private void SetLabelStatusText(string text)
         {
-            InitializeComponent();
-            SetPlayerProvider();
-            SetFFTProvider();
-            SetVolumeDrawer();
-            SetSpectrumDrawer();
+            if (labelStatus.InvokeRequired)
+            {
+                Invoke(new Action(() => { labelStatus.Text = text; }));
+            }
+            else
+            {
+                labelStatus.Text = text;
+            }
+        }
 
-            FileLoader.OnBeginMp3Decompression += () => { SetLabelStatusText("Begin Mp3 Decompression"); };
-            FileLoader.OnBeginWavWriting += () => { SetLabelStatusText("Begin Wav Writing"); };
+        async void OpenFile()
+        {
+            OpenFileDialog opf = new OpenFileDialog();
+            opf.Filter = "Файлы Audio (*.wav, *.mp3)|*.wav;*.mp3";
+            if (opf.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
 
-            System.Windows.Forms.Application.Idle += OnApplicationIdle;
+            string filename = opf.FileName;
+
+            SetLabelStatusText("Opening");
+
+            byte[] fileData = await FileLoader.LoadAny(filename);
+
+            //читаем Wav файл
+            var wavFileData = await WavFileData.LoadWavFile(fileData);
+
+            SetLabelStatusText("Playing");
+
+            this.Text = opf.SafeFileName;
+
+            _currentWavFileData = wavFileData;
+
+            SetWaveformProvider();
+
+            SetVolumeProvider();
+
+            //создаём новый медиафайл
+            _playerProvider.SetFile(filename);
+
+            //SetSpectrumDrawer();
+            SetSpectrumDiagramDrawer();
+
+            //по невероятной причине, из-за открытия диалогового окна, форма находится не в фокусе
+            //поэтому выводим форму на первый план
+            this.BringToFront();
         }
 
         private void OnApplicationIdle(object sender, EventArgs e)
@@ -184,8 +302,10 @@ namespace WavVisualize
             {
                 timerUpdater_Tick(null, null);
             }
+
             timerUpdater.Start();
         }
+
 
         private void DrawCaret(Graphics g, int x, int height, bool top = false)
         {
@@ -211,6 +331,10 @@ namespace WavVisualize
             g.FillRectangle(Brushes.DarkGray, caretStartX, caretY, caretDrawWidth, caretHeight);
         }
 
+        #endregion
+
+        #region Paint Events
+
         //перерисовка волны
         private void pictureBoxWaveform_Paint(object sender, PaintEventArgs e)
         {
@@ -235,35 +359,6 @@ namespace WavVisualize
             }
 
             DrawCaret(e.Graphics, x, pictureBoxWaveform.Height, false);
-        }
-
-
-        //шаг обновления
-        private void timerUpdater_Tick(object sender, EventArgs e)
-        {
-            labelStatus.Text = _playerProvider.GetPlayState().ToString();
-
-            if (false && _waveformProvider.IsWaveformScannable)
-            {
-                _waveformRectangle.SetInnerCenterAt(_playerProvider.GetNormalizedPosition());
-            }
-
-            float currentPosition = _playerProvider.GetElapsedSeconds();
-            float duration = _playerProvider.GetDurationSeconds();
-
-            Tuple<int, int, int> currentTime = TimeProvider.SecondsAsTime(currentPosition);
-            Tuple<int, int, int> durationTime = TimeProvider.SecondsAsTime(duration);
-
-            labelElapsed.Text =
-                $@"{currentTime.Item1:00} : {currentTime.Item2:00} : {currentTime.Item3:00} / {
-                    durationTime.Item1:00} : {durationTime.Item2:00} : {durationTime.Item3:00}";
-
-            //вызываем перерисовку волны и спектра
-            pictureBoxWaveform.Refresh();
-            pictureBoxRealtimeSpectrum.Refresh();
-            pictureBoxVolume.Refresh();
-            pictureBoxSpectrumDiagram.Refresh();
-            FramesProcessed++;
         }
 
         //шаг отрисовки спектра
@@ -334,75 +429,30 @@ namespace WavVisualize
             DrawCaret(e.Graphics, x, pictureBoxSpectrumDiagram.Height, true);
         }
 
-        private void FormMain_Load(object sender, EventArgs e)
+        #endregion
+
+        #region Main Buttons Click Handlers
+
+        private void buttonOpenFile_Click(object sender, EventArgs e)
         {
+            OpenFile();
         }
 
-        //когда форма открылась
-        private void FormMain_Shown(object sender, EventArgs e)
+        private void buttonPlayPause_Click(object sender, EventArgs e)
         {
-            //выводим коэффициенты на форму
-            numericUpDownEasing.Value = (int) (EasingCoef * 10);
-
-            numericUpDownPow2Spectrum.Value = FastPowLog2Provider.FastLog2(SpectrumUseSamples);
-
-            trackBarTrimFrequency.Value = TrimFrequency;
-
-            checkBoxApplyTimeThinning.Checked = ApplyTimeThinning;
-
-            labelMaxFrequency.Text = "Max Frequency: " + TrimFrequency;
-        }
-
-        private void SetLabelStatusText(string text)
-        {
-            if (labelStatus.InvokeRequired)
+            if (!_playerProvider.IsPlaying())
             {
-                Invoke(new Action(() => { labelStatus.Text = text; }));
+                _playerProvider.Play();
             }
             else
             {
-                labelStatus.Text = text;
+                _playerProvider.Pause();
             }
         }
 
-        async void OpenFile()
-        {
-            OpenFileDialog opf = new OpenFileDialog();
-            opf.Filter = "Файлы Audio (*.wav, *.mp3)|*.wav;*.mp3";
-            if (opf.ShowDialog() != DialogResult.OK)
-            {
-                return;
-            }
+        #endregion
 
-            string filename = opf.FileName;
-
-            SetLabelStatusText("Opening");
-
-            byte[] fileData = await FileLoader.LoadAny(filename);
-
-            //читаем Wav файл
-            var wavFileData = await WavFileData.LoadWavFile(fileData);
-
-            SetLabelStatusText("Playing");
-
-            this.Text = opf.SafeFileName;
-
-            _currentWavFileData = wavFileData;
-
-            SetWaveformProvider();
-
-            SetVolumeProvider();
-
-            //создаём новый медиафайл
-            _playerProvider.SetFile(filename);
-
-            //SetSpectrumDrawer();
-            SetSpectrumDiagramDrawer();
-
-            //по невероятной причине, из-за открытия диалогового окна, форма находится не в фокусе
-            //поэтому выводим форму на первый план
-            this.BringToFront();
-        }
+        #region Mouse Scroll Handlers
 
         //нажатие на волну
         private void pictureBoxPlot_MouseDown(object sender, MouseEventArgs e)
@@ -432,6 +482,10 @@ namespace WavVisualize
             PressedOnWaveform = false;
         }
 
+        #endregion
+
+        #region User Realtime-Controllable Tweakers Handlers
+
         //обработка изменения смягчающего коэффициента
         private void numericUpDownEasing_ValueChanged(object sender, EventArgs e)
         {
@@ -452,17 +506,6 @@ namespace WavVisualize
             }
         }
 
-        private void timer1_Tick(object sender, EventArgs e)
-        {
-            labelFPS.Text = "FPS: " + FramesProcessed;
-            FramesProcessed = 0;
-        }
-
-        private void buttonOpenFile_Click(object sender, EventArgs e)
-        {
-            OpenFile();
-        }
-
         private void trackBarTrimFrequency_Scroll(object sender, EventArgs e)
         {
             TrimFrequency = trackBarTrimFrequency.Value;
@@ -473,18 +516,6 @@ namespace WavVisualize
             }
 
             labelMaxFrequency.Text = "Max Frequency: " + TrimFrequency;
-        }
-
-        private void buttonPlayPause_Click(object sender, EventArgs e)
-        {
-            if (!_playerProvider.IsPlaying())
-            {
-                _playerProvider.Play();
-            }
-            else
-            {
-                _playerProvider.Pause();
-            }
         }
 
         private void checkBoxApplyTimeThinning_CheckedChanged(object sender, EventArgs e)
@@ -504,5 +535,7 @@ namespace WavVisualize
             ScaleX = hScrollBarScale.Value / 100f;
             SetWaveformProvider();
         }
+
+        #endregion
     }
 }
