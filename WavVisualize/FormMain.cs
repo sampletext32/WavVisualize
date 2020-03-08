@@ -91,6 +91,10 @@ namespace WavVisualize
         public FormMain()
         {
             InitializeComponent();
+        }
+
+        private void FormMain_Load(object sender, EventArgs e)
+        {
             SetPlayerProvider();
             SetFFTProvider();
             SetVolumeDrawer();
@@ -100,17 +104,9 @@ namespace WavVisualize
             FileLoader.OnBeginWavWriting += () => { SetLabelStatusText("Begin Wav Writing"); };
 
             Application.Idle += OnApplicationIdle;
-        }
 
-        private void FormMain_Load(object sender, EventArgs e)
-        {
-        }
-
-        //когда форма открылась
-        private void FormMain_Shown(object sender, EventArgs e)
-        {
             //выводим коэффициенты на форму
-            numericUpDownEasing.Value = (int) (EasingCoef * 10);
+            numericUpDownEasing.Value = (int)(EasingCoef * 10);
 
             numericUpDownPow2Spectrum.Value = FastPowLog2Provider.FastLog2(SpectrumUseSamples);
 
