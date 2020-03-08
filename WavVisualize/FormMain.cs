@@ -14,9 +14,7 @@ namespace WavVisualize
 
         //текущий открытый Wav файл
         private WavFileData _currentWavFileData;
-
-        private WaveformProvider _waveformProvider;
-
+        
         private FFTProvider _fftProvider;
 
         private VolumeProvider _volumeProvider;
@@ -82,8 +80,6 @@ namespace WavVisualize
         public int FramesProcessed;
 
         public float ScaleX = 1f;
-
-        private NestedRectangle _waveformRectangle;
 
         private Dictionary<string, object> _waveformParameters;
 
@@ -181,7 +177,7 @@ namespace WavVisualize
 
             _waveformBitmap.Clear();
 
-            _waveformParameters["mode"] = 0;
+            _waveformParameters["mode"] = 1;
             _waveformParameters["directBitmap"] = _waveformBitmap;
             _waveformParameters["leftColor"] = (int) (0x7cfc00 | (0xFF << 24)); //LawnGreen
             _waveformParameters["rightColor"] = (int) (0xff4500 | (0xFF << 24)); //OrangeRed
@@ -189,31 +185,9 @@ namespace WavVisualize
             _waveformParameters["rightChannel"] = _currentWavFileData.RightChannel;
             _waveformParameters["samplesCount"] = _currentWavFileData.samplesCount;
             _waveformParameters["verticalScale"] = 0.9f;
+            _waveformParameters["degreeOfParallelism"] = Environment.ProcessorCount;
 
             new TrueWaveformProvider().RecreateAsync(_waveformParameters);
-            return;
-
-            _waveformProvider?.Cancel();
-
-            //_waveformProvider?.Dispose();
-
-            _waveformRectangle = NestedRectangle.FromPictureBox(pictureBoxWaveform);
-            _waveformRectangle.Outer.ScaleX(ScaleX);
-
-            _waveformRectangle.SetInnerCenterAt(_playerProvider.GetNormalizedPosition());
-
-            //_waveformProvider = new BasicWithIterationablePrerunWaveformProvider(
-            //    _waveformRectangle, Color.LawnGreen, Color.OrangeRed, _currentWavFileData,
-            //    0.9f, 40);
-
-            _waveformProvider = new IterationableWaveformProvider(
-                _waveformRectangle, Color.LawnGreen, Color.OrangeRed, _currentWavFileData,
-                0.9f, 40, false);
-
-            //_waveformProvider = new BasicWaveformProvider(_waveformRectangle, Color.LawnGreen, Color.OrangeRed,
-            //  _currentWavFileData, 0.9f);
-
-            _waveformProvider.Recreate();
         }
 
         private void SetFFTProvider()
