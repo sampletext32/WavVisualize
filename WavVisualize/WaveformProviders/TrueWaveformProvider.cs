@@ -97,7 +97,7 @@ namespace WavVisualize
                     int portion = (int) k;
                     DirectWaveformMapping(leftColor, rightColor, leftChannel, rightChannel,
                         samplesCount, startSample + portion * (endSample - startSample) / degreeOfParallelism,
-                        startSample + portion * (endSample - startSample) / degreeOfParallelism - 1, verticalScale,
+                        startSample + (portion + 1) * (endSample - startSample) / degreeOfParallelism - 1, verticalScale,
                         directBitmap);
                 }, i, cancellationToken);
             }
