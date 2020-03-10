@@ -156,7 +156,7 @@ namespace WavVisualize
         {
             _volumeProvider =
                 new MaxInRegionVolumeProvider(_currentWavFileData.LeftChannel, _currentWavFileData.RightChannel,
-                    _currentWavFileData.sampleRate / UpdateRate);
+                    SpectrumUseSamples);
         }
 
         private void SetWaveformProvider()
@@ -355,13 +355,9 @@ namespace WavVisualize
                 float normalized = _playerProvider.GetNormalizedPosition();
                 //на каком сейчас сэмпле находимся
                 int currentSample = (int) (normalized * _currentWavFileData.samplesCount);
-
-                //длина участка сэмплов, на котором измеряем громкость
-                int regionLength =
-                    _currentWavFileData.sampleRate / UpdateRate; //_currentWavFileData.sampleRate / UpdateRate;
-
+                
                 //если начало участка меньше чем количество сэплов - длина участка (можно вместить ещё участок)
-                if (currentSample < _currentWavFileData.samplesCount - regionLength && currentSample >= 0)
+                if (currentSample < _currentWavFileData.samplesCount - SpectrumUseSamples && currentSample >= 0)
                 {
                     _volumeProvider.Calculate(currentSample);
 
