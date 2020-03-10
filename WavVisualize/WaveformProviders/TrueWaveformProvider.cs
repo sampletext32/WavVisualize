@@ -21,7 +21,7 @@ namespace WavVisualize
             /// </summary>
             Parallel = 1,
 
-            Iteratable
+            Iterable
         }
 
         private static void WriteSample(DirectBitmap bitmap, int leftColor, int rightColor, int leftSample,
@@ -107,7 +107,7 @@ namespace WavVisualize
             }
         }
 
-        private static void IteratableWaveformMapping(int leftColor, int rightColor,
+        private static void IterableWaveformMapping(int leftColor, int rightColor,
             float[] leftChannel, float[] rightChannel,
             int samplesCount,
             int startSample, int endSample, float verticalScale, int iterations,
@@ -163,7 +163,7 @@ namespace WavVisualize
                     ParallelWaveformMapping(leftColor, rightColor, leftChannel, rightChannel,
                         samplesCount, 0, samplesCount, verticalScale, directBitmap, degreeOfParallelism, takeRate);
                     break;
-                case RecreationMode.Iteratable:
+                case RecreationMode.Iterable:
                     if (!parameters.ContainsKey("iterations"))
                     {
                         throw new ArgumentException("iterations Missing For This Recreation Mode");
@@ -171,7 +171,7 @@ namespace WavVisualize
 
                     int iterations = (int) parameters["iterations"];
 
-                    IteratableWaveformMapping(leftColor, rightColor, leftChannel, rightChannel,
+                    IterableWaveformMapping(leftColor, rightColor, leftChannel, rightChannel,
                         samplesCount, 0, samplesCount, verticalScale, iterations, directBitmap);
                     break;
                 default:
