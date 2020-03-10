@@ -177,7 +177,7 @@ namespace WavVisualize
 
             _waveformBitmap.Clear();
 
-            _waveformParameters["mode"] = TrueWaveformProvider.RecreationMode.Iteratable;
+            _waveformParameters["mode"] = TrueWaveformProvider.RecreationMode.Iterable;
             _waveformParameters["directBitmap"] = _waveformBitmap;
             _waveformParameters["leftColor"] = (int) (0x7cfc00 | (0xFF << 24)); //LawnGreen
             _waveformParameters["rightColor"] = (int) (0xff4500 | (0xFF << 24)); //OrangeRed
