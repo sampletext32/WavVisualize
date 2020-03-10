@@ -19,7 +19,9 @@ namespace WavVisualize
             /// <para>Single For Loop Divided Into N Points</para>
             /// <para>Draws With Given degreeOfParallelism</para>
             /// </summary>
-            Parallel = 1
+            Parallel = 1,
+
+            Iteratable
         }
 
         private static void WriteSample(DirectBitmap bitmap, int leftColor, int rightColor, int leftSample,
@@ -105,6 +107,20 @@ namespace WavVisualize
             }
         }
 
+        private static void IteratableWaveformMapping(int leftColor, int rightColor,
+            float[] leftChannel, float[] rightChannel,
+            int samplesCount,
+            int startSample, int endSample, float verticalScale, int iterations,
+            DirectBitmap directBitmap)
+        {
+            for (int i = 0; i < iterations; i++)
+            {
+                MapWaveform(leftColor, rightColor, leftChannel, rightChannel,
+                    samplesCount, startSample + i, endSample,
+                    verticalScale, iterations, directBitmap);
+            }
+        }
+
         public void Recreate(Dictionary<string, object> parameters)
         {
             if (!parameters.ContainsKey("leftColor") ||
@@ -146,6 +162,17 @@ namespace WavVisualize
 
                     ParallelWaveformMapping(leftColor, rightColor, leftChannel, rightChannel,
                         samplesCount, 0, samplesCount, verticalScale, directBitmap, degreeOfParallelism, takeRate);
+                    break;
+                case RecreationMode.Iteratable:
+                    if (!parameters.ContainsKey("iterations"))
+                    {
+                        throw new ArgumentException("iterations Missing For This Recreation Mode");
+                    }
+
+                    int iterations = (int) parameters["iterations"];
+
+                    IteratableWaveformMapping(leftColor, rightColor, leftChannel, rightChannel,
+                        samplesCount, 0, samplesCount, verticalScale, iterations, directBitmap);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
