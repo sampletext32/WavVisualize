@@ -37,7 +37,7 @@ namespace WavVisualize
             int useSamples;
             if (ApplyTimeThinning)
             {
-                useSamples = SpectrumSamples / 4;
+                useSamples = SpectrumSamples / 2 / 2;
             }
             else
             {

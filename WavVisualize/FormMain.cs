@@ -1,23 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using NAudio.Wave;
-
 
 namespace WavVisualize
 {
     public partial class FormMain : Form
     {
+        #region Data
+
         //плеер
         private WindowsMediaPlayerProvider _playerProvider;
 
         //текущий открытый Wav файл
         private WavFileData _currentWavFileData;
-
-        private WaveformProvider _waveformProvider;
-
+        
         private FFTProvider _fftProvider;
 
         private VolumeProvider _volumeProvider;
@@ -29,19 +26,7 @@ namespace WavVisualize
         private SpectrumDiagramDrawer _spectrumDiagramDrawer;
 
         public int TrimFrequency = 20000;
-
-        //создавать ли волну последовательно
-        public readonly bool CreateWaveformSequentially = true;
-
-        //количество потоков для создания волны (-1, чтобы главный поток рисовал без зависаний)
-        public readonly int ThreadsForWaveformCreation = Environment.ProcessorCount / 2;
-
-        //частота пропуска сэмплов при создании волны
-        public readonly int WaveformSkipSampleRate = 0;
-
-        //сколько раз в секунду обновляется состояние плеера
-        public int UpdateRate = 60;
-
+        
         //коэффициент смягчения резких скачков
         public float EasingCoef = 0.1f;
 
@@ -84,43 +69,115 @@ namespace WavVisualize
 
         public float ScaleX = 1f;
 
-        private NestedRectangle _waveformRectangle;
+        private Dictionary<string, object> _waveformParameters;
+
+        private DirectBitmap _waveformBitmap;
+
+        #endregion
+
+        #region Form Load
+
+        public FormMain()
+        {
+            InitializeComponent();
+        }
+
+        private void FormMain_Load(object sender, EventArgs e)
+        {
+            _waveformBitmap = new DirectBitmap(pictureBoxWaveform.Width, pictureBoxWaveform.Height);
+
+            SetPlayerProvider();
+            SetFFTProvider();
+            SetVolumeDrawer();
+            SetSpectrumDrawer();
+
+            FileLoader.OnBeginMp3Decompression += () => { SetLabelStatusText("Begin Mp3 Decompression"); };
+            FileLoader.OnBeginWavWriting += () => { SetLabelStatusText("Begin Wav Writing"); };
+
+            Application.Idle += OnApplicationIdle;
+
+            //выводим коэффициенты на форму
+            numericUpDownEasing.Value = (int) (EasingCoef * 10);
+
+            numericUpDownPow2Spectrum.Value = FastPowLog2Provider.FastLog2(SpectrumUseSamples);
+
+            trackBarTrimFrequency.Value = TrimFrequency;
+
+            checkBoxApplyTimeThinning.Checked = ApplyTimeThinning;
+
+            labelMaxFrequency.Text = "Max Frequency: " + TrimFrequency;
+        }
+
+        #endregion
+
+        #region Timers
+
+        //шаг обновления
+        private void timerUpdater_Tick(object sender, EventArgs e)
+        {
+            labelStatus.Text = _playerProvider.GetPlayState().ToString();
+            
+            float currentPosition = _playerProvider.GetElapsedSeconds();
+            float duration = _playerProvider.GetDurationSeconds();
+
+            Tuple<int, int, int> currentTime = TimeProvider.SecondsAsTime(currentPosition);
+            Tuple<int, int, int> durationTime = TimeProvider.SecondsAsTime(duration);
+
+            labelElapsed.Text =
+                $@"{currentTime.Item1:00} : {currentTime.Item2:00} : {currentTime.Item3:00} / {
+                    durationTime.Item1:00} : {durationTime.Item2:00} : {durationTime.Item3:00}";
+
+            //вызываем перерисовку волны и спектра
+            pictureBoxWaveform.Refresh();
+            pictureBoxRealtimeSpectrum.Refresh();
+            pictureBoxVolume.Refresh();
+            pictureBoxSpectrumDiagram.Refresh();
+            FramesProcessed++;
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            labelFPS.Text = "FPS: " + FramesProcessed;
+            FramesProcessed = 0;
+        }
+
+        #endregion
+
+        #region Core Setups
 
         private void SetPlayerProvider()
         {
             _playerProvider = new WindowsMediaPlayerProvider();
+            //_playerProvider.OnPlayEnd += () => { timerUpdater.Stop(); };
+            //_playerProvider.OnPlayStart += () => { timerUpdater.Start(); };
         }
 
         private void SetVolumeProvider()
         {
             _volumeProvider =
                 new MaxInRegionVolumeProvider(_currentWavFileData.LeftChannel, _currentWavFileData.RightChannel,
-                    _currentWavFileData.sampleRate / UpdateRate);
+                    SpectrumUseSamples);
         }
 
         private void SetWaveformProvider()
         {
-            _waveformProvider?.Cancel();
+            _waveformParameters = new Dictionary<string, object>();
 
-            //_waveformProvider?.Dispose();
+            _waveformBitmap.Clear();
 
-            _waveformRectangle = NestedRectangle.FromPictureBox(pictureBoxWaveform);
-            _waveformRectangle.Outer.ScaleX(ScaleX);
+            _waveformParameters["directBitmap"] = _waveformBitmap;
+            _waveformParameters["leftColor"] = (int) (0x7cfc00 | (0xFF << 24)); //LawnGreen
+            _waveformParameters["rightColor"] = (int) (0xff4500 | (0xFF << 24)); //OrangeRed
+            _waveformParameters["leftChannel"] = _currentWavFileData.LeftChannel;
+            _waveformParameters["rightChannel"] = _currentWavFileData.RightChannel;
+            _waveformParameters["samplesCount"] = _currentWavFileData.samplesCount;
+            _waveformParameters["verticalScale"] = 0.9f;
+            _waveformParameters["takeRate"] = 3;
+            _waveformParameters["iterations"] = 2;
+            _waveformParameters["splitWorkFirst"] = true;
+            _waveformParameters["portions"] = 2;
 
-            _waveformRectangle.SetInnerCenterAt(_playerProvider.GetNormalizedPosition());
-
-            //_waveformProvider = new BasicWithIterationablePrerunWaveformProvider(
-            //    _waveformRectangle, Color.LawnGreen, Color.OrangeRed, _currentWavFileData,
-            //    0.9f, 40);
-
-            _waveformProvider = new IterationableWaveformProvider(
-                _waveformRectangle, Color.LawnGreen, Color.OrangeRed, _currentWavFileData,
-                0.9f, 40, false);
-
-            //_waveformProvider = new BasicWaveformProvider(_waveformRectangle, Color.LawnGreen, Color.OrangeRed,
-            //  _currentWavFileData, 0.9f);
-
-            _waveformProvider.Recreate();
+            new TrueWaveformProvider().RecreateAsync(_waveformParameters);
         }
 
         private void SetFFTProvider()
@@ -165,160 +222,9 @@ namespace WavVisualize
             _spectrumDiagramDrawer.Recreate();
         }
 
-        public FormMain()
-        {
-            InitializeComponent();
-            SetPlayerProvider();
-            SetFFTProvider();
-            SetVolumeDrawer();
-            SetSpectrumDrawer();
+        #endregion
 
-            FileLoader.OnBeginMp3Decompression += () => { SetLabelStatusText("Begin Mp3 Decompression"); };
-            FileLoader.OnBeginWavWriting += () => { SetLabelStatusText("Begin Wav Writing"); };
-        }
-
-        //перерисовка волны
-        private void pictureBoxWaveform_Paint(object sender, PaintEventArgs e)
-        {
-            if (_waveformProvider == null)
-            {
-                return;
-            }
-
-            _waveformProvider.Draw(e.Graphics);
-
-            int x;
-
-            if (_waveformProvider.IsWaveformScannable)
-            {
-                //рисуем вертикальную линию посередине волны
-                x = pictureBoxWaveform.Width / 2;
-            }
-            else
-            {
-                //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
-                x = (int) (_playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width);
-            }
-
-            e.Graphics.FillRectangle(Brushes.Black, x, 0, 1, pictureBoxWaveform.Height);
-
-            int caretWidth = 20;
-            int caretHeight = 5;
-
-            int caretStartX = Math.Max(x - caretWidth / 2, 0);
-            int caretEndX = Math.Min(x + caretWidth / 2, pictureBoxWaveform.Width);
-            int caretDrawWidth = caretEndX - caretStartX;
-
-            //рисуем каретку текущей позиции шириной 20
-            e.Graphics.FillRectangle(Brushes.DarkGray, caretStartX, pictureBoxWaveform.Height - caretHeight,
-                caretDrawWidth, caretHeight);
-        }
-
-
-        //шаг обновления
-        private void timerUpdater_Tick(object sender, EventArgs e)
-        {
-            labelStatus.Text = _playerProvider.GetPlayState().ToString();
-
-            if (_waveformProvider.IsWaveformScannable)
-            {
-                _waveformRectangle.SetInnerCenterAt(_playerProvider.GetNormalizedPosition());
-            }
-
-            float currentPosition = _playerProvider.GetElapsedSeconds();
-            float duration = _playerProvider.GetDurationSeconds();
-
-            Tuple<int, int, int> currentTime = TimeProvider.SecondsAsTime(currentPosition);
-            Tuple<int, int, int> durationTime = TimeProvider.SecondsAsTime(duration);
-
-            labelElapsed.Text =
-                $@"{currentTime.Item1:00} : {currentTime.Item2:00} : {currentTime.Item3:00} / {
-                    durationTime.Item1:00} : {durationTime.Item2:00} : {durationTime.Item3:00}";
-
-            //вызываем перерисовку волны и спектра
-            pictureBoxWaveform.Refresh();
-            pictureBoxRealtimeSpectrum.Refresh();
-            pictureBoxVolume.Refresh();
-            pictureBoxSpectrumDiagram.Refresh();
-            FramesProcessed++;
-        }
-
-        //шаг отрисовки спектра
-        private void pictureBoxSpectrum_Paint(object sender, PaintEventArgs e)
-        {
-            if (_playerProvider.IsPlaying() || _playerProvider.IsPaused()) //если сейчас воспроизводится
-            {
-                float normalized = _playerProvider.GetNormalizedPosition();
-                //на каком сейчас сэмпле находимся
-                int currentSample = (int) (normalized * _currentWavFileData.samplesCount);
-
-                //если начало участка меньше чем количество сэмплов - сэмплов на преобразование спектра (можно вместить ещё раз рассчитать спектр)
-                if (currentSample < _currentWavFileData.samplesCount - SpectrumUseSamples && currentSample >= 0)
-                {
-                    //рисуем спектр
-                    float[] spectrum = _currentWavFileData.GetSpectrumForPosition(normalized, _fftProvider);
-                    _spectrumDrawer.LoadSpectrum(spectrum, 1 - EasingCoef);
-                    _spectrumDrawer.Draw(e.Graphics);
-                }
-            }
-        }
-
-        private void pictureBoxVolume_Paint(object sender, PaintEventArgs e)
-        {
-            if (_playerProvider.IsPlaying() || _playerProvider.IsPaused()) //если сейчас воспроизводится
-            {
-                float normalized = _playerProvider.GetNormalizedPosition();
-                //на каком сейчас сэмпле находимся
-                int currentSample = (int) (normalized * _currentWavFileData.samplesCount);
-
-                //длина участка сэмплов, на котором измеряем громкость
-                int regionLength =
-                    _currentWavFileData.sampleRate / UpdateRate; //_currentWavFileData.sampleRate / UpdateRate;
-
-                //если начало участка меньше чем количество сэплов - длина участка (можно вместить ещё участок)
-                if (currentSample < _currentWavFileData.samplesCount - regionLength && currentSample >= 0)
-                {
-                    _volumeProvider.Calculate(currentSample);
-
-                    _volumeDrawer.LoadVolume(_volumeProvider.GetL(), _volumeProvider.GetR(), (1 - EasingCoef));
-                    _volumeDrawer.Draw(e.Graphics);
-                }
-            }
-        }
-
-        private void pictureBoxSpectrumDiagram_Paint(object sender, PaintEventArgs e)
-        {
-            _spectrumDiagramDrawer?.Draw(e.Graphics);
-
-            //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
-            e.Graphics.FillRectangle(Brushes.Black, _playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width,
-                0,
-                1,
-                pictureBoxSpectrumDiagram.Height);
-
-            //рисуем каретку текущей позиции шириной 20
-            e.Graphics.FillRectangle(Brushes.DarkGray,
-                _playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width - 10, 0, 20, 2);
-        }
-
-        private void FormMain_Load(object sender, EventArgs e)
-        {
-        }
-
-        //когда форма открылась
-        private void FormMain_Shown(object sender, EventArgs e)
-        {
-            //выводим коэффициенты на форму
-            numericUpDownEasing.Value = (int) (EasingCoef * 10);
-
-            numericUpDownPow2Spectrum.Value = FastPowLog2Provider.FastLog2(SpectrumUseSamples);
-
-            trackBarTrimFrequency.Value = TrimFrequency;
-
-            checkBoxApplyTimeThinning.Checked = ApplyTimeThinning;
-
-            labelMaxFrequency.Text = "Max Frequency: " + TrimFrequency;
-        }
+        #region Helper Methods
 
         private void SetLabelStatusText(string text)
         {
@@ -332,7 +238,7 @@ namespace WavVisualize
             }
         }
 
-        async Task OpenFile()
+        async void OpenFile()
         {
             OpenFileDialog opf = new OpenFileDialog();
             opf.Filter = "Файлы Audio (*.wav, *.mp3)|*.wav;*.mp3";
@@ -366,14 +272,135 @@ namespace WavVisualize
             //SetSpectrumDrawer();
             SetSpectrumDiagramDrawer();
 
-            //изменяем интервал обновления
-            timerUpdater.Interval = 1;
-            timerUpdater.Start(); //запускаем обновление
-
             //по невероятной причине, из-за открытия диалогового окна, форма находится не в фокусе
             //поэтому выводим форму на первый план
             this.BringToFront();
         }
+
+        private void OnApplicationIdle(object sender, EventArgs e)
+        {
+            timerUpdater.Stop();
+            while (NativeMethods.AppIsIdle())
+            {
+                timerUpdater_Tick(null, null);
+            }
+
+            timerUpdater.Start();
+        }
+
+
+        private void DrawCaret(Graphics g, int x, int height, bool top = false)
+        {
+            g.FillRectangle(Brushes.Black, x, 0, 1, height);
+
+            int caretWidth = 20;
+            int caretHeight = 5;
+
+            int caretStartX = Math.Max(x - caretWidth / 2, 0);
+            int caretEndX = Math.Min(x + caretWidth / 2, pictureBoxWaveform.Width);
+            int caretDrawWidth = caretEndX - caretStartX;
+            int caretY;
+
+            if (top)
+            {
+                caretY = 0;
+            }
+            else
+            {
+                caretY = height - caretHeight;
+            }
+
+            g.FillRectangle(Brushes.DarkGray, caretStartX, caretY, caretDrawWidth, caretHeight);
+        }
+
+        #endregion
+
+        #region Paint Events
+
+        //перерисовка волны
+        private void pictureBoxWaveform_Paint(object sender, PaintEventArgs e)
+        {
+            e.Graphics.DrawImageUnscaled(_waveformBitmap.Bitmap, 0, 0);
+
+            //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
+            var x = (int) (_playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width);
+
+            DrawCaret(e.Graphics, x, pictureBoxWaveform.Height, false);
+        }
+
+        //шаг отрисовки спектра
+        private void pictureBoxSpectrum_Paint(object sender, PaintEventArgs e)
+        {
+            if (_playerProvider.IsPlaying() || _playerProvider.IsPaused()) //если сейчас воспроизводится
+            {
+                float normalized = _playerProvider.GetNormalizedPosition();
+                //на каком сейчас сэмпле находимся
+                int currentSample = (int) (normalized * _currentWavFileData.samplesCount);
+
+                //если начало участка меньше чем количество сэмплов - сэмплов на преобразование спектра (можно вместить ещё раз рассчитать спектр)
+                if (currentSample < _currentWavFileData.samplesCount - SpectrumUseSamples && currentSample >= 0)
+                {
+                    //рисуем спектр
+                    float[] spectrum = _currentWavFileData.GetSpectrumForPosition(normalized, _fftProvider);
+                    _spectrumDrawer.LoadSpectrum(spectrum, 1 - EasingCoef);
+                    _spectrumDrawer.Draw(e.Graphics);
+                }
+            }
+        }
+
+        private void pictureBoxVolume_Paint(object sender, PaintEventArgs e)
+        {
+            if (_playerProvider.IsPlaying() || _playerProvider.IsPaused()) //если сейчас воспроизводится
+            {
+                float normalized = _playerProvider.GetNormalizedPosition();
+                //на каком сейчас сэмпле находимся
+                int currentSample = (int) (normalized * _currentWavFileData.samplesCount);
+                
+                //если начало участка меньше чем количество сэплов - длина участка (можно вместить ещё участок)
+                if (currentSample < _currentWavFileData.samplesCount - SpectrumUseSamples && currentSample >= 0)
+                {
+                    _volumeProvider.Calculate(currentSample);
+
+                    _volumeDrawer.LoadVolume(_volumeProvider.GetL(), _volumeProvider.GetR(), (1 - EasingCoef));
+                    _volumeDrawer.Draw(e.Graphics);
+                }
+            }
+        }
+
+        private void pictureBoxSpectrumDiagram_Paint(object sender, PaintEventArgs e)
+        {
+            //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
+            var x = (int) (_playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width);
+
+            _spectrumDiagramDrawer?.Draw(e.Graphics);
+
+            DrawCaret(e.Graphics, x, pictureBoxSpectrumDiagram.Height, true);
+        }
+
+        #endregion
+
+        #region Main Buttons Click Handlers
+
+        private void buttonOpenFile_Click(object sender, EventArgs e)
+        {
+            OpenFile();
+        }
+
+        private void buttonPlayPause_Click(object sender, EventArgs e)
+        {
+            if (!_playerProvider.IsPlaying())
+            {
+                _playerProvider.Play();
+            }
+            else
+            {
+                _playerProvider.Pause();
+            }
+        }
+
+        #endregion
+
+        #region Mouse Scroll Handlers
 
         //нажатие на волну
         private void pictureBoxPlot_MouseDown(object sender, MouseEventArgs e)
@@ -403,6 +430,10 @@ namespace WavVisualize
             PressedOnWaveform = false;
         }
 
+        #endregion
+
+        #region User Realtime-Controllable Tweakers Handlers
+
         //обработка изменения смягчающего коэффициента
         private void numericUpDownEasing_ValueChanged(object sender, EventArgs e)
         {
@@ -423,17 +454,6 @@ namespace WavVisualize
             }
         }
 
-        private void timer1_Tick(object sender, EventArgs e)
-        {
-            labelFPS.Text = "FPS: " + FramesProcessed;
-            FramesProcessed = 0;
-        }
-
-        private async void buttonOpenFile_Click(object sender, EventArgs e)
-        {
-            await OpenFile();
-        }
-
         private void trackBarTrimFrequency_Scroll(object sender, EventArgs e)
         {
             TrimFrequency = trackBarTrimFrequency.Value;
@@ -444,18 +464,6 @@ namespace WavVisualize
             }
 
             labelMaxFrequency.Text = "Max Frequency: " + TrimFrequency;
-        }
-
-        private void buttonPlayPause_Click(object sender, EventArgs e)
-        {
-            if (!_playerProvider.IsPlaying())
-            {
-                _playerProvider.Play();
-            }
-            else
-            {
-                _playerProvider.Pause();
-            }
         }
 
         private void checkBoxApplyTimeThinning_CheckedChanged(object sender, EventArgs e)
@@ -475,5 +483,7 @@ namespace WavVisualize
             ScaleX = hScrollBarScale.Value / 100f;
             SetWaveformProvider();
         }
+
+        #endregion
     }
 }

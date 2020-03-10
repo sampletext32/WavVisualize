@@ -72,7 +72,7 @@
             // 
             // timerUpdater
             // 
-            this.timerUpdater.Interval = 16;
+            this.timerUpdater.Interval = 1;
             this.timerUpdater.Tick += new System.EventHandler(this.timerUpdater_Tick);
             // 
             // pictureBoxRealtimeSpectrum
@@ -288,7 +288,6 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Awesome Player";
             this.Load += new System.EventHandler(this.FormMain_Load);
-            this.Shown += new System.EventHandler(this.FormMain_Shown);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxWaveform)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxRealtimeSpectrum)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownEasing)).EndInit();
