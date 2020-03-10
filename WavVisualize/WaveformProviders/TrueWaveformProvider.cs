@@ -57,11 +57,11 @@ namespace WavVisualize
             }
         }
 
-        private static void DirectWaveformMapping(int leftColor, int rightColor,
+        private static void MapWaveform(int leftColor, int rightColor,
             float[] leftChannel, float[] rightChannel,
             int samplesCount,
-            int startSample, int endSample, float verticalScale,
-            DirectBitmap directBitmap, int takeRate)
+            int startSample, int endSample, float verticalScale, int takeRate,
+            DirectBitmap directBitmap)
         {
             float verticalHalf = directBitmap.Height / 2f;
             float verticalQuarter = verticalHalf / 2;
@@ -97,10 +97,10 @@ namespace WavVisualize
                 Task.Factory.StartNew((k) =>
                 {
                     int portion = (int) k;
-                    DirectWaveformMapping(leftColor, rightColor, leftChannel, rightChannel,
+                    MapWaveform(leftColor, rightColor, leftChannel, rightChannel,
                         samplesCount, startSample + portion * (endSample - startSample) / degreeOfParallelism,
                         startSample + (portion + 1) * (endSample - startSample) / degreeOfParallelism - 1,
-                        verticalScale, directBitmap, takeRate);
+                        verticalScale, takeRate, directBitmap);
                 }, i, cancellationToken);
             }
         }
@@ -127,14 +127,14 @@ namespace WavVisualize
             float[] rightChannel = (float[]) parameters["rightChannel"];
             int samplesCount = (int) parameters["samplesCount"];
             float verticalScale = (float) parameters["verticalScale"];
-            DirectBitmap directBitmap = (DirectBitmap) parameters["directBitmap"]; 
-            int takeRate = (int)parameters["takeRate"];
+            DirectBitmap directBitmap = (DirectBitmap) parameters["directBitmap"];
+            int takeRate = (int) parameters["takeRate"];
 
             switch (mode)
             {
                 case RecreationMode.Sequential:
-                    DirectWaveformMapping(leftColor, rightColor, leftChannel, rightChannel,
-                        samplesCount, 0, samplesCount, verticalScale, directBitmap, takeRate);
+                    MapWaveform(leftColor, rightColor, leftChannel, rightChannel,
+                        samplesCount, 0, samplesCount, verticalScale, takeRate, directBitmap);
                     break;
                 case RecreationMode.Parallel:
                     if (!parameters.ContainsKey("degreeOfParallelism"))
