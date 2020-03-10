@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,23 +8,6 @@ namespace WavVisualize
 {
     public class TrueWaveformProvider
     {
-        public enum RecreationMode
-        {
-            /// <summary>
-            /// Very Basic And StraightForward, Single For Loop
-            /// </summary>
-            Sequential = 0,
-
-            /// <summary>
-            /// Very Basic But Draws From N Different Points
-            /// <para>Single For Loop Divided Into N Points</para>
-            /// <para>Draws With Given degreeOfParallelism</para>
-            /// </summary>
-            Parallel = 1,
-
-            Iterable
-        }
-
         private static void WriteSample(DirectBitmap bitmap, int leftColor, int rightColor, int leftSample,
             int rightSample,
             int x, float baseLineLeft, float baseLineRight)
@@ -60,8 +44,7 @@ namespace WavVisualize
         }
 
         private static void MapWaveform(int leftColor, int rightColor,
-            float[] leftChannel, float[] rightChannel,
-            int samplesCount,
+            float[] leftChannel, float[] rightChannel, int samplesCount,
             int startSample, int endSample, float verticalScale, int takeRate,
             DirectBitmap directBitmap)
         {
@@ -86,40 +69,59 @@ namespace WavVisualize
             }
         }
 
-        private static void ParallelWaveformMapping(int leftColor, int rightColor,
-            float[] leftChannel, float[] rightChannel,
-            int samplesCount,
-            int startSample, int endSample, float verticalScale,
-            DirectBitmap directBitmap, int degreeOfParallelism, int takeRate)
+        private static void MasterWaveformMapping(int leftColor, int rightColor,
+            float[] leftChannel, float[] rightChannel, int samplesCount, int startSample, int endSample, float verticalScale,
+            int portions, int iterations,
+            bool splitWorkFirst,
+            DirectBitmap directBitmap)
         {
-            CancellationToken cancellationToken = new CancellationToken();
-            //Needs To Call Basic Algorithm From N Points
-            for (int i = 0; i < degreeOfParallelism; i++)
+            int samplesPerPortion = samplesCount / portions;
+
+            if (splitWorkFirst)
             {
-                Task.Factory.StartNew((k) =>
+                for (int portion = 0; portion < portions; portion++)
                 {
-                    int portion = (int) k;
-                    MapWaveform(leftColor, rightColor, leftChannel, rightChannel,
-                        samplesCount, startSample + portion * (endSample - startSample) / degreeOfParallelism,
-                        startSample + (portion + 1) * (endSample - startSample) / degreeOfParallelism - 1,
-                        verticalScale, takeRate, directBitmap);
-                }, i, cancellationToken);
+                    int portionStartSample = portion * samplesPerPortion;
+                    int portionEndSample = (portion + 1) * samplesPerPortion - 1;
+
+                    Debug.WriteLine("Portion {0}: {1} - {2}", portion, portionStartSample, portionEndSample);
+
+                    for (int i = 0; i < iterations; i++)
+                    {
+                        int iterationOffset = i;
+                        int takeRate = iterations;
+
+                        Debug.WriteLine("Iteration {0}", i);
+
+                        MapWaveform(leftColor, rightColor, leftChannel, rightChannel, samplesCount,
+                            portionStartSample + iterationOffset,
+                            portionEndSample, verticalScale, takeRate, directBitmap);
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < iterations; i++)
+                {
+                    int iterationOffset = i;
+                    int takeRate = iterations;
+
+                    Debug.WriteLine("Iteration {0}", i);
+
+                    for (int portion = 0; portion < portions; portion++)
+                    {
+                        int portionStartSample = portion * samplesPerPortion;
+                        int portionEndSample = (portion + 1) * samplesPerPortion - 1;
+                        Debug.WriteLine("Portion {0}: {1} - {2}", portion, portionStartSample, portionEndSample);
+
+                        MapWaveform(leftColor, rightColor, leftChannel, rightChannel, samplesCount,
+                            portionStartSample + iterationOffset,
+                            portionEndSample, verticalScale, takeRate, directBitmap);
+                    }
+                }
             }
         }
 
-        private static void IterableWaveformMapping(int leftColor, int rightColor,
-            float[] leftChannel, float[] rightChannel,
-            int samplesCount,
-            int startSample, int endSample, float verticalScale, int iterations,
-            DirectBitmap directBitmap)
-        {
-            for (int i = 0; i < iterations; i++)
-            {
-                MapWaveform(leftColor, rightColor, leftChannel, rightChannel,
-                    samplesCount, startSample + i, endSample,
-                    verticalScale, iterations, directBitmap);
-            }
-        }
 
         public void Recreate(Dictionary<string, object> parameters)
         {
@@ -130,13 +132,14 @@ namespace WavVisualize
                 !parameters.ContainsKey("samplesCount") ||
                 !parameters.ContainsKey("verticalScale") ||
                 !parameters.ContainsKey("directBitmap") ||
-                !parameters.ContainsKey("takeRate"))
+                !parameters.ContainsKey("takeRate") ||
+                !parameters.ContainsKey("splitWorkFirst") ||
+                !parameters.ContainsKey("portions") ||
+                !parameters.ContainsKey("iterations"))
             {
                 throw new ArgumentException("One Of Required Parameters Missing");
             }
-
-            RecreationMode mode = (RecreationMode) (int) parameters["mode"];
-
+            
             int leftColor = (int) parameters["leftColor"];
             int rightColor = (int) parameters["rightColor"];
             float[] leftChannel = (float[]) parameters["leftChannel"];
@@ -144,39 +147,12 @@ namespace WavVisualize
             int samplesCount = (int) parameters["samplesCount"];
             float verticalScale = (float) parameters["verticalScale"];
             DirectBitmap directBitmap = (DirectBitmap) parameters["directBitmap"];
-            int takeRate = (int) parameters["takeRate"];
+            bool splitWorkFirst = (bool) parameters["splitWorkFirst"];
+            int portions = (int) parameters["portions"];
+            int iterations = (int) parameters["iterations"];
 
-            switch (mode)
-            {
-                case RecreationMode.Sequential:
-                    MapWaveform(leftColor, rightColor, leftChannel, rightChannel,
-                        samplesCount, 0, samplesCount, verticalScale, takeRate, directBitmap);
-                    break;
-                case RecreationMode.Parallel:
-                    if (!parameters.ContainsKey("degreeOfParallelism"))
-                    {
-                        throw new ArgumentException("degreeOfParallelism Missing For This Recreation Mode");
-                    }
-
-                    int degreeOfParallelism = (int) parameters["degreeOfParallelism"];
-
-                    ParallelWaveformMapping(leftColor, rightColor, leftChannel, rightChannel,
-                        samplesCount, 0, samplesCount, verticalScale, directBitmap, degreeOfParallelism, takeRate);
-                    break;
-                case RecreationMode.Iterable:
-                    if (!parameters.ContainsKey("iterations"))
-                    {
-                        throw new ArgumentException("iterations Missing For This Recreation Mode");
-                    }
-
-                    int iterations = (int) parameters["iterations"];
-
-                    IterableWaveformMapping(leftColor, rightColor, leftChannel, rightChannel,
-                        samplesCount, 0, samplesCount, verticalScale, iterations, directBitmap);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
-            }
+            MasterWaveformMapping(leftColor, rightColor, leftChannel, rightChannel, samplesCount,
+                0, samplesCount, verticalScale, portions, iterations, splitWorkFirst, directBitmap);
         }
 
         public void RecreateAsync(Dictionary<string, object> parameters)

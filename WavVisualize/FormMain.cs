@@ -177,7 +177,6 @@ namespace WavVisualize
 
             _waveformBitmap.Clear();
 
-            _waveformParameters["mode"] = TrueWaveformProvider.RecreationMode.Iterable;
             _waveformParameters["directBitmap"] = _waveformBitmap;
             _waveformParameters["leftColor"] = (int) (0x7cfc00 | (0xFF << 24)); //LawnGreen
             _waveformParameters["rightColor"] = (int) (0xff4500 | (0xFF << 24)); //OrangeRed
@@ -186,8 +185,9 @@ namespace WavVisualize
             _waveformParameters["samplesCount"] = _currentWavFileData.samplesCount;
             _waveformParameters["verticalScale"] = 0.9f;
             _waveformParameters["takeRate"] = 3;
-            _waveformParameters["iterations"] = 1;
-            _waveformParameters["degreeOfParallelism"] = Environment.ProcessorCount;
+            _waveformParameters["iterations"] = 2;
+            _waveformParameters["splitWorkFirst"] = true;
+            _waveformParameters["portions"] = 2;
 
             new TrueWaveformProvider().RecreateAsync(_waveformParameters);
         }
