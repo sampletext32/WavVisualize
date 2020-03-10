@@ -69,12 +69,14 @@ namespace WavVisualize
         }
 
         private static void MasterWaveformMapping(int leftColor, int rightColor,
-            float[] leftChannel, float[] rightChannel, int samplesCount, int startSample, int endSample, float verticalScale,
+            float[] leftChannel, float[] rightChannel, int inputSamplesCount, int startSample, int endSample, float verticalScale,
             int portions, int iterations,
             bool splitWorkFirst,
             DirectBitmap directBitmap)
         {
-            int samplesPerPortion = samplesCount / portions;
+            int sampleToMapCount = endSample - startSample;
+
+            int samplesPerPortion = sampleToMapCount / portions;
 
             if (splitWorkFirst)
             {
@@ -92,7 +94,7 @@ namespace WavVisualize
 
                         Debug.WriteLine("Iteration {0}", i);
 
-                        MapWaveform(leftColor, rightColor, leftChannel, rightChannel, samplesCount,
+                        MapWaveform(leftColor, rightColor, leftChannel, rightChannel, inputSamplesCount,
                             portionStartSample + iterationOffset,
                             portionEndSample, verticalScale, takeRate, directBitmap);
                     }
@@ -113,7 +115,7 @@ namespace WavVisualize
                         int portionEndSample = (portion + 1) * samplesPerPortion - 1;
                         Debug.WriteLine("Portion {0}: {1} - {2}", portion, portionStartSample, portionEndSample);
 
-                        MapWaveform(leftColor, rightColor, leftChannel, rightChannel, samplesCount,
+                        MapWaveform(leftColor, rightColor, leftChannel, rightChannel, inputSamplesCount,
                             portionStartSample + iterationOffset,
                             portionEndSample, verticalScale, takeRate, directBitmap);
                     }
