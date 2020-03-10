@@ -1,4 +1,6 @@
-﻿namespace WavVisualize
+﻿using System;
+
+namespace WavVisualize
 {
     public class FastPowLog2Provider
     {
@@ -24,9 +26,8 @@
                 case 32768: return 15;
                 case 65536: return 16;
                 case 131_072: return 17;
+                default: throw new ArgumentException($"{n} given is not a supported power of 2");
             }
-
-            return -1;
         }
 
         public static int FastPow2(int n)
@@ -51,9 +52,8 @@
                 case 15: return 32768;
                 case 16: return 65536;
                 case 17: return 131_072;
+                default: throw new ArgumentException($"{n} given is greater than supported power = 17");
             }
-
-            return -1;
         }
     }
 }
