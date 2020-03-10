@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -13,9 +14,7 @@ namespace WavVisualize
 
         //текущий открытый Wav файл
         private WavFileData _currentWavFileData;
-
-        private WaveformProvider _waveformProvider;
-
+        
         private FFTProvider _fftProvider;
 
         private VolumeProvider _volumeProvider;
@@ -82,7 +81,9 @@ namespace WavVisualize
 
         public float ScaleX = 1f;
 
-        private NestedRectangle _waveformRectangle;
+        private Dictionary<string, object> _waveformParameters;
+
+        private DirectBitmap _waveformBitmap;
 
         #endregion
 
@@ -95,6 +96,8 @@ namespace WavVisualize
 
         private void FormMain_Load(object sender, EventArgs e)
         {
+            _waveformBitmap = new DirectBitmap(pictureBoxWaveform.Width, pictureBoxWaveform.Height);
+
             SetPlayerProvider();
             SetFFTProvider();
             SetVolumeDrawer();
@@ -106,7 +109,7 @@ namespace WavVisualize
             Application.Idle += OnApplicationIdle;
 
             //выводим коэффициенты на форму
-            numericUpDownEasing.Value = (int)(EasingCoef * 10);
+            numericUpDownEasing.Value = (int) (EasingCoef * 10);
 
             numericUpDownPow2Spectrum.Value = FastPowLog2Provider.FastLog2(SpectrumUseSamples);
 
@@ -125,12 +128,7 @@ namespace WavVisualize
         private void timerUpdater_Tick(object sender, EventArgs e)
         {
             labelStatus.Text = _playerProvider.GetPlayState().ToString();
-
-            if (false && _waveformProvider.IsWaveformScannable)
-            {
-                _waveformRectangle.SetInnerCenterAt(_playerProvider.GetNormalizedPosition());
-            }
-
+            
             float currentPosition = _playerProvider.GetElapsedSeconds();
             float duration = _playerProvider.GetDurationSeconds();
 
@@ -175,27 +173,23 @@ namespace WavVisualize
 
         private void SetWaveformProvider()
         {
-            _waveformProvider?.Cancel();
+            _waveformParameters = new Dictionary<string, object>();
 
-            //_waveformProvider?.Dispose();
+            _waveformBitmap.Clear();
 
-            _waveformRectangle = NestedRectangle.FromPictureBox(pictureBoxWaveform);
-            _waveformRectangle.Outer.ScaleX(ScaleX);
+            _waveformParameters["directBitmap"] = _waveformBitmap;
+            _waveformParameters["leftColor"] = (int) (0x7cfc00 | (0xFF << 24)); //LawnGreen
+            _waveformParameters["rightColor"] = (int) (0xff4500 | (0xFF << 24)); //OrangeRed
+            _waveformParameters["leftChannel"] = _currentWavFileData.LeftChannel;
+            _waveformParameters["rightChannel"] = _currentWavFileData.RightChannel;
+            _waveformParameters["samplesCount"] = _currentWavFileData.samplesCount;
+            _waveformParameters["verticalScale"] = 0.9f;
+            _waveformParameters["takeRate"] = 3;
+            _waveformParameters["iterations"] = 2;
+            _waveformParameters["splitWorkFirst"] = true;
+            _waveformParameters["portions"] = 2;
 
-            _waveformRectangle.SetInnerCenterAt(_playerProvider.GetNormalizedPosition());
-
-            //_waveformProvider = new BasicWithIterationablePrerunWaveformProvider(
-            //    _waveformRectangle, Color.LawnGreen, Color.OrangeRed, _currentWavFileData,
-            //    0.9f, 40);
-
-            _waveformProvider = new IterationableWaveformProvider(
-                _waveformRectangle, Color.LawnGreen, Color.OrangeRed, _currentWavFileData,
-                0.9f, 40, false);
-
-            //_waveformProvider = new BasicWaveformProvider(_waveformRectangle, Color.LawnGreen, Color.OrangeRed,
-            //  _currentWavFileData, 0.9f);
-
-            _waveformProvider.Recreate();
+            new TrueWaveformProvider().RecreateAsync(_waveformParameters);
         }
 
         private void SetFFTProvider()
@@ -338,25 +332,10 @@ namespace WavVisualize
         //перерисовка волны
         private void pictureBoxWaveform_Paint(object sender, PaintEventArgs e)
         {
-            if (_waveformProvider == null)
-            {
-                return;
-            }
+            e.Graphics.DrawImageUnscaled(_waveformBitmap.Bitmap, 0, 0);
 
-            _waveformProvider.Draw(e.Graphics);
-
-            int x;
-
-            if (_waveformProvider.IsWaveformScannable)
-            {
-                //рисуем вертикальную линию посередине волны
-                x = pictureBoxWaveform.Width / 2;
-            }
-            else
-            {
-                //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
-                x = (int) (_playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width);
-            }
+            //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
+            var x = (int) (_playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width);
 
             DrawCaret(e.Graphics, x, pictureBoxWaveform.Height, false);
         }
@@ -406,25 +385,10 @@ namespace WavVisualize
 
         private void pictureBoxSpectrumDiagram_Paint(object sender, PaintEventArgs e)
         {
-            if (_waveformProvider == null)
-            {
-                return; //TODO: Fix By Implementing PlayerState
-            }
+            //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
+            var x = (int) (_playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width);
 
-            _spectrumDiagramDrawer.Draw(e.Graphics);
-
-            int x;
-
-            if (_waveformProvider.IsWaveformScannable)
-            {
-                //рисуем вертикальную линию посередине волны
-                x = pictureBoxWaveform.Width / 2;
-            }
-            else
-            {
-                //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
-                x = (int) (_playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width);
-            }
+            _spectrumDiagramDrawer?.Draw(e.Graphics);
 
             DrawCaret(e.Graphics, x, pictureBoxSpectrumDiagram.Height, true);
         }
