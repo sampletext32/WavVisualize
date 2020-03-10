@@ -26,19 +26,7 @@ namespace WavVisualize
         private SpectrumDiagramDrawer _spectrumDiagramDrawer;
 
         public int TrimFrequency = 20000;
-
-        //создавать ли волну последовательно
-        public readonly bool CreateWaveformSequentially = true;
-
-        //количество потоков для создания волны (-1, чтобы главный поток рисовал без зависаний)
-        public readonly int ThreadsForWaveformCreation = Environment.ProcessorCount / 2;
-
-        //частота пропуска сэмплов при создании волны
-        public readonly int WaveformSkipSampleRate = 0;
-
-        //сколько раз в секунду обновляется состояние плеера
-        public int UpdateRate = 60;
-
+        
         //коэффициент смягчения резких скачков
         public float EasingCoef = 0.1f;
 
