@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace WavVisualize
@@ -14,7 +16,7 @@ namespace WavVisualize
 
         //текущий открытый Wav файл
         private WavFileData _currentWavFileData;
-        
+
         private FFTProvider _fftProvider;
 
         private VolumeProvider _volumeProvider;
@@ -26,7 +28,7 @@ namespace WavVisualize
         private SpectrumDiagramDrawer _spectrumDiagramDrawer;
 
         public int TrimFrequency = 20000;
-        
+
         //коэффициент смягчения резких скачков
         public float EasingCoef = 0.1f;
 
@@ -73,6 +75,8 @@ namespace WavVisualize
 
         private DirectBitmap _waveformBitmap;
 
+        private DirectBitmap _spectrumBitmap;
+
         #endregion
 
         #region Form Load
@@ -85,6 +89,7 @@ namespace WavVisualize
         private void FormMain_Load(object sender, EventArgs e)
         {
             _waveformBitmap = new DirectBitmap(pictureBoxWaveform.Width, pictureBoxWaveform.Height);
+            _spectrumBitmap = new DirectBitmap(pictureBoxRealtimeSpectrum.Width, pictureBoxRealtimeSpectrum.Height);
 
             SetPlayerProvider();
             SetFFTProvider();
@@ -116,7 +121,7 @@ namespace WavVisualize
         private void timerUpdater_Tick(object sender, EventArgs e)
         {
             labelStatus.Text = _playerProvider.GetPlayState().ToString();
-            
+
             float currentPosition = _playerProvider.GetElapsedSeconds();
             float duration = _playerProvider.GetDurationSeconds();
 
@@ -342,8 +347,62 @@ namespace WavVisualize
                 {
                     //рисуем спектр
                     float[] spectrum = _currentWavFileData.GetSpectrumForPosition(normalized, _fftProvider);
-                    _spectrumDrawer.LoadSpectrum(spectrum, 1 - EasingCoef);
-                    _spectrumDrawer.Draw(e.Graphics);
+
+                    int useSamples;
+                    if (ApplyTimeThinning)
+                    {
+                        useSamples = SpectrumUseSamples / 2 / 2;
+                    }
+                    else
+                    {
+                        useSamples = SpectrumUseSamples / 2;
+                    }
+
+                    useSamples = (int) (useSamples * TrimFrequency / 20000f);
+
+                    if (spectrum.Any(t => t > 1))
+                    {
+                        Debug.WriteLine("Value > 1");
+                    }
+
+                    else if (spectrum.Any(t => t > 0.9))
+                    {
+                        Debug.WriteLine("Value > 09");
+                    }
+
+                    else if (spectrum.Any(t => t > 0.8))
+                    {
+                        Debug.WriteLine("Value > 08");
+                    }
+
+                    else if (spectrum.Any(t => t > 0.7))
+                    {
+                        Debug.WriteLine("Value > 07");
+                    }
+
+                    else if (spectrum.Any(t => t > 0.6))
+                    {
+                        Debug.WriteLine("Value > 06");
+                    }
+
+                    else if (spectrum.Any(t => t > 0.5))
+                    {
+                        Debug.WriteLine("Value > 05");
+                    }
+
+                    _spectrumBitmap.Clear();
+
+
+                    float freqResolution = (float) _currentWavFileData.sampleRate / SpectrumUseSamples;
+
+                    TrueSpectrumDrawer.Draw(_spectrumBitmap, spectrum, freqResolution, useSamples,
+                        _spectrumBitmap.Height - 1, 10f,
+                        _spectrumBitmap.Width, _spectrumBitmap.Height, (int) (0xff4500 | (0xFF << 24)));
+
+                    e.Graphics.DrawImageUnscaled(_spectrumBitmap.Bitmap, 0, 0);
+
+                    //_spectrumDrawer.LoadSpectrum(spectrum, 1 - EasingCoef);
+                    //_spectrumDrawer.Draw(e.Graphics);
                 }
             }
         }
@@ -355,7 +414,7 @@ namespace WavVisualize
                 float normalized = _playerProvider.GetNormalizedPosition();
                 //на каком сейчас сэмпле находимся
                 int currentSample = (int) (normalized * _currentWavFileData.samplesCount);
-                
+
                 //если начало участка меньше чем количество сэплов - длина участка (можно вместить ещё участок)
                 if (currentSample < _currentWavFileData.samplesCount - SpectrumUseSamples && currentSample >= 0)
                 {
