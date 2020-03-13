@@ -4,7 +4,6 @@ namespace WavVisualize
 {
     public abstract class FFTProvider
     {
-        private static float Ln10 = (float)Math.Log(10);
         protected float[] Frequencies;
         protected Complex[] ValuesBuffer;
         protected int Samples;
@@ -55,7 +54,7 @@ namespace WavVisualize
             {
                 for (int i = 0; i < Samples; i++)
                 {
-                    Frequencies[i] = (float) ValuesBuffer[i].Magnitude / (Samples / 2f) * Ln10;
+                    Frequencies[i] = (float) ValuesBuffer[i].Magnitude / (Samples / 2f);
                 }
             }
             else
@@ -65,7 +64,7 @@ namespace WavVisualize
                     //Все комплексные частоты переводим в числа, используя модуль комплексного числа.
                     //Нормализуем частоты деля все значения на количество сигналов
                     //Дополнительно делим на 2, т.к. только половина выходных сигналов действительно является искомыми частотами
-                    Frequencies[i] = (float) ValuesBuffer[i].Magnitude / (Samples) * Ln10;
+                    Frequencies[i] = (float) ValuesBuffer[i].Magnitude / (Samples);
                 }
             }
         }
