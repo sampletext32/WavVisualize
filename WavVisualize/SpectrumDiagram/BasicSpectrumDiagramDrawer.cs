@@ -19,11 +19,14 @@ namespace WavVisualize
 
         public override void Recreate()
         {
-            int useSamples = (int) (SpectrumSamples / 2 * TrimmingFrequency / 20000f);
+            int useSamples = SpectrumSamples >> 1;
+
             if (ApplyTimeThinning)
             {
-                useSamples /= 2;
+                useSamples >>= 1;
             }
+
+            useSamples = (int)(useSamples * TrimmingFrequency / 20000f);
 
             Task.Run(() =>
             {
