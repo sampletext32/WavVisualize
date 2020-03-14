@@ -81,8 +81,8 @@ namespace WavVisualize
         {
             int length = data.Length;
             float[] samples;
-            //TODO: Increase performance by excluding every step POW calculation
-            //TODO: Maybe Add BitShifting Is Faster Than Division
+            //TODO: VERY IMPORTANT !!! 10 times performance boost !!! Increase performance by excluding every step POW calculation
+            //TODO: Add BitShifting Is Faster Than Division
             switch (bitsPerSample)
             {
                 case 8:
