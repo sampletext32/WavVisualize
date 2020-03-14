@@ -12,7 +12,7 @@ namespace WavVisualize
             int color)
         {
             bool yLonger = false;
-            int incrementVal, endVal;
+            int incrementVal;
             int shortLen = endY - startY;
             int longLen = endX - startX;
             if (Math.Abs(shortLen) > Math.Abs(longLen))
@@ -23,7 +23,7 @@ namespace WavVisualize
                 yLonger = true;
             }
 
-            endVal = longLen;
+            var endVal = longLen;
             if (longLen < 0)
             {
                 incrementVal = -1;
@@ -34,12 +34,8 @@ namespace WavVisualize
                 incrementVal = 1;
             }
 
-            int decInc;
-            if (longLen == 0)
-            {
-                decInc = 0;
-            }
-            else
+            int decInc = 0;
+            if (longLen != 0)
             {
                 decInc = (shortLen << 16) / longLen;
             }
