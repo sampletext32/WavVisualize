@@ -134,6 +134,8 @@ namespace WavVisualize
                 $@"{currentTime.Item1:00} : {currentTime.Item2:00} : {currentTime.Item3:00} / {
                     durationTime.Item1:00} : {durationTime.Item2:00} : {durationTime.Item3:00}";
 
+            RealtimeSpectrumUpdateCall();
+
             //вызываем перерисовку волны и спектра
             pictureBoxWaveform.Refresh();
             pictureBoxRealtimeSpectrum.Refresh();
@@ -330,27 +332,15 @@ namespace WavVisualize
 
         #endregion
 
-        #region Paint Events
+        #region Update Methods
 
-        //перерисовка волны
-        private void pictureBoxWaveform_Paint(object sender, PaintEventArgs e)
-        {
-            e.Graphics.DrawImageUnscaled(_waveformBitmap.Bitmap, 0, 0);
-
-            //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
-            var x = (int) (_playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width);
-
-            DrawCaret(e.Graphics, x, pictureBoxWaveform.Height, false);
-        }
-
-        //шаг отрисовки спектра
-        private void pictureBoxSpectrum_Paint(object sender, PaintEventArgs e)
+        private void RealtimeSpectrumUpdateCall()
         {
             if (_playerProvider.IsPlaying() || _playerProvider.IsPaused()) //если сейчас воспроизводится
             {
                 float normalized = _playerProvider.GetNormalizedPosition();
                 //на каком сейчас сэмпле находимся
-                int currentSample = (int) (normalized * _currentWavFileData.samplesCount);
+                int currentSample = (int)(normalized * _currentWavFileData.samplesCount);
 
                 //если начало участка меньше чем количество сэмплов - сэмплов на преобразование спектра (можно вместить ещё раз рассчитать спектр)
                 if (currentSample < _currentWavFileData.samplesCount - SpectrumUseSamples && currentSample >= 0)
@@ -368,53 +358,41 @@ namespace WavVisualize
                         useSamples = SpectrumUseSamples / 2;
                     }
 
-                    useSamples = (int) (useSamples * TrimFrequency / 20000f);
-
-                    if (spectrum.Any(t => t > 1))
-                    {
-                        Debug.WriteLine("Value > 1");
-                    }
-
-                    else if (spectrum.Any(t => t > 0.9))
-                    {
-                        Debug.WriteLine("Value > 09");
-                    }
-
-                    else if (spectrum.Any(t => t > 0.8))
-                    {
-                        Debug.WriteLine("Value > 08");
-                    }
-
-                    else if (spectrum.Any(t => t > 0.7))
-                    {
-                        Debug.WriteLine("Value > 07");
-                    }
-
-                    else if (spectrum.Any(t => t > 0.6))
-                    {
-                        Debug.WriteLine("Value > 06");
-                    }
-
-                    else if (spectrum.Any(t => t > 0.5))
-                    {
-                        Debug.WriteLine("Value > 05");
-                    }
+                    //TODO: Extract Frequency Trimming
+                    useSamples = (int)(useSamples * TrimFrequency / 20000f);
 
                     _spectrumBitmap.Clear();
 
                     //float freqResolution = (float) _currentWavFileData.sampleRate / SpectrumUseSamples;
 
+                    //TODO: Add Spectrum Easing
                     _realtimeSpectrumParameters["frequencies"] = spectrum;
                     _realtimeSpectrumParameters["useFullCount"] = useSamples;
 
                     TrueSpectrumDrawer.Recreate(_realtimeSpectrumParameters);
-
-                    e.Graphics.DrawImageUnscaled(_spectrumBitmap.Bitmap, 0, 0);
-
-                    //_spectrumDrawer.LoadSpectrum(spectrum, 1 - EasingCoef);
-                    //_spectrumDrawer.Draw(e.Graphics);
                 }
             }
+        }
+
+        #endregion
+
+        #region Paint Events
+
+        //перерисовка волны
+        private void pictureBoxWaveform_Paint(object sender, PaintEventArgs e)
+        {
+            e.Graphics.DrawImageUnscaled(_waveformBitmap.Bitmap, 0, 0);
+
+            //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
+            var x = (int) (_playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width);
+
+            DrawCaret(e.Graphics, x, pictureBoxWaveform.Height, false);
+        }
+
+        //шаг отрисовки спектра
+        private void pictureBoxSpectrum_Paint(object sender, PaintEventArgs e)
+        {
+            e.Graphics.DrawImageUnscaled(_spectrumBitmap.Bitmap, 0, 0);
         }
 
         private void pictureBoxVolume_Paint(object sender, PaintEventArgs e)
