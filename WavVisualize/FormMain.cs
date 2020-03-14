@@ -23,41 +23,12 @@ namespace WavVisualize
 
         private VolumeDrawer _volumeDrawer;
 
-        private SpectrumDrawer _spectrumDrawer;
-
         private SpectrumDiagramDrawer _spectrumDiagramDrawer;
 
         public int TrimFrequency = 20000;
 
         //коэффициент смягчения резких скачков
         public float EasingCoef = 0.1f;
-
-        //ширина столбиков громкости
-        public readonly int VolumeBandWidth = 20;
-
-        //высота цифровых кусочков
-        public readonly int DigitalPieceHeight = 2;
-
-        //расстояние между цифровыми кусочками
-        public readonly int DistanceBetweenBands = 1;
-
-        //общая высота спектра
-        public float SpectrumHeight;
-
-        //нужно ли рисовать цифровые столбики
-        public bool DisplayDigital = true;
-
-        //линия 0 отрисовки спектра
-        public float SpectrumBaselineY;
-
-        //количество кусочков цифрового столбика
-        public int DigitalBandPiecesCount;
-
-        //количество столбиков спектра
-        public readonly int TotalSpectrumBands = 100;
-
-        //общая ширина спектра
-        public int TotalSpectrumWidth;
 
         //сколько сэмплов идёт на преобразование спектра (обязательно степень двойки)
         public int SpectrumUseSamples = 4096;
@@ -209,23 +180,6 @@ namespace WavVisualize
             _realtimeSpectrumParameters["width"] = pictureBoxRealtimeSpectrum.Width;
             _realtimeSpectrumParameters["height"] = pictureBoxRealtimeSpectrum.Height;
             _realtimeSpectrumParameters["color"] = (int)(0xff4500 | (0xFF << 24)); //OrangeRed
-            return;
-            _spectrumDrawer = new TopLineSpectrumDrawer(SpectrumUseSamples, 10f,
-                Rectangle.FromPictureBox(pictureBoxRealtimeSpectrum), Color.OrangeRed);
-
-            //_spectrumDrawer = new DigitalBandSpectrumDrawer(SpectrumUseSamples, 10f,
-            //    Rectangle.FromPictureBox(pictureBoxRealtimeSpectrum), Color.OrangeRed, TotalSpectrumBands,
-            //    DistanceBetweenBands, 70, 1);
-
-            _spectrumDrawer.SetTrimmingFrequency(TrimFrequency);
-            _spectrumDrawer.SetApplyTimeThinning(ApplyTimeThinning);
-
-            if (_currentWavFileData != null)
-            {
-                _spectrumDrawer.LoadSpectrum(_currentWavFileData.GetSpectrumForPosition(
-                        _playerProvider.GetNormalizedPosition(),
-                        _fftProvider), 1 - EasingCoef);
-            }
         }
 
         public void SetSpectrumDiagramDrawer()
