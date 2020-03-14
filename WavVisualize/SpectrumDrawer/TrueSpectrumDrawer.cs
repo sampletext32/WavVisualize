@@ -8,11 +8,11 @@ namespace WavVisualize
 {
     public class TrueSpectrumDrawer
     {
+        //Done, using EFLA-E Algorithm (http://www.edepot.com/algorithm.html)
         private static void FastLineAlgorithm(DirectBitmap bitmap, int startX, int startY, int endX, int endY,
             int color)
         {
             bool yLonger = false;
-            int incrementVal;
             int shortLen = endY - startY;
             int longLen = endX - startX;
             if (Math.Abs(shortLen) > Math.Abs(longLen))
@@ -23,39 +23,51 @@ namespace WavVisualize
                 yLonger = true;
             }
 
-            var endVal = longLen;
-            if (longLen < 0)
-            {
-                incrementVal = -1;
-                longLen = -longLen;
-            }
-            else
-            {
-                incrementVal = 1;
-            }
+            int decInc;
+            if (longLen == 0) decInc = 0;
+            else decInc = (shortLen << 16) / longLen;
 
-            int decInc = 0;
-            if (longLen != 0)
-            {
-                decInc = (shortLen << 16) / longLen;
-            }
-
-            int j = 0;
             if (yLonger)
             {
-                for (int i = 0; i != endVal; i += incrementVal)
+                if (longLen > 0)
                 {
-                    bitmap.SetPixel(startX + (j >> 16), startY + i, color);
-                    j += decInc;
+                    longLen += startY;
+                    for (int j = 0x8000 + (startX << 16); startY <= longLen; ++startY)
+                    {
+                        bitmap.SetPixel(j >> 16, startY, color);
+                        j += decInc;
+                    }
+
+                    return;
                 }
+
+                longLen += startY;
+                for (int j = 0x8000 + (startX << 16); startY >= longLen; --startY)
+                {
+                    bitmap.SetPixel(j >> 16, startY, color);
+                    j -= decInc;
+                }
+
+                return;
             }
-            else
+
+            if (longLen > 0)
             {
-                for (int i = 0; i != endVal; i += incrementVal)
+                longLen += startX;
+                for (int j = 0x8000 + (startY << 16); startX <= longLen; ++startX)
                 {
-                    bitmap.SetPixel(startX + i, startY + (j >> 16), color);
+                    bitmap.SetPixel(startX, j >> 16, color);
                     j += decInc;
                 }
+
+                return;
+            }
+
+            longLen += startX;
+            for (int j = 0x8000 + (startY << 16); startX >= longLen; --startX)
+            {
+                bitmap.SetPixel(startX, j >> 16, color);
+                j -= decInc;
             }
         }
 
