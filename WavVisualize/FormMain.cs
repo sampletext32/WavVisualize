@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace WavVisualize
@@ -14,7 +16,7 @@ namespace WavVisualize
 
         //текущий открытый Wav файл
         private WavFileData _currentWavFileData;
-        
+
         private FFTProvider _fftProvider;
 
         private VolumeProvider _volumeProvider;
@@ -26,7 +28,7 @@ namespace WavVisualize
         private SpectrumDiagramDrawer _spectrumDiagramDrawer;
 
         public int TrimFrequency = 20000;
-        
+
         //коэффициент смягчения резких скачков
         public float EasingCoef = 0.1f;
 
@@ -71,7 +73,11 @@ namespace WavVisualize
 
         private Dictionary<string, object> _waveformParameters;
 
+        private Dictionary<string, object> _realtimeSpectrumParameters;
+
         private DirectBitmap _waveformBitmap;
+
+        private DirectBitmap _spectrumBitmap;
 
         #endregion
 
@@ -85,6 +91,7 @@ namespace WavVisualize
         private void FormMain_Load(object sender, EventArgs e)
         {
             _waveformBitmap = new DirectBitmap(pictureBoxWaveform.Width, pictureBoxWaveform.Height);
+            _spectrumBitmap = new DirectBitmap(pictureBoxRealtimeSpectrum.Width, pictureBoxRealtimeSpectrum.Height);
 
             SetPlayerProvider();
             SetFFTProvider();
@@ -116,7 +123,7 @@ namespace WavVisualize
         private void timerUpdater_Tick(object sender, EventArgs e)
         {
             labelStatus.Text = _playerProvider.GetPlayState().ToString();
-            
+
             float currentPosition = _playerProvider.GetElapsedSeconds();
             float duration = _playerProvider.GetDurationSeconds();
 
@@ -126,6 +133,8 @@ namespace WavVisualize
             labelElapsed.Text =
                 $@"{currentTime.Item1:00} : {currentTime.Item2:00} : {currentTime.Item3:00} / {
                     durationTime.Item1:00} : {durationTime.Item2:00} : {durationTime.Item3:00}";
+
+            RealtimeSpectrumUpdateCall();
 
             //вызываем перерисовку волны и спектра
             pictureBoxWaveform.Refresh();
@@ -193,6 +202,14 @@ namespace WavVisualize
 
         private void SetSpectrumDrawer()
         {
+            _realtimeSpectrumParameters = new Dictionary<string, object>();
+
+            _realtimeSpectrumParameters["directBitmap"] = _spectrumBitmap;
+            _realtimeSpectrumParameters["baselineY"] = pictureBoxRealtimeSpectrum.Height - 1;
+            _realtimeSpectrumParameters["width"] = pictureBoxRealtimeSpectrum.Width;
+            _realtimeSpectrumParameters["height"] = pictureBoxRealtimeSpectrum.Height;
+            _realtimeSpectrumParameters["color"] = (int)(0xff4500 | (0xFF << 24)); //OrangeRed
+            return;
             _spectrumDrawer = new TopLineSpectrumDrawer(SpectrumUseSamples, 10f,
                 Rectangle.FromPictureBox(pictureBoxRealtimeSpectrum), Color.OrangeRed);
 
@@ -315,6 +332,50 @@ namespace WavVisualize
 
         #endregion
 
+        #region Update Methods
+
+        private void RealtimeSpectrumUpdateCall()
+        {
+            if (_playerProvider.IsPlaying() || _playerProvider.IsPaused()) //если сейчас воспроизводится
+            {
+                float normalized = _playerProvider.GetNormalizedPosition();
+                //на каком сейчас сэмпле находимся
+                int currentSample = (int)(normalized * _currentWavFileData.samplesCount);
+
+                //если начало участка меньше чем количество сэмплов - сэмплов на преобразование спектра (можно вместить ещё раз рассчитать спектр)
+                if (currentSample < _currentWavFileData.samplesCount - SpectrumUseSamples && currentSample >= 0)
+                {
+                    //рисуем спектр
+                    float[] spectrum = _currentWavFileData.GetSpectrumForPosition(normalized, _fftProvider);
+
+                    int useSamples;
+                    if (ApplyTimeThinning)
+                    {
+                        useSamples = SpectrumUseSamples / 2 / 2;
+                    }
+                    else
+                    {
+                        useSamples = SpectrumUseSamples / 2;
+                    }
+
+                    //TODO: Extract Frequency Trimming
+                    useSamples = (int)(useSamples * TrimFrequency / 20000f);
+
+                    _spectrumBitmap.Clear();
+
+                    //float freqResolution = (float) _currentWavFileData.sampleRate / SpectrumUseSamples;
+
+                    //TODO: Add Spectrum Easing
+                    _realtimeSpectrumParameters["frequencies"] = spectrum;
+                    _realtimeSpectrumParameters["useFullCount"] = useSamples;
+
+                    TrueSpectrumDrawer.Recreate(_realtimeSpectrumParameters);
+                }
+            }
+        }
+
+        #endregion
+
         #region Paint Events
 
         //перерисовка волны
@@ -331,21 +392,7 @@ namespace WavVisualize
         //шаг отрисовки спектра
         private void pictureBoxSpectrum_Paint(object sender, PaintEventArgs e)
         {
-            if (_playerProvider.IsPlaying() || _playerProvider.IsPaused()) //если сейчас воспроизводится
-            {
-                float normalized = _playerProvider.GetNormalizedPosition();
-                //на каком сейчас сэмпле находимся
-                int currentSample = (int) (normalized * _currentWavFileData.samplesCount);
-
-                //если начало участка меньше чем количество сэмплов - сэмплов на преобразование спектра (можно вместить ещё раз рассчитать спектр)
-                if (currentSample < _currentWavFileData.samplesCount - SpectrumUseSamples && currentSample >= 0)
-                {
-                    //рисуем спектр
-                    float[] spectrum = _currentWavFileData.GetSpectrumForPosition(normalized, _fftProvider);
-                    _spectrumDrawer.LoadSpectrum(spectrum, 1 - EasingCoef);
-                    _spectrumDrawer.Draw(e.Graphics);
-                }
-            }
+            e.Graphics.DrawImageUnscaled(_spectrumBitmap.Bitmap, 0, 0);
         }
 
         private void pictureBoxVolume_Paint(object sender, PaintEventArgs e)
@@ -355,7 +402,7 @@ namespace WavVisualize
                 float normalized = _playerProvider.GetNormalizedPosition();
                 //на каком сейчас сэмпле находимся
                 int currentSample = (int) (normalized * _currentWavFileData.samplesCount);
-                
+
                 //если начало участка меньше чем количество сэплов - длина участка (можно вместить ещё участок)
                 if (currentSample < _currentWavFileData.samplesCount - SpectrumUseSamples && currentSample >= 0)
                 {

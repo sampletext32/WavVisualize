@@ -57,6 +57,7 @@
   <ItemGroup>
     <Compile Include="DataContainers\NestedRectangle.cs" />
     <Compile Include="DataContainers\Rectangle.cs" />
+    <Compile Include="SpectrumDrawer\TrueSpectrumDrawer.cs" />
     <Compile Include="Utils\NativeMethods.cs" />
     <Compile Include="Utils\FileLoader.cs" />
     <Compile Include="Utils\DirectBitmap.cs" />
