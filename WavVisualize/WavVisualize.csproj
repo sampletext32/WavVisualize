@@ -8,7 +8,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>WavVisualize</RootNamespace>
     <AssemblyName>WavVisualize</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
@@ -57,10 +57,10 @@
   <ItemGroup>
     <Compile Include="DataContainers\NestedRectangle.cs" />
     <Compile Include="DataContainers\Rectangle.cs" />
+    <Compile Include="SpectrumDrawer\TrueSpectrumDrawer.cs" />
     <Compile Include="Utils\NativeMethods.cs" />
     <Compile Include="Utils\FileLoader.cs" />
     <Compile Include="Utils\DirectBitmap.cs" />
-    <Compile Include="Utils\FastLog10Provider.cs" />
     <Compile Include="SpectrumDiagram\BasicSpectrumDiagramDrawer.cs" />
     <Compile Include="SpectrumDiagram\IterationableSpectrumDiagramDrawer.cs" />
     <Compile Include="SpectrumDrawer\TopLineSpectrumDrawer.cs" />
