@@ -60,7 +60,6 @@
     <Compile Include="Utils\NativeMethods.cs" />
     <Compile Include="Utils\FileLoader.cs" />
     <Compile Include="Utils\DirectBitmap.cs" />
-    <Compile Include="Utils\FastLog10Provider.cs" />
     <Compile Include="SpectrumDiagram\BasicSpectrumDiagramDrawer.cs" />
     <Compile Include="SpectrumDiagram\IterationableSpectrumDiagramDrawer.cs" />
     <Compile Include="SpectrumDrawer\TopLineSpectrumDrawer.cs" />

@@ -19,11 +19,14 @@ namespace WavVisualize
 
         public override void Recreate()
         {
-            int useSamples = (int) (SpectrumSamples / 2 * TrimmingFrequency / 20000f);
+            int useSamples = SpectrumSamples >> 1;
+
             if (ApplyTimeThinning)
             {
-                useSamples /= 2;
+                useSamples >>= 1;
             }
+
+            useSamples = (int)(useSamples * TrimmingFrequency / 20000f);
 
             Task.Run(() =>
             {
@@ -49,7 +52,7 @@ namespace WavVisualize
                     {
                         int yPosition = (int) (DisplayRectangle.Height -
                                                DisplayRectangle.NormalizedHeight((float) j / useSamples));
-                        heightPixels[yPosition] = 100f * spectrum[j] * FastLog10Provider.FastLog10(j);
+                        heightPixels[yPosition] = spectrum[j];
                     }
 
                     for (int j = 0; j < (int) DisplayRectangle.Height; j++)

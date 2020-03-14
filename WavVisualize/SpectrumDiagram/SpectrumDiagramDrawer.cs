@@ -33,7 +33,7 @@ namespace WavVisualize
 
         protected int IntensityToArgb(float intensity)
         {
-            int lowEnd = 10;
+            int lowEnd = 0;
             int alpha = (int) (lowEnd + intensity * (byte.MaxValue - lowEnd));
             int red = Color.R;
             int green = Color.G;
