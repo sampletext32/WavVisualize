@@ -176,6 +176,13 @@ namespace WavVisualize
                 subchunk1Id = "" + (char) reader.ReadByte() + (char) reader.ReadByte() + (char) reader.ReadByte() +
                               (char) reader.ReadByte(); // 0x666d7420
                 subchunk1Size = reader.ReadInt32();
+                if (subchunk1Id == "JUNK")
+                {
+                    reader.BaseStream.Seek(subchunk1Size, SeekOrigin.Current);
+                    subchunk1Id = "" + (char)reader.ReadByte() + (char)reader.ReadByte() + (char)reader.ReadByte() +
+                                  (char)reader.ReadByte(); // 0x666d7420
+                    subchunk1Size = reader.ReadInt32();
+                }
                 audioFormat = reader.ReadInt16();
                 numChannels = reader.ReadInt16();
                 sampleRate = reader.ReadInt32();
