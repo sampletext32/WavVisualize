@@ -71,11 +71,12 @@ namespace WavVisualize
             }
         }
 
-        public static void Draw(DirectBitmap bitmap, float[] frequencies, float frequencyResolution, int useFullCount,
-            int baselineY, float constantHeightMultiplier, int width, int height, int color)
+        private static void MasterSpectrumMapper(DirectBitmap bitmap, float[] frequencies, int useFullCount,
+            int baselineY, int width, int height, int color)
         {
             int lastX = 0;
-            int lastY = baselineY - (int)(height * frequencies[0]);//this is basically removing very first band zeroing
+            int lastY =
+                baselineY - (int) (height * frequencies[0]); //this is basically removing very first band zeroing
 
             for (int i = 1; i < useFullCount; i++)
             {
@@ -92,6 +93,36 @@ namespace WavVisualize
                 lastX = x;
                 lastY = y;
             }
+        }
+
+        public static void Recreate(Dictionary<string, object> parameters)
+        {
+            if (!parameters.ContainsKey("frequencies") ||
+                !parameters.ContainsKey("useFullCount") ||
+                !parameters.ContainsKey("baselineY") ||
+                !parameters.ContainsKey("width") ||
+                !parameters.ContainsKey("height") ||
+                !parameters.ContainsKey("color") ||
+                !parameters.ContainsKey("directBitmap"))
+            {
+                throw new ArgumentException("One Of Required Parameters Missing");
+            }
+
+            float[] frequencies = (float[]) parameters["frequencies"];
+            int useFullCount = (int) parameters["useFullCount"];
+            int baselineY = (int) parameters["baselineY"];
+            int width = (int) parameters["width"];
+            int height = (int) parameters["height"];
+            int color = (int) parameters["color"];
+            DirectBitmap directBitmap = (DirectBitmap) parameters["directBitmap"];
+
+            MasterSpectrumMapper(directBitmap, frequencies, useFullCount, baselineY, width, height, color);
+        }
+
+        //Possibly useless
+        public static void RecreateAsync(Dictionary<string, object> parameters)
+        {
+            Task.Run(() => Recreate(parameters));
         }
     }
 }

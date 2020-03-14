@@ -73,6 +73,8 @@ namespace WavVisualize
 
         private Dictionary<string, object> _waveformParameters;
 
+        private Dictionary<string, object> _realtimeSpectrumParameters;
+
         private DirectBitmap _waveformBitmap;
 
         private DirectBitmap _spectrumBitmap;
@@ -198,6 +200,14 @@ namespace WavVisualize
 
         private void SetSpectrumDrawer()
         {
+            _realtimeSpectrumParameters = new Dictionary<string, object>();
+
+            _realtimeSpectrumParameters["directBitmap"] = _spectrumBitmap;
+            _realtimeSpectrumParameters["baselineY"] = pictureBoxRealtimeSpectrum.Height - 1;
+            _realtimeSpectrumParameters["width"] = pictureBoxRealtimeSpectrum.Width;
+            _realtimeSpectrumParameters["height"] = pictureBoxRealtimeSpectrum.Height;
+            _realtimeSpectrumParameters["color"] = (int)(0xff4500 | (0xFF << 24)); //OrangeRed
+            return;
             _spectrumDrawer = new TopLineSpectrumDrawer(SpectrumUseSamples, 10f,
                 Rectangle.FromPictureBox(pictureBoxRealtimeSpectrum), Color.OrangeRed);
 
@@ -392,12 +402,12 @@ namespace WavVisualize
 
                     _spectrumBitmap.Clear();
 
+                    //float freqResolution = (float) _currentWavFileData.sampleRate / SpectrumUseSamples;
 
-                    float freqResolution = (float) _currentWavFileData.sampleRate / SpectrumUseSamples;
+                    _realtimeSpectrumParameters["frequencies"] = spectrum;
+                    _realtimeSpectrumParameters["useFullCount"] = useSamples;
 
-                    TrueSpectrumDrawer.Draw(_spectrumBitmap, spectrum, freqResolution, useSamples,
-                        _spectrumBitmap.Height - 1, 10f,
-                        _spectrumBitmap.Width, _spectrumBitmap.Height, (int) (0xff4500 | (0xFF << 24)));
+                    TrueSpectrumDrawer.Recreate(_realtimeSpectrumParameters);
 
                     e.Graphics.DrawImageUnscaled(_spectrumBitmap.Bitmap, 0, 0);
 
