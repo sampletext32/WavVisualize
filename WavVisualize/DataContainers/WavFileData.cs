@@ -85,8 +85,8 @@ namespace WavVisualize
             //REMEMBER: we subtract 1, because 1 bit is a sign and doesn't influence on sample value
             double pow2_7 = 1 << 7;
             double pow2_15 = 1 << 15;
-            double pow2_31 = 1 << 31;
-            double pow2_63 = 1L << 63;
+            double pow2_31 = 1L << 31;
+            double pow2_63 = 1UL << 63;
 
             //TODO: Add BitShifting Is Faster Than Division
             switch (bitsPerSample)
