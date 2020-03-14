@@ -75,9 +75,9 @@ namespace WavVisualize
             int baselineY, float constantHeightMultiplier, int width, int height, int color)
         {
             int lastX = 0;
-            int lastY = baselineY;
+            int lastY = baselineY - (int)(height * frequencies[0]);//this is basically removing very first band zeroing
 
-            for (int i = 2; i < useFullCount; i++)
+            for (int i = 1; i < useFullCount; i++)
             {
                 int x = (int) (width * ((float) i / useFullCount));
 
