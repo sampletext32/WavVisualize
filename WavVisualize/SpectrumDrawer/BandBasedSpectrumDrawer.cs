@@ -38,7 +38,7 @@ namespace WavVisualize
                     maxInLastBand = 0f;
                 }
 
-                float analogValue = DisplayRectangle.NormalizedHeight(SpectrumValues[i] * FastLog10Provider.FastLog10(i) * ConstantHeightMultiplier);
+                float analogValue = DisplayRectangle.NormalizedHeight(SpectrumValues[i]);
                 if (analogValue > maxInLastBand)
                 {
                     maxInLastBand = analogValue; //пересохраняем частоту

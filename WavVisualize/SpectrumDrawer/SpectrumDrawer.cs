@@ -35,13 +35,10 @@ namespace WavVisualize
         public void Draw(Graphics g)
         {
             int useSamples;
+            useSamples = SpectrumSamples >> 1; // as FFT produces mirrored values, we cut exactly half
             if (ApplyTimeThinning)
             {
-                useSamples = SpectrumSamples / 2 / 2;
-            }
-            else
-            {
-                useSamples = SpectrumSamples / 2;
+                useSamples >>= 2; // as timeThinning adds even zeros, there are only half of actual signals
             }
 
             useSamples = (int) (useSamples * TrimmingFrequency / 20000f);

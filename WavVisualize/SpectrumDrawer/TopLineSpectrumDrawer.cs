@@ -26,7 +26,7 @@ namespace WavVisualize
             {
                 float x = DisplayRectangle.NormalizedWidth((float)i / useLength);
                 float height =
-                    DisplayRectangle.NormalizedHeight(SpectrumValues[i] * FastLog10Provider.FastLog10(i) * ConstantHeightMultiplier);
+                    DisplayRectangle.NormalizedHeight(SpectrumValues[i]);
                 var y = DisplayRectangle.Bottom - height;
                 g.DrawLine(_pen, lastX, lastY, x, y);
 
