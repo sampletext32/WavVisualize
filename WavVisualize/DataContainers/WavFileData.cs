@@ -53,7 +53,7 @@ namespace WavVisualize
         public int subchunk2Size; //количество байт в области данных
 
         /*44 -inf*/ /* 0 */
-        public byte[] data; //сами WAV данные
+        public byte[] WavData; //сами WAV данные
 
         #endregion
 
@@ -77,7 +77,7 @@ namespace WavVisualize
             return spectrum;
         }
 
-        private float[] ExtractSamples()
+        private static float[] ExtractSamples(byte[] data, int bitsPerSample)
         {
             int length = data.Length;
             float[] samples;
@@ -192,9 +192,10 @@ namespace WavVisualize
                 subchunk2Id = "" + (char) reader.ReadByte() + (char) reader.ReadByte() + (char) reader.ReadByte() +
                               (char) reader.ReadByte(); // 0x64617461
                 subchunk2Size = reader.ReadInt32();
-                data = reader.ReadBytes((int) (ms.Length - ms.Position));
 
-                RawSamples = ExtractSamples();
+                WavData = reader.ReadBytes((int) (ms.Length - ms.Position));
+
+                RawSamples = ExtractSamples(WavData, bitsPerSample);
 
                 samplesCount = RawSamples.Length / numChannels;
 
