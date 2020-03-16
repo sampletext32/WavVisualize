@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace WavVisualize
@@ -24,6 +25,7 @@ namespace WavVisualize
                 BitsHandle.AddrOfPinnedObject());
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetPixel(int x, int y, int colour)
         {
             int index = x + (y * Width);
