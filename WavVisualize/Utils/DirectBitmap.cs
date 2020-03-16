@@ -68,5 +68,10 @@ namespace WavVisualize
             BitsHandle.Free();
             GC.SuppressFinalize(this);
         }
+
+        public static implicit operator Bitmap(DirectBitmap directBitmap)
+        {
+            return directBitmap.Bitmap;
+        }
     }
 }

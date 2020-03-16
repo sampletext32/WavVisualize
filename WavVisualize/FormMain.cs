@@ -381,12 +381,12 @@ namespace WavVisualize
         //шаг отрисовки спектра
         private void pictureBoxSpectrum_Paint(object sender, PaintEventArgs e)
         {
-            e.Graphics.DrawImageUnscaled(_spectrumBitmap.Bitmap, 0, 0);
+            e.Graphics.DrawImageUnscaled(_spectrumBitmap, 0, 0);
         }
 
         private void pictureBoxVolume_Paint(object sender, PaintEventArgs e)
         {
-            e.Graphics.DrawImageUnscaled(_volumeBitmap.Bitmap, 0, 0);
+            e.Graphics.DrawImageUnscaled(_volumeBitmap, 0, 0);
         }
 
         private void pictureBoxSpectrumDiagram_Paint(object sender, PaintEventArgs e)
