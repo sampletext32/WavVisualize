@@ -21,8 +21,6 @@ namespace WavVisualize
 
         private VolumeProvider _volumeProvider;
 
-        private VolumeDrawer _volumeDrawer;
-
         private SpectrumDiagramDrawer _spectrumDiagramDrawer;
 
         public int TrimFrequency = 20000;
@@ -46,9 +44,13 @@ namespace WavVisualize
 
         private Dictionary<string, object> _realtimeSpectrumParameters;
 
+        private Dictionary<string, object> _volumeParameters;
+
         private DirectBitmap _waveformBitmap;
 
         private DirectBitmap _spectrumBitmap;
+
+        private DirectBitmap _volumeBitmap;
 
         #endregion
 
@@ -63,6 +65,7 @@ namespace WavVisualize
         {
             _waveformBitmap = new DirectBitmap(pictureBoxWaveform.Width, pictureBoxWaveform.Height);
             _spectrumBitmap = new DirectBitmap(pictureBoxRealtimeSpectrum.Width, pictureBoxRealtimeSpectrum.Height);
+            _volumeBitmap = new DirectBitmap(pictureBoxVolume.Width, pictureBoxVolume.Height);
 
             SetPlayerProvider();
             SetFFTProvider();
@@ -106,6 +109,8 @@ namespace WavVisualize
                     durationTime.Item1:00} : {durationTime.Item2:00} : {durationTime.Item3:00}";
 
             RealtimeSpectrumUpdateCall();
+            //VolumeProviderUpdateCall();
+            VolumeDrawerUpdateCall();
 
             //вызываем перерисовку волны и спектра
             pictureBoxWaveform.Refresh();
@@ -167,8 +172,13 @@ namespace WavVisualize
 
         private void SetVolumeDrawer()
         {
-            _volumeDrawer = new DigitalVolumeDrawer(Rectangle.FromPictureBox(pictureBoxVolume), Color.LawnGreen,
-                Color.OrangeRed, 50, 1);
+            _volumeParameters = new Dictionary<string, object>();
+            _volumeParameters["leftColor"] = (int) (0x7cfc00 | (0xFF << 24)); //LawnGreen
+            _volumeParameters["rightColor"] = (int) (0xff4500 | (0xFF << 24)); //OrangeRed
+            _volumeParameters["bandWidth"] = pictureBoxVolume.Width / 2;
+            _volumeParameters["height"] = pictureBoxVolume.Height;
+            _volumeParameters["baselineY"] = pictureBoxVolume.Height - 1;
+            _volumeParameters["directBitmap"] = _volumeBitmap;
         }
 
         private void SetSpectrumDrawer()
@@ -179,7 +189,7 @@ namespace WavVisualize
             _realtimeSpectrumParameters["baselineY"] = pictureBoxRealtimeSpectrum.Height - 1;
             _realtimeSpectrumParameters["width"] = pictureBoxRealtimeSpectrum.Width;
             _realtimeSpectrumParameters["height"] = pictureBoxRealtimeSpectrum.Height;
-            _realtimeSpectrumParameters["color"] = (int)(0xff4500 | (0xFF << 24)); //OrangeRed
+            _realtimeSpectrumParameters["color"] = (int) (0xff4500 | (0xFF << 24)); //OrangeRed
         }
 
         public void SetSpectrumDiagramDrawer()
@@ -294,7 +304,7 @@ namespace WavVisualize
             {
                 float normalized = _playerProvider.GetNormalizedPosition();
                 //на каком сейчас сэмпле находимся
-                int currentSample = (int)(normalized * _currentWavFileData.samplesCount);
+                int currentSample = (int) (normalized * _currentWavFileData.samplesCount);
 
                 //если начало участка меньше чем количество сэмплов - сэмплов на преобразование спектра (можно вместить ещё раз рассчитать спектр)
                 if (currentSample < _currentWavFileData.samplesCount - SpectrumUseSamples && currentSample >= 0)
@@ -313,7 +323,7 @@ namespace WavVisualize
                     }
 
                     //TODO: Extract Frequency Trimming
-                    useSamples = (int)(useSamples * TrimFrequency / 20000f);
+                    useSamples = (int) (useSamples * TrimFrequency / 20000f);
 
                     _spectrumBitmap.Clear();
 
@@ -324,6 +334,31 @@ namespace WavVisualize
                     _realtimeSpectrumParameters["useFullCount"] = useSamples;
 
                     TrueSpectrumDrawer.Recreate(_realtimeSpectrumParameters);
+                }
+            }
+        }
+
+        private void VolumeDrawerUpdateCall()
+        {
+            if (_playerProvider.IsPlaying() || _playerProvider.IsPaused()) //если сейчас воспроизводится
+            {
+                float normalized = _playerProvider.GetNormalizedPosition();
+                //на каком сейчас сэмпле находимся
+                int currentSample = (int)(normalized * _currentWavFileData.samplesCount);
+
+                //если начало участка меньше чем количество сэплов - длина участка (можно вместить ещё участок)
+                if (currentSample < _currentWavFileData.samplesCount - SpectrumUseSamples && currentSample >= 0)
+                {
+                    _volumeProvider.Calculate(currentSample);
+
+                    //TODO: Ease volume
+
+                    _volumeParameters["leftVolumeNormalized"] = _volumeProvider.GetL();
+                    _volumeParameters["rightVolumeNormalized"] = _volumeProvider.GetR();
+
+                    //TODO: This place is performance critical, improve by implementing swapable buffers
+                    _volumeBitmap.Clear();
+                    TrueVolumeDrawer.Recreate(_volumeParameters);
                 }
             }
         }
@@ -351,21 +386,7 @@ namespace WavVisualize
 
         private void pictureBoxVolume_Paint(object sender, PaintEventArgs e)
         {
-            if (_playerProvider.IsPlaying() || _playerProvider.IsPaused()) //если сейчас воспроизводится
-            {
-                float normalized = _playerProvider.GetNormalizedPosition();
-                //на каком сейчас сэмпле находимся
-                int currentSample = (int) (normalized * _currentWavFileData.samplesCount);
-
-                //если начало участка меньше чем количество сэплов - длина участка (можно вместить ещё участок)
-                if (currentSample < _currentWavFileData.samplesCount - SpectrumUseSamples && currentSample >= 0)
-                {
-                    _volumeProvider.Calculate(currentSample);
-
-                    _volumeDrawer.LoadVolume(_volumeProvider.GetL(), _volumeProvider.GetR(), (1 - EasingCoef));
-                    _volumeDrawer.Draw(e.Graphics);
-                }
-            }
+            e.Graphics.DrawImageUnscaled(_volumeBitmap.Bitmap, 0, 0);
         }
 
         private void pictureBoxSpectrumDiagram_Paint(object sender, PaintEventArgs e)
