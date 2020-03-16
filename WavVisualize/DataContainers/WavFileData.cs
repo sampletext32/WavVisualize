@@ -53,7 +53,7 @@ namespace WavVisualize
         public int subchunk2Size; //количество байт в области данных
 
         /*44 -inf*/ /* 0 */
-        public byte[] data; //сами WAV данные
+        public byte[] WavData; //сами WAV данные
 
         #endregion
 
@@ -71,13 +71,13 @@ namespace WavVisualize
         //функция рассчитывает спектр для заданного количества сэмплов начиная с нормализованной позиции
         public float[] GetSpectrumForPosition(float position, FFTProvider fftProvider)
         {
-            int start = (int) (RawSamples.Length / numChannels * position);
+            int start = (int) (samplesCount * position);
             fftProvider.Calculate(LeftChannel, start);
             float[] spectrum = fftProvider.Get();
             return spectrum;
         }
 
-        private float[] ExtractSamples()
+        private static float[] ExtractSamples(byte[] data, int bitsPerSample)
         {
             int length = data.Length;
             float[] samples;
@@ -85,8 +85,8 @@ namespace WavVisualize
             //REMEMBER: we subtract 1, because 1 bit is a sign and doesn't influence on sample value
             double pow2_7 = 1 << 7;
             double pow2_15 = 1 << 15;
-            double pow2_31 = 1 << 31;
-            double pow2_63 = 1L << 63;
+            double pow2_31 = 1L << 31;
+            double pow2_63 = 1UL << 63;
 
             //TODO: Add BitShifting Is Faster Than Division
             switch (bitsPerSample)
@@ -176,6 +176,13 @@ namespace WavVisualize
                 subchunk1Id = "" + (char) reader.ReadByte() + (char) reader.ReadByte() + (char) reader.ReadByte() +
                               (char) reader.ReadByte(); // 0x666d7420
                 subchunk1Size = reader.ReadInt32();
+                if (subchunk1Id == "JUNK")
+                {
+                    reader.BaseStream.Seek(subchunk1Size, SeekOrigin.Current);
+                    subchunk1Id = "" + (char)reader.ReadByte() + (char)reader.ReadByte() + (char)reader.ReadByte() +
+                                  (char)reader.ReadByte(); // 0x666d7420
+                    subchunk1Size = reader.ReadInt32();
+                }
                 audioFormat = reader.ReadInt16();
                 numChannels = reader.ReadInt16();
                 sampleRate = reader.ReadInt32();
@@ -185,9 +192,10 @@ namespace WavVisualize
                 subchunk2Id = "" + (char) reader.ReadByte() + (char) reader.ReadByte() + (char) reader.ReadByte() +
                               (char) reader.ReadByte(); // 0x64617461
                 subchunk2Size = reader.ReadInt32();
-                data = reader.ReadBytes((int) (ms.Length - ms.Position));
 
-                RawSamples = ExtractSamples();
+                WavData = reader.ReadBytes((int) (ms.Length - ms.Position));
+
+                RawSamples = ExtractSamples(WavData, bitsPerSample);
 
                 samplesCount = RawSamples.Length / numChannels;
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace WavVisualize
@@ -24,10 +25,10 @@ namespace WavVisualize
                 BitsHandle.AddrOfPinnedObject());
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetPixel(int x, int y, int colour)
         {
             int index = x + (y * Width);
-            if(index < 0) return;
             Bits[index] = colour;
         }
 
@@ -68,6 +69,11 @@ namespace WavVisualize
             Bitmap.Dispose();
             BitsHandle.Free();
             GC.SuppressFinalize(this);
+        }
+
+        public static implicit operator Bitmap(DirectBitmap directBitmap)
+        {
+            return directBitmap.Bitmap;
         }
     }
 }

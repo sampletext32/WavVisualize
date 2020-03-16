@@ -13,7 +13,7 @@ namespace WavVisualize
 
         public override void Draw(Graphics g)
         {
-            g.DrawImage(Diagram.Bitmap, DisplayRectangle.Left, DisplayRectangle.Top, DisplayRectangle.Width,
+            g.DrawImage(Diagram, DisplayRectangle.Left, DisplayRectangle.Top, DisplayRectangle.Width,
                 DisplayRectangle.Height);
         }
 
