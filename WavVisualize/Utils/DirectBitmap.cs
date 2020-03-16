@@ -27,7 +27,6 @@ namespace WavVisualize
         public void SetPixel(int x, int y, int colour)
         {
             int index = x + (y * Width);
-            if(index < 0) return;
             Bits[index] = colour;
         }
 
