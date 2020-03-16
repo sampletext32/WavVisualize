@@ -38,7 +38,7 @@ namespace WavVisualize
 
         public void Clear()
         {
-            int c = Color.White.ToArgb();
+            int c = 0xFFFFFF | (0xFF << 24);
             for (int x = 0; x < Width; x++)
             {
                 for (int y = 0; y < Height; y++)
