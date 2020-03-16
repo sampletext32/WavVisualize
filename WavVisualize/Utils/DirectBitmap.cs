@@ -26,10 +26,9 @@ namespace WavVisualize
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetPixel(int x, int y, int colour)
+        public void SetPixel(int x, int y, int color)
         {
-            int index = x + (y * Width);
-            Bits[index] = colour;
+            Bits[x + y * Width] = color;
         }
 
         public int GetPixel(int x, int y)

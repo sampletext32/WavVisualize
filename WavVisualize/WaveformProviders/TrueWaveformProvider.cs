@@ -47,6 +47,7 @@ namespace WavVisualize
             int startSample, int endSample, float verticalScale, int takeRate,
             DirectBitmap directBitmap)
         {
+            //TODO: Exclude directBitmap.Height, include height property
             float verticalHalf = directBitmap.Height / 2f;
             float verticalQuarter = verticalHalf / 2;
             float verticalThreeQuarters = verticalHalf * 3f / 2f;
