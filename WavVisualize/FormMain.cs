@@ -370,7 +370,7 @@ namespace WavVisualize
         //перерисовка волны
         private void pictureBoxWaveform_Paint(object sender, PaintEventArgs e)
         {
-            e.Graphics.DrawImageUnscaled(_waveformBitmap.Bitmap, 0, 0);
+            e.Graphics.DrawImageUnscaled(_waveformBitmap, 0, 0);
 
             //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
             var x = (int) (_playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width);
