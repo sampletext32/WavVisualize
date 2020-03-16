@@ -33,9 +33,7 @@ namespace WavVisualize
 
         public int GetPixel(int x, int y)
         {
-            int index = x + (y * Width);
-            int col = Bits[index];
-            return col;
+            return Bits[x + y * Width];
         }
 
         public void Clear()
