@@ -77,6 +77,15 @@ namespace WavVisualize
             return spectrum;
         }
 
+        //функция рассчитывает спектр для заданного количества сэмплов начиная с нормализованной позиции
+        public float[] GetSpectrumForPosition(int startSample, FFTProvider fftProvider)
+        {
+            int start = startSample;
+            fftProvider.Calculate(LeftChannel, start);
+            float[] spectrum = fftProvider.Get();
+            return spectrum;
+        }
+
         private static float[] ExtractSamples(byte[] data, int bitsPerSample)
         {
             int length = data.Length;

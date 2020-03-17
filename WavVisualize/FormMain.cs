@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace WavVisualize
@@ -18,7 +19,7 @@ namespace WavVisualize
         private WavFileData _currentWavFileData;
 
         private FFTProvider _fftProvider;
-        
+
         private SpectrumDiagramDrawer _spectrumDiagramDrawer;
 
         public int TrimFrequency = 20000;
@@ -53,6 +54,8 @@ namespace WavVisualize
         private DirectBitmap _spectrumBitmap;
 
         private DirectBitmap _volumeBitmap;
+
+        private int _lastSamplePosition;
 
         #endregion
 
@@ -112,9 +115,21 @@ namespace WavVisualize
                 $@"{currentTime.Item1:00} : {currentTime.Item2:00} : {currentTime.Item3:00} / {
                     durationTime.Item1:00} : {durationTime.Item2:00} : {durationTime.Item3:00}";
 
-            RealtimeSpectrumUpdateCall();
-            VolumeProviderUpdateCall();
-            VolumeDrawerUpdateCall();
+            int currentSample = (int) (_currentWavFileData != null ? _playerProvider.GetNormalizedPosition() * _currentWavFileData.samplesCount : 0f);
+            int deltaSamples = currentSample - _lastSamplePosition;
+
+            if ((_playerProvider.IsPlaying() || _playerProvider.IsPaused()) && deltaSamples > 0) //если сейчас воспроизводится
+            {
+                //если начало участка меньше чем количество сэплов - длина участка (можно вместить ещё участок)
+                if (_currentWavFileData != null && currentSample < _currentWavFileData.samplesCount - deltaSamples && currentSample >= 0)
+                {
+                    RealtimeSpectrumUpdateCall(currentSample, deltaSamples);
+                    VolumeProviderUpdateCall(currentSample, deltaSamples);
+                    VolumeDrawerUpdateCall(currentSample, deltaSamples);
+                }
+            }
+
+            _lastSamplePosition = currentSample;
 
             //вызываем перерисовку волны и спектра
             pictureBoxWaveform.Refresh();
@@ -137,6 +152,7 @@ namespace WavVisualize
         private void SetPlayerProvider()
         {
             _playerProvider = new WindowsMediaPlayerProvider();
+            _lastSamplePosition = 0;
             //_playerProvider.OnPlayEnd += () => { timerUpdater.Stop(); };
             //_playerProvider.OnPlayStart += () => { timerUpdater.Start(); };
         }
@@ -151,7 +167,7 @@ namespace WavVisualize
             _volumeProviderParameters["rightChannel"] = _currentWavFileData.RightChannel;
             _volumeProviderParameters["startSample"] = 0;
             _volumeProviderParameters["useSamples"] = SpectrumUseSamples;
-            _volumeProviderParameters["type"] = 2;//MaxInRegion
+            _volumeProviderParameters["type"] = 1; //MaxInRegion
         }
 
         private void SetWaveformProvider()
@@ -308,87 +324,54 @@ namespace WavVisualize
 
         #region Update Methods
 
-        private void RealtimeSpectrumUpdateCall()
+        private void RealtimeSpectrumUpdateCall(int currentSample, int deltaSamples)
         {
-            if (_playerProvider.IsPlaying() || _playerProvider.IsPaused()) //если сейчас воспроизводится
+            //рисуем спектр
+            float[] spectrum = _currentWavFileData.GetSpectrumForPosition(currentSample, _fftProvider);
+
+            int useSamples;
+            if (ApplyTimeThinning)
             {
-                float normalized = _playerProvider.GetNormalizedPosition();
-                //на каком сейчас сэмпле находимся
-                int currentSample = (int) (normalized * _currentWavFileData.samplesCount);
-
-                //если начало участка меньше чем количество сэмплов - сэмплов на преобразование спектра (можно вместить ещё раз рассчитать спектр)
-                if (currentSample < _currentWavFileData.samplesCount - SpectrumUseSamples && currentSample >= 0)
-                {
-                    //рисуем спектр
-                    float[] spectrum = _currentWavFileData.GetSpectrumForPosition(normalized, _fftProvider);
-
-                    int useSamples;
-                    if (ApplyTimeThinning)
-                    {
-                        useSamples = SpectrumUseSamples / 2 / 2;
-                    }
-                    else
-                    {
-                        useSamples = SpectrumUseSamples / 2;
-                    }
-
-                    //TODO: Extract Frequency Trimming
-                    useSamples = (int) (useSamples * TrimFrequency / 20000f);
-
-                    _spectrumBitmap.Clear();
-
-                    //float freqResolution = (float) _currentWavFileData.sampleRate / SpectrumUseSamples;
-
-                    //TODO: Add Spectrum Easing
-                    _realtimeSpectrumParameters["frequencies"] = spectrum;
-                    _realtimeSpectrumParameters["useFullCount"] = useSamples;
-
-                    TrueSpectrumDrawer.Recreate(_realtimeSpectrumParameters);
-                }
+                useSamples = SpectrumUseSamples / 2 / 2;
             }
+            else
+            {
+                useSamples = SpectrumUseSamples / 2;
+            }
+
+            //TODO: Extract Frequency Trimming
+            useSamples = (int) (useSamples * TrimFrequency / 20000f);
+
+            _spectrumBitmap.Clear();
+
+            //float freqResolution = (float) _currentWavFileData.sampleRate / SpectrumUseSamples;
+
+            //TODO: Add Spectrum Easing
+            _realtimeSpectrumParameters["frequencies"] = spectrum;
+            _realtimeSpectrumParameters["useFullCount"] = useSamples;
+
+            TrueSpectrumDrawer.Recreate(_realtimeSpectrumParameters);
         }
 
-        private void VolumeProviderUpdateCall()
+        private void VolumeProviderUpdateCall(int currentSample, int deltaSamples)
         {
-            if (_playerProvider.IsPlaying() || _playerProvider.IsPaused()) //если сейчас воспроизводится
-            {
-                float normalized = _playerProvider.GetNormalizedPosition();
-                //на каком сейчас сэмпле находимся
-                int currentSample = (int)(normalized * _currentWavFileData.samplesCount);
+            _volumeProviderParameters["startSample"] = currentSample;
+            //This is done to remove connection with spectrumUseSamples
+            _volumeProviderParameters["useSamples"] = deltaSamples;
 
-                //если начало участка меньше чем количество сэплов - длина участка (можно вместить ещё участок)
-                if (currentSample < _currentWavFileData.samplesCount - SpectrumUseSamples && currentSample >= 0)
-                {
-                    _volumeProviderParameters["startSample"] = currentSample;
-                    //This is done to remove connection with spectrumUseSamples
-                    _volumeProviderParameters["useSamples"] = SpectrumUseSamples;
+            _trueVolumeProvider.Recreate(_volumeProviderParameters);
 
-                    _trueVolumeProvider.Recreate(_volumeProviderParameters);
-
-                    //TODO: Ease volume
-                }
-            }
+            //TODO: Ease volume
         }
 
-        private void VolumeDrawerUpdateCall()
+        private void VolumeDrawerUpdateCall(int currentSample, int deltaSamples)
         {
-            if (_playerProvider.IsPlaying() || _playerProvider.IsPaused()) //если сейчас воспроизводится
-            {
-                float normalized = _playerProvider.GetNormalizedPosition();
-                //на каком сейчас сэмпле находимся
-                int currentSample = (int) (normalized * _currentWavFileData.samplesCount);
+            _volumeDrawerParameters["leftVolumeNormalized"] = _trueVolumeProvider.LastLeft;
+            _volumeDrawerParameters["rightVolumeNormalized"] = _trueVolumeProvider.LastRight;
 
-                //если начало участка меньше чем количество сэплов - длина участка (можно вместить ещё участок)
-                if (currentSample < _currentWavFileData.samplesCount - SpectrumUseSamples && currentSample >= 0)
-                {
-                    _volumeDrawerParameters["leftVolumeNormalized"] = _trueVolumeProvider.LastLeft;
-                    _volumeDrawerParameters["rightVolumeNormalized"] = _trueVolumeProvider.LastRight;
-
-                    //TODO: This place is performance critical, improve by implementing swapable buffers
-                    _volumeBitmap.Clear();
-                    TrueVolumeDrawer.Recreate(_volumeDrawerParameters);
-                }
-            }
+            //TODO: This place is performance critical, improve by implementing swapable buffers
+            _volumeBitmap.Clear();
+            TrueVolumeDrawer.Recreate(_volumeDrawerParameters);
         }
 
         #endregion
