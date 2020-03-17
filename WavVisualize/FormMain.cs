@@ -18,9 +18,7 @@ namespace WavVisualize
         private WavFileData _currentWavFileData;
 
         private FFTProvider _fftProvider;
-
-        private VolumeProvider _volumeProvider;
-
+        
         private SpectrumDiagramDrawer _spectrumDiagramDrawer;
 
         public int TrimFrequency = 20000;
@@ -40,11 +38,15 @@ namespace WavVisualize
 
         public float ScaleX = 1f;
 
+        private TrueVolumeProvider _trueVolumeProvider;
+
         private Dictionary<string, object> _waveformParameters;
 
         private Dictionary<string, object> _realtimeSpectrumParameters;
 
-        private Dictionary<string, object> _volumeParameters;
+        private Dictionary<string, object> _volumeProviderParameters;
+
+        private Dictionary<string, object> _volumeDrawerParameters;
 
         private DirectBitmap _waveformBitmap;
 
@@ -66,6 +68,8 @@ namespace WavVisualize
             _waveformBitmap = new DirectBitmap(pictureBoxWaveform.Width, pictureBoxWaveform.Height);
             _spectrumBitmap = new DirectBitmap(pictureBoxRealtimeSpectrum.Width, pictureBoxRealtimeSpectrum.Height);
             _volumeBitmap = new DirectBitmap(pictureBoxVolume.Width, pictureBoxVolume.Height);
+
+            _trueVolumeProvider = new TrueVolumeProvider();
 
             SetPlayerProvider();
             SetFFTProvider();
@@ -109,7 +113,7 @@ namespace WavVisualize
                     durationTime.Item1:00} : {durationTime.Item2:00} : {durationTime.Item3:00}";
 
             RealtimeSpectrumUpdateCall();
-            //VolumeProviderUpdateCall();
+            VolumeProviderUpdateCall();
             VolumeDrawerUpdateCall();
 
             //вызываем перерисовку волны и спектра
@@ -139,9 +143,15 @@ namespace WavVisualize
 
         private void SetVolumeProvider()
         {
-            _volumeProvider =
-                new MaxInRegionVolumeProvider(_currentWavFileData.LeftChannel, _currentWavFileData.RightChannel,
-                    SpectrumUseSamples);
+            //_volumeProvider =
+            //    new MaxInRegionVolumeProvider(_currentWavFileData.LeftChannel, _currentWavFileData.RightChannel,
+            //        SpectrumUseSamples);
+            _volumeProviderParameters = new Dictionary<string, object>();
+            _volumeProviderParameters["leftChannel"] = _currentWavFileData.LeftChannel;
+            _volumeProviderParameters["rightChannel"] = _currentWavFileData.RightChannel;
+            _volumeProviderParameters["startSample"] = 0;
+            _volumeProviderParameters["useSamples"] = SpectrumUseSamples;
+            _volumeProviderParameters["type"] = 2;//MaxInRegion
         }
 
         private void SetWaveformProvider()
@@ -172,13 +182,13 @@ namespace WavVisualize
 
         private void SetVolumeDrawer()
         {
-            _volumeParameters = new Dictionary<string, object>();
-            _volumeParameters["leftColor"] = (int) (0x7cfc00 | (0xFF << 24)); //LawnGreen
-            _volumeParameters["rightColor"] = (int) (0xff4500 | (0xFF << 24)); //OrangeRed
-            _volumeParameters["bandWidth"] = pictureBoxVolume.Width / 2;
-            _volumeParameters["height"] = pictureBoxVolume.Height;
-            _volumeParameters["baselineY"] = pictureBoxVolume.Height - 1;
-            _volumeParameters["directBitmap"] = _volumeBitmap;
+            _volumeDrawerParameters = new Dictionary<string, object>();
+            _volumeDrawerParameters["leftColor"] = (int) (0x7cfc00 | (0xFF << 24)); //LawnGreen
+            _volumeDrawerParameters["rightColor"] = (int) (0xff4500 | (0xFF << 24)); //OrangeRed
+            _volumeDrawerParameters["bandWidth"] = pictureBoxVolume.Width / 2;
+            _volumeDrawerParameters["height"] = pictureBoxVolume.Height;
+            _volumeDrawerParameters["baselineY"] = pictureBoxVolume.Height - 1;
+            _volumeDrawerParameters["directBitmap"] = _volumeBitmap;
         }
 
         private void SetSpectrumDrawer()
@@ -338,7 +348,7 @@ namespace WavVisualize
             }
         }
 
-        private void VolumeDrawerUpdateCall()
+        private void VolumeProviderUpdateCall()
         {
             if (_playerProvider.IsPlaying() || _playerProvider.IsPaused()) //если сейчас воспроизводится
             {
@@ -349,16 +359,34 @@ namespace WavVisualize
                 //если начало участка меньше чем количество сэплов - длина участка (можно вместить ещё участок)
                 if (currentSample < _currentWavFileData.samplesCount - SpectrumUseSamples && currentSample >= 0)
                 {
-                    _volumeProvider.Calculate(currentSample);
+                    _volumeProviderParameters["startSample"] = currentSample;
+                    //This is done to remove connection with spectrumUseSamples
+                    _volumeProviderParameters["useSamples"] = SpectrumUseSamples;
+
+                    _trueVolumeProvider.Recreate(_volumeProviderParameters);
 
                     //TODO: Ease volume
+                }
+            }
+        }
 
-                    _volumeParameters["leftVolumeNormalized"] = _volumeProvider.GetL();
-                    _volumeParameters["rightVolumeNormalized"] = _volumeProvider.GetR();
+        private void VolumeDrawerUpdateCall()
+        {
+            if (_playerProvider.IsPlaying() || _playerProvider.IsPaused()) //если сейчас воспроизводится
+            {
+                float normalized = _playerProvider.GetNormalizedPosition();
+                //на каком сейчас сэмпле находимся
+                int currentSample = (int) (normalized * _currentWavFileData.samplesCount);
+
+                //если начало участка меньше чем количество сэплов - длина участка (можно вместить ещё участок)
+                if (currentSample < _currentWavFileData.samplesCount - SpectrumUseSamples && currentSample >= 0)
+                {
+                    _volumeDrawerParameters["leftVolumeNormalized"] = _trueVolumeProvider.LastLeft;
+                    _volumeDrawerParameters["rightVolumeNormalized"] = _trueVolumeProvider.LastRight;
 
                     //TODO: This place is performance critical, improve by implementing swapable buffers
                     _volumeBitmap.Clear();
-                    TrueVolumeDrawer.Recreate(_volumeParameters);
+                    TrueVolumeDrawer.Recreate(_volumeDrawerParameters);
                 }
             }
         }
