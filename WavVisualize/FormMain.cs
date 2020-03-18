@@ -115,13 +115,17 @@ namespace WavVisualize
                 $@"{currentTime.Item1:00} : {currentTime.Item2:00} : {currentTime.Item3:00} / {
                     durationTime.Item1:00} : {durationTime.Item2:00} : {durationTime.Item3:00}";
 
-            int currentSample = (int) (_currentWavFileData != null ? _playerProvider.GetNormalizedPosition() * _currentWavFileData.samplesCount : 0f);
+            int currentSample = (int) (_currentWavFileData != null
+                ? _playerProvider.GetNormalizedPosition() * _currentWavFileData.samplesCount
+                : 0f);
             int deltaSamples = currentSample - _lastSamplePosition;
 
-            if ((_playerProvider.IsPlaying() || _playerProvider.IsPaused()) && deltaSamples > 0) //если сейчас воспроизводится
+            if ((_playerProvider.IsPlaying() || _playerProvider.IsPaused()) && deltaSamples > 0
+            ) //если сейчас воспроизводится
             {
                 //если начало участка меньше чем количество сэплов - длина участка (можно вместить ещё участок)
-                if (_currentWavFileData != null && currentSample < _currentWavFileData.samplesCount - deltaSamples && currentSample >= 0)
+                if (_currentWavFileData != null && currentSample < _currentWavFileData.samplesCount - deltaSamples &&
+                    currentSample >= 0)
                 {
                     RealtimeSpectrumUpdateCall(currentSample, deltaSamples);
                     VolumeProviderUpdateCall(currentSample, deltaSamples);
@@ -356,7 +360,6 @@ namespace WavVisualize
         private void VolumeProviderUpdateCall(int currentSample, int deltaSamples)
         {
             _volumeProviderParameters["startSample"] = currentSample;
-            //This is done to remove connection with spectrumUseSamples
             _volumeProviderParameters["useSamples"] = deltaSamples;
 
             _trueVolumeProvider.Recreate(_volumeProviderParameters);
@@ -402,10 +405,10 @@ namespace WavVisualize
 
         private void pictureBoxSpectrumDiagram_Paint(object sender, PaintEventArgs e)
         {
+            _spectrumDiagramDrawer?.Draw(e.Graphics);
+
             //рисуем вертикальную линию текущей позиции = нормализованная позиция воспроизведения * ширину поля
             var x = (int) (_playerProvider.GetNormalizedPosition() * pictureBoxWaveform.Width);
-
-            _spectrumDiagramDrawer?.Draw(e.Graphics);
 
             DrawCaret(e.Graphics, x, pictureBoxSpectrumDiagram.Height, true);
         }
