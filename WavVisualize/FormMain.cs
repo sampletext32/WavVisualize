@@ -258,19 +258,19 @@ namespace WavVisualize
         private void OnApplicationIdle(object sender, EventArgs e)
         {
             timerUpdater.Stop();
-            float frameTime = 1 / 60f;
-            float elapsed = 0f;
-            long lastTime = Environment.TickCount;
+            int frameTimeMs = 1000 / 60;
+            int elapsedMs = 0;
+            int lastTime = Environment.TickCount;
             while (NativeMethods.AppIsIdle())
             {
-                float delta = (Environment.TickCount - lastTime) / 1000f;
+                int deltaMs = Environment.TickCount - lastTime;
                 lastTime = Environment.TickCount;
-                elapsed += delta;
-                if (elapsed >= frameTime)
+                elapsedMs += deltaMs;
+                if (elapsedMs >= frameTimeMs)
                 {
                     GeneralUpdate();
                     GeneralRedraw();
-                    elapsed -= frameTime;
+                    elapsedMs -= frameTimeMs;
                 }
                 else
                 {
