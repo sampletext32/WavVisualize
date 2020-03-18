@@ -35,7 +35,8 @@ namespace WavVisualize
 
         public bool ApplyTimeThinning = true;
 
-        public int FramesProcessed;
+        public int FramesDrawn;
+        public int FramesUpdated;
 
         public float ScaleX = 1f;
 
@@ -103,50 +104,15 @@ namespace WavVisualize
         //шаг обновления
         private void timerUpdater_Tick(object sender, EventArgs e)
         {
-            labelStatus.Text = _playerProvider.GetPlayState().ToString();
-
-            float currentPosition = _playerProvider.GetElapsedSeconds();
-            float duration = _playerProvider.GetDurationSeconds();
-
-            Tuple<int, int, int> currentTime = TimeProvider.SecondsAsTime(currentPosition);
-            Tuple<int, int, int> durationTime = TimeProvider.SecondsAsTime(duration);
-
-            labelElapsed.Text =
-                $@"{currentTime.Item1:00} : {currentTime.Item2:00} : {currentTime.Item3:00} / {
-                    durationTime.Item1:00} : {durationTime.Item2:00} : {durationTime.Item3:00}";
-
-            int currentSample = (int) (_currentWavFileData != null
-                ? _playerProvider.GetNormalizedPosition() * _currentWavFileData.samplesCount
-                : 0f);
-            int deltaSamples = currentSample - _lastSamplePosition;
-
-            if ((_playerProvider.IsPlaying() || _playerProvider.IsPaused()) && deltaSamples > 0
-            ) //если сейчас воспроизводится
-            {
-                //если начало участка меньше чем количество сэплов - длина участка (можно вместить ещё участок)
-                if (_currentWavFileData != null && currentSample < _currentWavFileData.samplesCount - deltaSamples &&
-                    currentSample >= 0)
-                {
-                    RealtimeSpectrumUpdateCall(currentSample, deltaSamples);
-                    VolumeProviderUpdateCall(currentSample, deltaSamples);
-                    VolumeDrawerUpdateCall(currentSample, deltaSamples);
-                }
-            }
-
-            _lastSamplePosition = currentSample;
-
-            //вызываем перерисовку волны и спектра
-            pictureBoxWaveform.Refresh();
-            pictureBoxRealtimeSpectrum.Refresh();
-            pictureBoxVolume.Refresh();
-            pictureBoxSpectrumDiagram.Refresh();
-            FramesProcessed++;
+            GeneralUpdate();
+            GeneralRedraw();
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            labelFPS.Text = "FPS: " + FramesProcessed;
-            FramesProcessed = 0;
+            labelFPS.Text = "Drawn: " + FramesDrawn + "; Updated: " + FramesUpdated;
+            FramesDrawn = 0;
+            FramesUpdated = 0;
         }
 
         #endregion
@@ -328,6 +294,43 @@ namespace WavVisualize
 
         #region Update Methods
 
+        private void GeneralUpdate()
+        {
+            labelStatus.Text = _playerProvider.GetPlayState().ToString();
+
+            float currentPosition = _playerProvider.GetElapsedSeconds();
+            float duration = _playerProvider.GetDurationSeconds();
+
+            Tuple<int, int, int> currentTime = TimeProvider.SecondsAsTime(currentPosition);
+            Tuple<int, int, int> durationTime = TimeProvider.SecondsAsTime(duration);
+
+            labelElapsed.Text =
+                $@"{currentTime.Item1:00} : {currentTime.Item2:00} : {currentTime.Item3:00} / {
+                    durationTime.Item1:00} : {durationTime.Item2:00} : {durationTime.Item3:00}";
+
+            int currentSample = (int) (_currentWavFileData != null
+                ? _playerProvider.GetNormalizedPosition() * _currentWavFileData.samplesCount
+                : 0f);
+            int deltaSamples = currentSample - _lastSamplePosition;
+
+            if ((_playerProvider.IsPlaying() || _playerProvider.IsPaused()) && deltaSamples > 0
+            ) //если сейчас воспроизводится
+            {
+                //если начало участка меньше чем количество сэплов - длина участка (можно вместить ещё участок)
+                if (_currentWavFileData != null && currentSample < _currentWavFileData.samplesCount - deltaSamples &&
+                    currentSample >= 0)
+                {
+                    RealtimeSpectrumUpdateCall(currentSample, deltaSamples);
+                    VolumeProviderUpdateCall(currentSample, deltaSamples);
+                    VolumeDrawerUpdateCall(currentSample, deltaSamples);
+                }
+            }
+
+            _lastSamplePosition = currentSample;
+
+            FramesUpdated++;
+        }
+
         private void RealtimeSpectrumUpdateCall(int currentSample, int deltaSamples)
         {
             //рисуем спектр
@@ -380,6 +383,16 @@ namespace WavVisualize
         #endregion
 
         #region Paint Events
+
+        public void GeneralRedraw()
+        {
+            //вызываем перерисовку волны и спектра
+            pictureBoxWaveform.Refresh();
+            pictureBoxRealtimeSpectrum.Refresh();
+            pictureBoxVolume.Refresh();
+            pictureBoxSpectrumDiagram.Refresh();
+            FramesDrawn++;
+        }
 
         //перерисовка волны
         private void pictureBoxWaveform_Paint(object sender, PaintEventArgs e)
