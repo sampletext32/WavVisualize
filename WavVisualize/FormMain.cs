@@ -482,7 +482,7 @@ namespace WavVisualize
             SpectrumUseSamples = FastPowLog2Provider.FastPow2((int) numericUpDownPow2Spectrum.Value);
 
             SetFFTProvider();
-            SetSpectrumDrawer();
+            //SetSpectrumDrawer();
 
             if (_currentWavFileData != null)
             {
@@ -493,7 +493,7 @@ namespace WavVisualize
         private void trackBarTrimFrequency_Scroll(object sender, EventArgs e)
         {
             TrimFrequency = trackBarTrimFrequency.Value;
-            SetSpectrumDrawer();
+            //SetSpectrumDrawer();
             if (_currentWavFileData != null)
             {
                 SetSpectrumDiagramDrawer();
@@ -507,7 +507,7 @@ namespace WavVisualize
             ApplyTimeThinning = checkBoxApplyTimeThinning.Checked;
             //здесь не пересоздаём массив спектра, т.к. он уже имеет нужный размер
             SetFFTProvider();
-            SetSpectrumDrawer();
+            //SetSpectrumDrawer();
             if (_currentWavFileData != null)
             {
                 SetSpectrumDiagramDrawer();
