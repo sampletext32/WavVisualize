@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace WavVisualize
@@ -257,9 +258,24 @@ namespace WavVisualize
         private void OnApplicationIdle(object sender, EventArgs e)
         {
             timerUpdater.Stop();
+            float frameTime = 1 / 60f;
+            float elapsed = 0f;
+            long lastTime = Environment.TickCount;
             while (NativeMethods.AppIsIdle())
             {
-                timerUpdater_Tick(null, null);
+                float delta = (Environment.TickCount - lastTime) / 1000f;
+                lastTime = Environment.TickCount;
+                elapsed += delta;
+                if (elapsed >= frameTime)
+                {
+                    GeneralUpdate();
+                    GeneralRedraw();
+                    elapsed -= frameTime;
+                }
+                else
+                {
+                    Thread.Sleep(1);
+                }
             }
 
             timerUpdater.Start();
