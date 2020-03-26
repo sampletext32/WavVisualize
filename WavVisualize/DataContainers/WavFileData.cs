@@ -63,8 +63,7 @@ namespace WavVisualize
 
         public float[] RawSamples;
 
-        public float[] LeftChannel;
-        public float[] RightChannel;
+        public float[][] ChannelsSamples;
 
         #endregion
 
@@ -72,7 +71,7 @@ namespace WavVisualize
         public float[] GetSpectrumForPosition(float position, FFTProvider fftProvider)
         {
             int start = (int) (samplesCount * position);
-            fftProvider.Calculate(LeftChannel, start);
+            fftProvider.Calculate(ChannelsSamples[0], start);
             float[] spectrum = fftProvider.Get();
             return spectrum;
         }
@@ -81,7 +80,7 @@ namespace WavVisualize
         public float[] GetSpectrumForPosition(int startSample, FFTProvider fftProvider)
         {
             int start = startSample;
-            fftProvider.Calculate(LeftChannel, start);
+            fftProvider.Calculate(ChannelsSamples[0], start);
             float[] spectrum = fftProvider.Get();
             return spectrum;
         }
@@ -188,10 +187,11 @@ namespace WavVisualize
                 if (subchunk1Id == "JUNK")
                 {
                     reader.BaseStream.Seek(subchunk1Size, SeekOrigin.Current);
-                    subchunk1Id = "" + (char)reader.ReadByte() + (char)reader.ReadByte() + (char)reader.ReadByte() +
-                                  (char)reader.ReadByte(); // 0x666d7420
+                    subchunk1Id = "" + (char) reader.ReadByte() + (char) reader.ReadByte() + (char) reader.ReadByte() +
+                                  (char) reader.ReadByte(); // 0x666d7420
                     subchunk1Size = reader.ReadInt32();
                 }
+
                 audioFormat = reader.ReadInt16();
                 numChannels = reader.ReadInt16();
                 sampleRate = reader.ReadInt32();
@@ -208,29 +208,29 @@ namespace WavVisualize
 
                 samplesCount = RawSamples.Length / numChannels;
 
-                switch (numChannels)
-                {
-                    case 1:
-                        //если записано МОНО, оба канала = исходному
-                        LeftChannel = RawSamples;
-                        RightChannel = RawSamples;
-                        break;
-                    case 2:
-                        //если записано СТЕРЕО
-                        //создаём 2 массива на левый и правый канал с количеством сэмплов
-                        LeftChannel = new float[samplesCount];
-                        RightChannel = new float[samplesCount];
-                        for (int i = 0, s = 0; i < samplesCount; i++)
-                        {
-                            //записываем сэмплы
-                            LeftChannel[i] = RawSamples[s++];
-                            RightChannel[i] = RawSamples[s++];
-                        }
-
-                        break;
-                    default: throw new FormatException("Unknown Channels");
-                }
+                ChannelsSamples = ExtractChannels(RawSamples, numChannels);
             }
+        }
+
+        private static float[][] ExtractChannels(float[] samples, int numChannels)
+        {
+            //Here we take for granted that samples.Length is divisible by numChannels. 
+            //TODO: Should rethink and check numbers for division or exclude completely
+
+            //Create an array of channels
+            float[][] channels = new float[numChannels][];
+            for (int i = 0; i < numChannels; i++)
+            {
+                channels[i] = new float[samples.Length / numChannels];
+            }
+
+            int actualSamplesWritten = samples.Length >> 1 << 1; //Trim Very Last '1' even if not exists
+            for (int i = 0; i < actualSamplesWritten; i++)
+            {
+                channels[i % numChannels][i / numChannels] = samples[i];
+            }
+
+            return channels;
         }
     }
 }

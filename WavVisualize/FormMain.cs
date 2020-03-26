@@ -134,8 +134,8 @@ namespace WavVisualize
             //    new MaxInRegionVolumeProvider(_currentWavFileData.LeftChannel, _currentWavFileData.RightChannel,
             //        SpectrumUseSamples);
             _volumeProviderParameters = new Dictionary<string, object>();
-            _volumeProviderParameters["leftChannel"] = _currentWavFileData.LeftChannel;
-            _volumeProviderParameters["rightChannel"] = _currentWavFileData.RightChannel;
+            _volumeProviderParameters["leftChannel"] = _currentWavFileData.ChannelsSamples[0];
+            _volumeProviderParameters["rightChannel"] = _currentWavFileData.ChannelsSamples[1];
             _volumeProviderParameters["startSample"] = 0;
             _volumeProviderParameters["useSamples"] = SpectrumUseSamples;
             _volumeProviderParameters["type"] = 1; //MaxInRegion
@@ -150,8 +150,8 @@ namespace WavVisualize
             _waveformParameters["directBitmap"] = _waveformBitmap;
             _waveformParameters["leftColor"] = (int) (0x7cfc00 | (0xFF << 24)); //LawnGreen
             _waveformParameters["rightColor"] = (int) (0xff4500 | (0xFF << 24)); //OrangeRed
-            _waveformParameters["leftChannel"] = _currentWavFileData.LeftChannel;
-            _waveformParameters["rightChannel"] = _currentWavFileData.RightChannel;
+            _waveformParameters["leftChannel"] = _currentWavFileData.ChannelsSamples[0];
+            _waveformParameters["rightChannel"] = _currentWavFileData.ChannelsSamples[1];
             _waveformParameters["samplesCount"] = _currentWavFileData.samplesCount;
             _waveformParameters["verticalScale"] = 0.9f;
             _waveformParameters["takeRate"] = 3;
