@@ -388,14 +388,11 @@ namespace WavVisualize
             //рисуем спектр
             float[] spectrum = _currentWavFileData.GetSpectrumForPosition(currentSample, _fftProvider);
 
-            int useSamples;
+            int useSamples = SpectrumUseSamples >> 1;
+
             if (ApplyTimeThinning)
             {
-                useSamples = SpectrumUseSamples / 2 / 2;
-            }
-            else
-            {
-                useSamples = SpectrumUseSamples / 2;
+                useSamples >>= 1;
             }
 
             //TODO: Extract Frequency Trimming
