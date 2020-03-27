@@ -255,30 +255,65 @@ namespace WavVisualize
             this.BringToFront();
         }
 
+
+        float updateTime = 1 / 30f;
+        float redrawTime = 1 / 30f;
+        float updateElapsed;
+        float redrawElapsed;
+        long updateLastTime = Environment.TickCount;
+        long redrawLastTime = Environment.TickCount;
+        private bool preserveUpdateLimit = false;
+        private bool preserveRedrawLimit = false;
+
+        bool somethingWasDone;
+
         private void OnApplicationIdle(object sender, EventArgs e)
         {
-            timerUpdater.Stop();
-            float frameTime = 1 / 60f;
-            float elapsed = 0f;
-            long lastTime = Environment.TickCount;
             while (NativeMethods.AppIsIdle())
             {
-                float delta = (Environment.TickCount - lastTime) / 1000f;
-                lastTime = Environment.TickCount;
-                elapsed += delta;
-                if (elapsed >= frameTime)
+                somethingWasDone = false;
+                if (!preserveUpdateLimit)
                 {
-                    GeneralUpdate();
-                    GeneralRedraw();
-                    elapsed -= frameTime;
+                    float updateDelta = (Environment.TickCount - updateLastTime) / 1000f;
+                    updateLastTime = Environment.TickCount;
+                    updateElapsed += updateDelta;
+                    if (updateElapsed >= updateTime)
+                    {
+                        GeneralUpdate();
+                        somethingWasDone = true;
+                        updateElapsed -= updateTime;
+                    }
                 }
                 else
                 {
+                    GeneralUpdate();
+                    somethingWasDone = true;
+                }
+
+                if (!preserveRedrawLimit)
+                {
+                    float redrawDelta = (Environment.TickCount - redrawLastTime) / 1000f;
+                    redrawLastTime = Environment.TickCount;
+                    redrawElapsed += redrawDelta;
+                    if (redrawElapsed >= redrawTime)
+                    {
+                        GeneralRedraw();
+                        somethingWasDone = true;
+                        redrawElapsed -= redrawTime;
+                    }
+                }
+                else
+                {
+                    GeneralRedraw();
+                    somethingWasDone = true;
+                }
+
+                if (!somethingWasDone)
+                {
                     Thread.Sleep(1);
+                    somethingWasDone = true;
                 }
             }
-
-            timerUpdater.Start();
         }
 
 
