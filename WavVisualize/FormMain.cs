@@ -359,25 +359,26 @@ namespace WavVisualize
                 $@"{currentTime.Item1:00} : {currentTime.Item2:00} : {currentTime.Item3:00} / {
                     durationTime.Item1:00} : {durationTime.Item2:00} : {durationTime.Item3:00}";
 
-            int currentSample = (int) (_currentWavFileData != null
-                ? _playerProvider.GetNormalizedPosition() * _currentWavFileData.samplesCount
-                : 0f);
-            int deltaSamples = currentSample - _lastSamplePosition;
-
-            if ((_playerProvider.IsPlaying() || _playerProvider.IsPaused()) && deltaSamples > 0
-            ) //если сейчас воспроизводится
+            if (_currentWavFileData != null)
             {
-                //если начало участка меньше чем количество сэплов - длина участка (можно вместить ещё участок)
-                if (_currentWavFileData != null && currentSample < _currentWavFileData.samplesCount - deltaSamples &&
-                    currentSample >= 0)
-                {
-                    RealtimeSpectrumUpdateCall(currentSample, deltaSamples);
-                    VolumeProviderUpdateCall(currentSample, deltaSamples);
-                    VolumeDrawerUpdateCall(currentSample, deltaSamples);
-                }
-            }
+                int currentSample = (int) (_playerProvider.GetNormalizedPosition() * _currentWavFileData.samplesCount);
+                int deltaSamples = currentSample - _lastSamplePosition;
 
-            _lastSamplePosition = currentSample;
+                if ((_playerProvider.IsPlaying() || _playerProvider.IsPaused()) &&
+                    deltaSamples > 0) //если сейчас воспроизводится
+                {
+                    //если начало участка меньше чем количество сэплов - длина участка (можно вместить ещё участок)
+                    if (currentSample < _currentWavFileData.samplesCount - deltaSamples &&
+                        currentSample >= 0)
+                    {
+                        RealtimeSpectrumUpdateCall(currentSample, deltaSamples);
+                        VolumeProviderUpdateCall(currentSample, deltaSamples);
+                        VolumeDrawerUpdateCall(currentSample, deltaSamples);
+                    }
+                }
+
+                _lastSamplePosition = currentSample;
+            }
 
             FramesUpdated++;
         }
