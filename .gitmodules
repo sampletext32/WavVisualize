@@ -1,0 +1,6 @@
+[submodule "vk"]
+	path = vk
+	url = https://github.com/vknet/vk.git
+[submodule "VkNet.AudioBypass"]
+	path = VkNet.AudioBypass
+	url = https://github.com/shelln1ght/VkNet.AudioBypass.git
