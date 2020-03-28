@@ -55,6 +55,20 @@ namespace WavVisualize
             //audios.ToList();
         }
 
+        public string GetFirstAudioUrl()
+        {
+            if (_api.UserId == null)
+            {
+                Debug.WriteLine("UserID null! in GetAudios");
+                return "";
+            }
+            VkCollection<Audio> audios = _api.Audio.Get(new AudioGetParams { Count = 1 });
+
+            return audios[0].Url.ToString();
+
+            //audios.ToList();
+        }
+
         private VkHandler(VkApi api)
         {
             _api = api;
