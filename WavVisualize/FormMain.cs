@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -70,6 +71,16 @@ namespace WavVisualize
 
         private void FormMain_Load(object sender, EventArgs e)
         {
+            if (File.Exists("vk-secret.txt"))
+            {
+                string[] credentials = File.ReadAllLines("vk-secret.txt");
+                VkHandler.Login(credentials[0], credentials[1]).GetAudios();
+            }
+            else
+            {
+                Debug.WriteLine("vk-secret.txt not found, unable to login to VK");
+            }
+
             _waveformBitmap = new DirectBitmap(pictureBoxWaveform.Width, pictureBoxWaveform.Height);
             _spectrumBitmap = new DirectBitmap(pictureBoxRealtimeSpectrum.Width, pictureBoxRealtimeSpectrum.Height);
             _volumeBitmap = new DirectBitmap(pictureBoxVolume.Width, pictureBoxVolume.Height);
