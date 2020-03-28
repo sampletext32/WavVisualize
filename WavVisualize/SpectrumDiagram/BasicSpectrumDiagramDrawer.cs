@@ -13,8 +13,7 @@ namespace WavVisualize
 
         public override void Draw(Graphics g)
         {
-            g.DrawImage(Diagram, DisplayRectangle.Left, DisplayRectangle.Top, DisplayRectangle.Width,
-                DisplayRectangle.Height);
+            g.DrawImageUnscaled(Diagram, 0, 0);
         }
 
         public override void Recreate()
@@ -26,7 +25,7 @@ namespace WavVisualize
                 useSamples >>= 1;
             }
 
-            useSamples = (int)(useSamples * TrimmingFrequency / 20000f);
+            useSamples = (int) (useSamples * TrimmingFrequency / 20000f);
 
             Task.Run(() =>
             {

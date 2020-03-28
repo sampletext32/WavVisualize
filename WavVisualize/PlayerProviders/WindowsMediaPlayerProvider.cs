@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using WMPLib;
 
 namespace WavVisualize
@@ -77,6 +78,12 @@ namespace WavVisualize
 
         public void Play()
         {
+            if (_player.playState == WMPPlayState.wmppsUndefined)
+            {
+                Debug.WriteLine("Play detected without file");
+                return;
+            }
+
             _player.controls.play();
             _playState = PlayState.Playing;
         }
