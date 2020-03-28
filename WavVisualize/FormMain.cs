@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -69,18 +67,8 @@ namespace WavVisualize
             InitializeComponent();
         }
 
-        private void FormMain_Load(object sender, EventArgs e)
+        private async void FormMain_Load(object sender, EventArgs e)
         {
-            if (File.Exists("vk-secret.txt"))
-            {
-                string[] credentials = File.ReadAllLines("vk-secret.txt");
-                VkHandler.Login(credentials[0], credentials[1]).GetAudios();
-            }
-            else
-            {
-                Debug.WriteLine("vk-secret.txt not found, unable to login to VK");
-            }
-
             _waveformBitmap = new DirectBitmap(pictureBoxWaveform.Width, pictureBoxWaveform.Height);
             _spectrumBitmap = new DirectBitmap(pictureBoxRealtimeSpectrum.Width, pictureBoxRealtimeSpectrum.Height);
             _volumeBitmap = new DirectBitmap(pictureBoxVolume.Width, pictureBoxVolume.Height);
@@ -107,6 +95,104 @@ namespace WavVisualize
             checkBoxApplyTimeThinning.Checked = ApplyTimeThinning;
 
             labelMaxFrequency.Text = "Max Frequency: " + TrimFrequency;
+
+            {
+                string[] credentials = File.ReadAllLines("vk-secret.txt");
+                var audioUrl = VkHandler.Login(credentials[0], credentials[1]).GetFirstAudioUrl();
+                var mp3Bytes = VkM3U8Handler.LoadFile(WebAccessor.LoadString(audioUrl));
+                File.WriteAllBytes("tempmp3.mp3", mp3Bytes);
+                //DECOMPRESS MPGA
+            }
+            CheckFiles();
+            if (false)
+            {
+                if (File.Exists("vk-secret.txt"))
+                {
+                    string[] credentials = File.ReadAllLines("vk-secret.txt");
+                    var audioUrl = VkHandler.Login(credentials[0], credentials[1]).GetFirstAudioUrl();
+
+                    var mp3Bytes = VkM3U8Handler.LoadFile(WebAccessor.LoadString(audioUrl));
+
+                    File.WriteAllBytes("tempmp3.mp3", mp3Bytes);
+                    var wavBytes = await FileLoader.LoadAndDecompressMp3(mp3Bytes);
+                    var wavFile = await WavFileData.LoadWavFile(wavBytes);
+
+                    File.WriteAllBytes("tempwav.wav", wavBytes);
+
+                    SetLabelStatusText("Playing");
+
+                    _currentWavFileData = wavFile;
+
+                    SetWaveformProvider();
+
+                    SetVolumeProvider();
+
+                    //создаём новый медиафайл
+                    _playerProvider.SetFile("tempwav.wav");
+
+                    //SetSpectrumDrawer();
+                    SetSpectrumDiagramDrawer();
+                }
+                else
+                {
+                    Debug.WriteLine("vk-secret.txt not found, unable to login to VK");
+                }
+            }
+        }
+        
+        private void CheckFiles()
+        {
+            byte[] first_real = File.ReadAllBytes("b0ZGRnf3hxdC58YWAvOidoOw_r.ts");
+            byte[] first_my = File.ReadAllBytes("b0ZGRnf3hxdC58YWAvOidoOw.ts");
+            byte[] second_real = File.ReadAllBytes("f6eGhnJTImYzA_r.ts");
+            byte[] second_my = File.ReadAllBytes("f6eGhnJTImYzA.ts");
+            byte[] third_real = File.ReadAllBytes("13f29hKjcoZTk_r.ts");
+            byte[] third_my = File.ReadAllBytes("13f29hKjcoZTk.ts");
+
+            if (first_my.Length != first_real.Length)
+            {
+                Debug.WriteLine($"Sizes 1 mismatch (real {first_real.Length}) (my{first_my.Length})");
+                return;
+            }
+
+            if (second_my.Length != second_real.Length)
+            {
+                Debug.WriteLine($"Sizes 2 mismatch (real {second_real.Length}) (my{second_my.Length})");
+                return;
+            }
+
+            if (third_my.Length != third_real.Length)
+            {
+                Debug.WriteLine($"Sizes 3 mismatch (real {third_real.Length}) (my{third_my.Length})");
+                return;
+            }
+
+            for (var i = 0; i < first_real.Length; i++)
+            {
+                if (first_real[i] != first_my[i])
+                {
+                    Debug.WriteLine($"Values mismatch 1 at position {i}");
+                    break;
+                }
+            }
+
+            for (var i = 0; i < second_real.Length; i++)
+            {
+                if (second_real[i] != second_my[i])
+                {
+                    Debug.WriteLine($"Values mismatch 2 at position {i}");
+                    break;
+                }
+            }
+
+            for (var i = 0; i < third_real.Length; i++)
+            {
+                if (third_real[i] != third_my[i])
+                {
+                    Debug.WriteLine($"Values mismatch 3 at position {i}");
+                    break;
+                }
+            }
         }
 
         #endregion
