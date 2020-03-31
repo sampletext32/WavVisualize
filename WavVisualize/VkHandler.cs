@@ -89,10 +89,10 @@ namespace WavVisualize
             //?extra=Ik4FLqrrtzGIypVVRwCVLgbX9fT2g34_oCNO-BGfu9apU7tyGra5kUVtKucUWvaXsC0czWqlxUndFq5DCoOOL4RkYKnVErsLy0gxwmn31M4fOWYQ1GyRWFKHULzLxf-I1FIx05WR-KIvcn1MuMiOOPQ
 
             string extra = m3u8Url.Remove(0, m3u8Url.IndexOf("?extra"));
-            
+
             //all that is not extra
             string mainUrl = m3u8Url.Substring(0, m3u8Url.IndexOf("?extra"));
-            
+
             //trim https://
             mainUrl = mainUrl.Remove(0, 8);
 
@@ -101,6 +101,17 @@ namespace WavVisualize
             string url = "https://" + tokens[0] + "/" + tokens[1] + "/" + tokens[3] + ".mp3" + extra;
 
             return url;
+        }
+
+        public static string ExtractMp3NameFromM3U8Url(string m3u8Url)
+        {
+            //all that is not extra
+            string mainUrl = m3u8Url.Substring(0, m3u8Url.IndexOf("?extra"));
+            //trim https://
+            mainUrl = mainUrl.Remove(0, 8);
+            string[] tokens = mainUrl.Split('/');
+            string mp3Name = tokens[3];
+            return mp3Name;
         }
 
         private VkHandler(VkApi api)
