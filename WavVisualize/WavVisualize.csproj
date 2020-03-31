@@ -64,7 +64,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AES128Decryptor.cs" />
     <Compile Include="DataContainers\NestedRectangle.cs" />
     <Compile Include="DataContainers\Rectangle.cs" />
     <Compile Include="SpectrumDrawer\TrueSpectrumDrawer.cs" />
@@ -84,7 +83,6 @@
     <Compile Include="SpectrumDrawer\SpectrumDrawer.cs" />
     <Compile Include="Utils\TimeProvider.cs" />
     <Compile Include="VkHandler.cs" />
-    <Compile Include="VkM3U8Handler.cs" />
     <Compile Include="VolumeDrawer\AnalogVolumeDrawer.cs" />
     <Compile Include="VolumeDrawer\DigitalVolumeDrawer.cs" />
     <Compile Include="VolumeDrawer\TrueVolumeDrawer.cs" />
