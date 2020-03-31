@@ -96,50 +96,36 @@ namespace WavVisualize
 
             labelMaxFrequency.Text = "Max Frequency: " + TrimFrequency;
 
+            if (File.Exists("vk-secret.txt"))
             {
                 string[] credentials = File.ReadAllLines("vk-secret.txt");
                 var audioUrl = VkHandler.Login(credentials[0], credentials[1]).GetFirstAudioUrl();
-                var mp3Bytes = VkM3U8Handler.LoadFile(WebAccessor.LoadString(audioUrl));
-                File.WriteAllBytes("tempmp3.mp3", mp3Bytes);
-                //DECOMPRESS MPGA
+                audioUrl = VkHandler.ConvertM3U8ToMp3Url(audioUrl);
+
+                var mp3Bytes = WebAccessor.LoadBytes(audioUrl);
+                var wavBytes = await FileLoader.LoadAndDecompressMp3(mp3Bytes);
+                var wavFile = await WavFileData.LoadWavFile(wavBytes);
+
+                SetLabelStatusText("Playing");
+
+                _currentWavFileData = wavFile;
+
+                SetWaveformProvider();
+
+                SetVolumeProvider();
+
+                //создаём новый медиафайл
+                _playerProvider.SetFile("tempwav.wav");
+
+                //SetSpectrumDrawer();
+                SetSpectrumDiagramDrawer();
             }
-            CheckFiles();
-            if (false)
+            else
             {
-                if (File.Exists("vk-secret.txt"))
-                {
-                    string[] credentials = File.ReadAllLines("vk-secret.txt");
-                    var audioUrl = VkHandler.Login(credentials[0], credentials[1]).GetFirstAudioUrl();
-
-                    var mp3Bytes = VkM3U8Handler.LoadFile(WebAccessor.LoadString(audioUrl));
-
-                    File.WriteAllBytes("tempmp3.mp3", mp3Bytes);
-                    var wavBytes = await FileLoader.LoadAndDecompressMp3(mp3Bytes);
-                    var wavFile = await WavFileData.LoadWavFile(wavBytes);
-
-                    File.WriteAllBytes("tempwav.wav", wavBytes);
-
-                    SetLabelStatusText("Playing");
-
-                    _currentWavFileData = wavFile;
-
-                    SetWaveformProvider();
-
-                    SetVolumeProvider();
-
-                    //создаём новый медиафайл
-                    _playerProvider.SetFile("tempwav.wav");
-
-                    //SetSpectrumDrawer();
-                    SetSpectrumDiagramDrawer();
-                }
-                else
-                {
-                    Debug.WriteLine("vk-secret.txt not found, unable to login to VK");
-                }
+                Debug.WriteLine("vk-secret.txt not found, unable to login to VK");
             }
         }
-        
+
         private void CheckFiles()
         {
             byte[] first_real = File.ReadAllBytes("b0ZGRnf3hxdC58YWAvOidoOw_r.ts");
