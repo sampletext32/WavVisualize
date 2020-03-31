@@ -102,20 +102,23 @@ namespace WavVisualize
                 var audioUrl = VkHandler.Login(credentials[0], credentials[1]).GetFirstAudioUrl();
 
                 string mp3Name = VkHandler.ExtractMp3NameFromM3U8Url(audioUrl);
-
-                audioUrl = VkHandler.ConvertM3U8ToMp3Url(audioUrl);
-
-                var mp3Bytes = WebAccessor.LoadBytes(audioUrl);
-
                 DirectoryInfo directory = new DirectoryInfo("temp");
                 if (!directory.Exists)
                 {
                     directory.Create();
                 }
+
+                byte[] mp3Bytes;
+
+                if (File.Exists("temp/" + mp3Name + ".mp3"))
+                {
+                    mp3Bytes = File.ReadAllBytes("temp/" + mp3Name + ".mp3");
+                }
                 else
                 {
-                    foreach (var file in directory.GetFiles()) file.Delete();
-                    foreach (var subDirectory in directory.GetDirectories()) subDirectory.Delete(true);
+                    audioUrl = VkHandler.ConvertM3U8ToMp3Url(audioUrl);
+
+                    mp3Bytes = WebAccessor.LoadBytes(audioUrl);
                 }
 
                 File.WriteAllBytes("temp/" + mp3Name + ".mp3", mp3Bytes);
