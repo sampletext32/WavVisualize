@@ -100,9 +100,26 @@ namespace WavVisualize
             {
                 string[] credentials = File.ReadAllLines("vk-secret.txt");
                 var audioUrl = VkHandler.Login(credentials[0], credentials[1]).GetFirstAudioUrl();
+
+                string mp3Name = VkHandler.ExtractMp3NameFromM3U8Url(audioUrl);
+
                 audioUrl = VkHandler.ConvertM3U8ToMp3Url(audioUrl);
 
                 var mp3Bytes = WebAccessor.LoadBytes(audioUrl);
+
+                DirectoryInfo directory = new DirectoryInfo("temp");
+                if (!directory.Exists)
+                {
+                    directory.Create();
+                }
+                else
+                {
+                    foreach (var file in directory.GetFiles()) file.Delete();
+                    foreach (var subDirectory in directory.GetDirectories()) subDirectory.Delete(true);
+                }
+
+                File.WriteAllBytes("temp/" + mp3Name + ".mp3", mp3Bytes);
+
                 var wavBytes = await FileLoader.LoadAndDecompressMp3(mp3Bytes);
                 var wavFile = await WavFileData.LoadWavFile(wavBytes);
 
@@ -115,7 +132,7 @@ namespace WavVisualize
                 SetVolumeProvider();
 
                 //создаём новый медиафайл
-                _playerProvider.SetFile("tempwav.wav");
+                _playerProvider.SetFile("temp/" + mp3Name + ".mp3");
 
                 //SetSpectrumDrawer();
                 SetSpectrumDiagramDrawer();
