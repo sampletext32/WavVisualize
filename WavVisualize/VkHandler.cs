@@ -114,6 +114,33 @@ namespace WavVisualize
             return mp3Name;
         }
 
+        public static string CustomAuthorize(string login, string password)
+        {
+            var webClient = new WebClient();
+            webClient.Headers.Clear();
+            webClient.Headers["User-Agent"] =
+                "VKAndroidApp/5.47.1-4248 (Android 9; SDK 28; armeabi-v7a; Android; ru; 1920x1080)";
+            webClient.Headers["x-vk-android-client"] = "new";
+            NameValueCollection parameters = new NameValueCollection();
+            parameters["grant_type"] = "password";
+            parameters["client_id"] = "2274003";
+            parameters["client_secret"] = "hHbZxrka2uZ6jB1inYsH";
+            parameters["2fa_supported"] = "1";
+            parameters["username"] = login;
+            parameters["password"] = password;
+            parameters["scope"] = "all";
+            // ReSharper disable once StringLiteralTypo
+            parameters["device_id"] = "Jfq_8zU6w0QJZXVH";
+            parameters["v"] = "5.103";
+            var result = webClient.UploadString("https://oauth.vk.com/token", "POST",
+                string.Join("&", parameters.AllKeys.Select(t => t + "=" + parameters[t])));
+
+            result = result.Remove(0, 17);
+            result = result.Substring(0, result.IndexOf("\""));
+
+            return result;
+        }
+
         private VkHandler(VkApi api)
         {
             _api = api;
