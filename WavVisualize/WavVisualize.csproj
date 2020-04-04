@@ -73,6 +73,7 @@
     <Compile Include="Utils\EasingProvider.cs" />
     <Compile Include="SpectrumDrawer\SpectrumDrawer.cs" />
     <Compile Include="Utils\TimeProvider.cs" />
+    <Compile Include="VkWebAccessor.cs" />
     <Compile Include="VolumeDrawer\AnalogVolumeDrawer.cs" />
     <Compile Include="VolumeDrawer\DigitalVolumeDrawer.cs" />
     <Compile Include="VolumeDrawer\TrueVolumeDrawer.cs" />
