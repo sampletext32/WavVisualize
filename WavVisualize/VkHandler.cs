@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Net;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using VkNet;
 using VkNet.AudioBypassService.Extensions;
 using VkNet.Model;
@@ -26,6 +24,7 @@ namespace WavVisualize
             services.AddAudioBypass();
 
             var api = new VkApi(services);
+
             api.Authorize(new ApiAuthParams
             {
                 Login = login,
@@ -65,7 +64,7 @@ namespace WavVisualize
                 return "";
             }
 
-            VkCollection<Audio> audios = _api.Audio.Get(new AudioGetParams {Count = 1});
+            VkCollection<Audio> audios = _api.Audio.Get(new AudioGetParams {Count = 1, Offset = 2});
 
             return audios[0].Url.ToString();
 
