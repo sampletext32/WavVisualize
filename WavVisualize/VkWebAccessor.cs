@@ -68,18 +68,6 @@ namespace WavVisualize
             return "" /*response*/;
         }
 
-        public T Perform<T>(Func<ulong?, string, T> action)
-        {
-            int MaxCaptchaRecognitionCount = 0;
-            var numberOfRemainingAttemptsToSolveCaptcha = MaxCaptchaRecognitionCount;
-            var numberOfRemainingAttemptsToAuthorize = MaxCaptchaRecognitionCount + 1;
-            ulong? captchaSidTemp = null;
-            string captchaKeyTemp = null;
-            var callCompleted = false;
-            var result = action.Invoke(captchaSidTemp, captchaKeyTemp);
-            return result;
-        }
-
         public async Task<string> CallUriAsync(Uri uri, Dictionary<string, string> parameters,
             CancellationToken cancellationToken = default)
         {
