@@ -20,6 +20,8 @@ jobs:
     - uses: nuget/setup-nuget@v1
       with:
         nuget-version: '5.x'
+    
+    - name: Nuget Restore
     - run: nuget restore WavVisualize.sln
         
     - name: Setup MSBuild.exe
@@ -27,4 +29,4 @@ jobs:
 
     - name: Build project
       working-directory: WavVisualize
-      run: msbuild WavVisualize.csproj
+    - run: msbuild WavVisualize.csproj
