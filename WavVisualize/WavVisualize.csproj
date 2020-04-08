@@ -57,6 +57,7 @@
   <ItemGroup>
     <Compile Include="DataContainers\NestedRectangle.cs" />
     <Compile Include="DataContainers\Rectangle.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="SpectrumDrawer\TrueSpectrumDrawer.cs" />
     <Compile Include="Utils\NativeMethods.cs" />
     <Compile Include="Utils\FileLoader.cs" />
@@ -73,6 +74,7 @@
     <Compile Include="Utils\EasingProvider.cs" />
     <Compile Include="SpectrumDrawer\SpectrumDrawer.cs" />
     <Compile Include="Utils\TimeProvider.cs" />
+    <Compile Include="VkApi.cs" />
     <Compile Include="VkWebAccessor.cs" />
     <Compile Include="VolumeDrawer\AnalogVolumeDrawer.cs" />
     <Compile Include="VolumeDrawer\DigitalVolumeDrawer.cs" />
