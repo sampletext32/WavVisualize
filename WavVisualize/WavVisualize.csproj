@@ -61,6 +61,7 @@
     <Compile Include="DataContainers\NestedRectangle.cs" />
     <Compile Include="DataContainers\Rectangle.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="SafetyNetHandler.cs" />
     <Compile Include="SpectrumDrawer\TrueSpectrumDrawer.cs" />
     <Compile Include="Utils\NativeMethods.cs" />
     <Compile Include="Utils\FileLoader.cs" />
