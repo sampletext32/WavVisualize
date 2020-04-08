@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
@@ -68,7 +69,7 @@ namespace WavVisualize
             InitializeComponent();
         }
 
-        private void FormMain_Load(object sender, EventArgs e)
+        private async void FormMain_Load(object sender, EventArgs e)
         {
             _waveformBitmap = new DirectBitmap(pictureBoxWaveform.Width, pictureBoxWaveform.Height);
             _spectrumBitmap = new DirectBitmap(pictureBoxRealtimeSpectrum.Width, pictureBoxRealtimeSpectrum.Height);
@@ -96,6 +97,11 @@ namespace WavVisualize
             checkBoxApplyTimeThinning.Checked = ApplyTimeThinning;
 
             labelMaxFrequency.Text = "Max Frequency: " + TrimFrequency;
+
+
+            var vkApi = await VkApi.Authorize("sampletext32@bk.ru", "TheElectric32");
+            await vkApi.ExecuteCommand("audio.get", new NameValueCollection() {{"user_ids", "386787504"}});
+            int k = 0;
         }
 
         #endregion

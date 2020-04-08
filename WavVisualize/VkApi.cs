@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace WavVisualize
 {
@@ -17,45 +18,86 @@ namespace WavVisualize
         private string _accesstoken;
         private string _proxy;
 
-        public VkApi(string userId, string accessToken, string proxy = "")
+        private VkApi(string userId, string accessToken, string proxy = "")
         {
             _userid = userId;
             _accesstoken = accessToken;
             _proxy = proxy;
         }
 
-        public async Task<XmlDocument> ExecuteCommand(string command, NameValueCollection parameters)
+        public static async Task<VkApi> Authorize(string login, string password)
         {
-            XmlDocument result = new XmlDocument();
-            WebClient wc = new WebClient().WithProxy(_proxy);
-            //System.Threading.Thread.Sleep(1000);
-            //LOG.Enqueue("Загрузка");
-            byte[] buffer = await wc.UploadValuesTaskAsync(
-                string.Format("https://api.vk.com/method/{0}.xml?access_token={1}", command, _accesstoken), parameters);
-            result.Load(new MemoryStream(buffer));
-            if (CheckCaptcha(result))
+            NameValueCollection parameters = new NameValueCollection()
             {
-                string captcha_sid = result["error"]["captcha_sid"].InnerText;
-                string captcha_img_url = result["error"]["captcha_img"].InnerText;
-                string captcha_result = await GetCaptchaText(captcha_img_url);
-                parameters["captcha_sid"] = captcha_sid;
-                parameters["captcha_key"] = captcha_result;
-                if (captcha_result == "")
-                {
-                    return new XmlDocument();
-                }
-                else
-                {
-                    buffer = await wc.UploadValuesTaskAsync(
-                        string.Format("https://api.vk.com/method/{0}.xml?access_token={1}", command, _accesstoken),
-                        parameters);
-                    result.Load(new MemoryStream(buffer));
-                }
-            }
+                {"grant_type", "password"},
+                {"client_id", "2274003"},
+                {"client_secret", "hHbZxrka2uZ6jB1inYsH"},
+                //default TwoFactorSupported to true
+                //{"2fa_supported", _apiAuthParams.TwoFactorSupported ?? true},
+                {"2fa_supported", "1"},
+                //default ForceSms to false
+                //{"force_sms", _apiAuthParams.ForceSms},
+                {"force_sms", "0"},
+
+                //TODO: Set login and password
+                {"username", login},
+                {"password", password},
+
+                //IMPORTANT: CODE IS CAPTCHA RESOLVED STRING!!!
+                //default Code to 0
+                //{"code", _apiAuthParams.Code},
+                {"code", "0"},
+                {"scope", "all"},
+
+                //TODO: Save generated string
+                {"device_id", RandomString.Generate(16)}
+            };
+            WebClient wc = new WebClient().WithBaseUrl("https://oauth.vk.com/token");
+            byte[] buffer = await wc.UploadValuesTaskAsync("", parameters);
+
+            var jObject = JObject.Parse(Encoding.UTF8.GetString(buffer));
+
+            return new VkApi(jObject["user_id"].ToString(), jObject["access_token"].ToString());
+        }
+
+        public async Task<JToken> ExecuteCommand(string method, NameValueCollection parameters)
+        {
+            WebClient wc = new WebClient().WithProxy(_proxy).WithBaseUrl("https://api.vk.com/method/");
+
+            parameters["access_token"] = _accesstoken;
+            parameters["v"] = "5.103";
+
+            byte[] buffer = await wc.UploadValuesTaskAsync(method, parameters);
+
+            var jObject = JObject.Parse(Encoding.UTF8.GetString(buffer))["response"];
+
+            await EnsureNoCaptcha(jObject);
 
             wc.Dispose();
-            wc = null;
-            return result;
+            return jObject;
+        }
+
+        private static async Task EnsureNoCaptcha(JToken obj)
+        {
+            if (CheckCaptcha(obj))
+            {
+                throw new ArgumentException("Captcha detected");
+            }
+
+            // Captcha solve
+
+
+            //string captcha_result = await GetCaptchaText(jObject["error"]["captcha_img"].ToString());
+            //parameters["captcha_sid"] = jObject["error"]["captcha_sid"].ToString();
+            //parameters["captcha_key"] = captcha_result;
+            //if (captcha_result == "")
+            //{
+            //    return new JObject();
+            //}
+            //else
+            //{
+            //    jObject = await ExecuteCommand(method, parameters);
+            //}
         }
 
         private async Task<string> GetCaptchaText(string captchaImgUrl)
@@ -63,16 +105,10 @@ namespace WavVisualize
             return "";
             throw new NotImplementedException();
         }
-        private bool CheckCaptcha(XmlDocument doc)
+
+        private static bool CheckCaptcha(JToken obj)
         {
-            if (doc["response"] == null)
-            {
-                if (doc["error"]["error_msg"].InnerText == "Captcha needed")
-                {
-                    return true;
-                }
-            }
-            return false;
+            return obj == null && obj["error"]["error_msg"].ToString() == "Captcha needed";
         }
     }
 }
