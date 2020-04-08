@@ -15,18 +15,18 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Setup Nuget
-    - uses: actions/checkout@master
-    - uses: nuget/setup-nuget@v1
-      with:
-        nuget-version: '5.x'
+    - name: Checkout to Master
+      uses: actions/checkout@master
+      
+    - name: Install Nuget
+      uses: nuget/setup-nuget@v1
     
     - name: Nuget Restore
-    - run: nuget restore WavVisualize.sln
+      run: nuget restore WavVisualize.sln
         
     - name: Setup MSBuild.exe
-      uses: warrenbuckley/Setup-MSBuild@v1
+      uses: microsoft/setup-msbuild@v1.0.0
 
     - name: Build project
       working-directory: WavVisualize
-    - run: msbuild WavVisualize.csproj
+      run: msbuild WavVisualize.csproj
